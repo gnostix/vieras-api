@@ -1,6 +1,6 @@
 package gr.gnostix.restora
 
-import _root_.gr.gnostix.restora.gr.gnostix.restora.db.OraQueries
+import _root_.gr.gnostix.restora.db.OraQueries
 import org.scalatra._
 import scalate.ScalateSupport
 import scala.slick.lifted.{TableQuery, Tag}

@@ -1,4 +1,4 @@
-package gr.gnostix.restora.gr.gnostix.restora.db
+package gr.gnostix.restora.db
 
 import com.typesafe.slick.driver.oracle.OracleDriver.simple._
 
