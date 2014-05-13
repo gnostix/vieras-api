@@ -1,13 +1,12 @@
-package gr.gnostix.restora.db
-
-import scala.slick.lifted.{TableQuery, Tag}
-import com.typesafe.slick.driver.oracle.OracleDriver.simple._
-import java.sql.Date
+package gr.gnostix.restora.db.lifted
 
 /**
  * Created by rebel on 12/5/14.
  */
-object OraTables {
+object OracleLiftedTables {
+	import scala.slick.lifted.TableQuery
+	import com.typesafe.slick.driver.oracle.OracleDriver.simple._
+	import java.sql.Date
 
 
   class DSGroups(tag: Tag) extends Table[(Int, String)](tag, "DS_GROUPS") {
@@ -41,6 +40,5 @@ object OraTables {
   }
 
   val betaUsers = TableQuery[BetaUsers]
-
 
 }
