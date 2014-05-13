@@ -20,10 +20,11 @@ trait OraclePlainSQLQueries {
 	def getBetaUsers = {
 		db withSession {
 			implicit session =>
-				Q.queryNA[BetaUser]("select * from BETA_TESTING") foreach {
+				val records = Q.queryNA[BetaUser]("select * from BETA_TESTING")/* foreach {
 					u =>
 						println("------>" + u.email)
-				}
+				}*/
+				records.list()
 		}
 	}
 
