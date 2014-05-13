@@ -3,6 +3,7 @@ import gr.gnostix.restora._
 import org.scalatra._
 import javax.servlet.ServletContext
 import org.slf4j.LoggerFactory
+//import scala.slick.driver.JdbcDriver.backend.Database
 import scala.slick.jdbc.JdbcBackend.Database
 
 class ScalatraBootstrap extends LifeCycle {
