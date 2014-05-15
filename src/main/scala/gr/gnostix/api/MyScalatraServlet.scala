@@ -1,8 +1,8 @@
-package gr.gnostix.restora
+package gr.gnostix.api
 
 import org.scalatra._
 import scalate.ScalateSupport
-import gr.gnostix.restora.db.plainsql.OraclePlainSQLQueries
+import gr.gnostix.api.db.plainsql.OraclePlainSQLQueries
 import scala.slick.jdbc.JdbcBackend.Database
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
@@ -25,5 +25,5 @@ trait RestApiRoutes extends ScalatraServlet with OraclePlainSQLQueries with Jack
 
 }
 
-case class MyScalatraServlet(db: Database) extends ScalatraoraStack with RestApiRoutes
+case class MyScalatraServlet(db: Database) extends GnostixAPIStack with RestApiRoutes
 

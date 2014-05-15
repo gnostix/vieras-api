@@ -1,4 +1,4 @@
-package gr.gnostix.restora
+package gr.gnostix.api
 
 import org.scalatra.test.specs2._
 

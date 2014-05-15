@@ -1,4 +1,4 @@
-package gr.gnostix.restora.db.plainsql
+package gr.gnostix.api.db.plainsql
 
 //import slick.driver.JdbcDriver.backend.Database
 import scala.slick.jdbc.JdbcBackend.Database

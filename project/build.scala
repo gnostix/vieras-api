@@ -7,13 +7,13 @@ import ScalateKeys._
 
 object ScalatraoraBuild extends Build {
   val Organization = "gr.gnostix"
-  val Name = "ScalatraOra"
-  val Version = "0.1.0-SNAPSHOT"
+  val Name = "GnostixAPI"
+  val Version = "0.1.0"
   val ScalaVersion = "2.10.3"
   val ScalatraVersion = "2.2.2"
 
   lazy val project = Project (
-    "scalatraora",
+    "GnostixAPI",
     file("."),
     settings = Defaults.defaultSettings ++ ScalatraPlugin.scalatraWithJRebel ++ scalateSettings ++ Seq(
       organization := Organization,
@@ -24,26 +24,26 @@ object ScalatraoraBuild extends Build {
       resolvers += "Sonatype Releases"  at "http://oss.sonatype.org/content/repositories/releases",
       resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/maven-releases/",
       libraryDependencies ++= Seq(
-        "org.scalatra" %% "scalatra" % ScalatraVersion,
-        "org.scalatra" %% "scalatra-scalate" % ScalatraVersion,
-        "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
-        "ch.qos.logback" % "logback-classic" % "1.0.6" % "runtime",
-        "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container",
+        "org.scalatra" %% "scalatra" % ScalatraVersion withJavadoc(),
+        "org.scalatra" %% "scalatra-scalate" % ScalatraVersion withJavadoc(),
+        "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test" withJavadoc(),
+        "ch.qos.logback" % "logback-classic" % "1.0.6" % "runtime" withJavadoc(),
+        "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container" withJavadoc(),
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar")),
-        "com.typesafe.slick" %% "slick" % "2.0.2",
         "org.slf4j" % "slf4j-nop" % "1.6.4",
-        "c3p0" % "c3p0" % "0.9.1.2",
-				"org.scalatra" %% "scalatra-json" % "2.2.2",
-				"org.json4s"   %% "json4s-jackson" % "3.2.6"
+
+        "c3p0" % "c3p0" % "0.9.1.2" withJavadoc(),
+				"org.scalatra" %% "scalatra-json" % "2.2.2" withJavadoc(),
+				"org.json4s"   %% "json4s-jackson" % "3.2.6" withJavadoc(),
+        "com.typesafe.slick" %% "slick" % "2.0.2" withJavadoc(),
+        "com.typesafe.slick" %% "slick-extensions" % "2.0.2" withJavadoc()
       ),
 
-  // Oracle deps
-         libraryDependencies += "com.typesafe.slick" %% "slick-extensions" % "2.0.1",
       unmanagedJars in Compile ++= {
-                 val base = baseDirectory.value
-                 val customJars = (base / "custom_lib" ** "*.jar")
-                 customJars.classpath
-               },
+        val base = baseDirectory.value
+        val customJars = (base / "custom_lib" ** "*.jar")
+        customJars.classpath
+      },
 
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(

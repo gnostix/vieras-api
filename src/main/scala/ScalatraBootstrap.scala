@@ -1,5 +1,5 @@
 import com.mchange.v2.c3p0.ComboPooledDataSource
-import gr.gnostix.restora._
+import gr.gnostix.api._
 import org.scalatra._
 import javax.servlet.ServletContext
 import org.slf4j.LoggerFactory

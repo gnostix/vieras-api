@@ -1,4 +1,4 @@
-package gr.gnostix.restora.db.lifted
+package gr.gnostix.api.db.lifted
 
 
 trait OracleLiftedQueries {
