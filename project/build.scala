@@ -36,7 +36,8 @@ object ScalatraoraBuild extends Build {
 				"org.scalatra" %% "scalatra-json" % "2.2.2" withJavadoc(),
 				"org.json4s"   %% "json4s-jackson" % "3.2.6" withJavadoc(),
         "com.typesafe.slick" %% "slick" % "2.0.2" withJavadoc(),
-        "com.typesafe.slick" %% "slick-extensions" % "2.0.2" withJavadoc()
+        "com.typesafe.slick" %% "slick-extensions" % "2.0.2" withJavadoc(),
+        "org.scalatra" %% "scalatra-auth" % ScalatraVersion withJavadoc()
       ),
 
       unmanagedJars in Compile ++= {

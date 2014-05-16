@@ -6,11 +6,13 @@ import gr.gnostix.api.db.plainsql.OraclePlainSQLQueries
 import scala.slick.jdbc.JdbcBackend.Database
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
+import gr.gnostix.api.auth.AuthenticationSupport
+import gr.gnostix.api.models.User
 
 
-
-
-trait RestApiRoutes extends ScalatraServlet with OraclePlainSQLQueries with JacksonJsonSupport {
+trait RestApiRoutes extends ScalatraServlet with OraclePlainSQLQueries
+  with JacksonJsonSupport
+  with AuthenticationSupport {
 
 	// Sets up automatic case class to JSON output serialization, required by
 	// the JValueResult trait.
@@ -19,9 +21,22 @@ trait RestApiRoutes extends ScalatraServlet with OraclePlainSQLQueries with Jack
 	before() {
 		contentType = formats("json")
 	}
-    get("/betausers"){
-      getBetaUsers
+
+  post("/login") {
+    scentry.authenticate()
+    if (isAuthenticated) {
+      logger.info("-------------> /login: successful")
+    } else {
+      logger.info("-------------> /login: failed")
     }
+  }
+
+  //
+  get("/betausers"){
+    requireLogin()
+    println("---->        " + user )
+    getBetaUsers
+  }
 
 }
 
