@@ -15,31 +15,32 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
   val logger = LoggerFactory.getLogger(getClass)
 
   private def username = app.params.getOrElse("user", "")
+
   private def password = app.params.getOrElse("password", "")
 
-  /***
+  /** *
     * Determine whether the strategy should be run for the current request.
     */
   override def isValid(implicit request: HttpServletRequest) = {
-    logger.info("UserPasswordStrategy: determining isValid: " + (username != "" && password != "").toString())
+    logger.info("---------->  UserPasswordStrategy: determining isValid: " + (username != "" && password != "").toString())
     username != "" && password != ""
   }
 
 
   /**
-   *  In real life, this is where we'd consult our data store, asking it whether the user credentials matched
-   *  any existing user. Here, we'll just check for a known login/password combination and return a user if
-   *  it's found.
+   * In real life, this is where we'd consult our data store, asking it whether the user credentials matched
+   * any existing user. Here, we'll just check for a known login/password combination and return a user if
+   * it's found.
    */
   def authenticate()(implicit request: HttpServletRequest, response: HttpServletResponse): Option[User] = {
     logger.info("UserPasswordStrategy: attempting authentication")
 
-    if(username == "foo" && password == "foo") {
+    if (username == "foo" && password == "foo") {
       logger.info("UserPasswordStrategy: login succeeded")
-      Some(User("foobhjghjghjo", 25))
+      Some(User("Alex Pappas", 25))
     } else {
-      logger.info("UserPasswordStrategy: login failed")
-      println("asdfasdfasdfasf")
+      logger.info("-----------> UserPasswordStrategy: login failed")
+      println("--------> auth failed")
       None
     }
   }

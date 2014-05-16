@@ -16,8 +16,8 @@ trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User] {
 
   protected val scentryConfig = (new ScentryConfig {}).asInstanceOf[ScentryConfiguration]
 
-  protected def fromSession = { case usr: User => User(name,89)  }
-  protected def toSession   = { case usr: User => usr.age }
+  protected def fromSession = { case name: String => User(name,87) }
+  protected def toSession   = { case usr: User => usr.name }
 
   protected def requireLogin() = {
     if(!isAuthenticated) {

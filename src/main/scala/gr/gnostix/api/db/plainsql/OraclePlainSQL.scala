@@ -5,6 +5,7 @@ import scala.slick.jdbc.JdbcBackend.Database
 //import Database.dynamicSession
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 import java.sql.Date
+import gr.gnostix.api.models._
 
 trait OraclePlainSQLQueries {
 
@@ -28,6 +29,15 @@ trait OraclePlainSQLQueries {
 		}
 	}
 
+/*  def authUser(username: String, password: String): Option[User] = {
+    db withSession {
+      implicit session =>
+        val records = Q.queryNA[User]("select * from users where username = '"
+          + username + "' and password = '" + password +"'")
+
+        records
+    }
+  }*/
 
 }
 

@@ -25,20 +25,27 @@ trait RestApiRoutes extends ScalatraServlet with OraclePlainSQLQueries
   post("/login") {
     scentry.authenticate()
     if (isAuthenticated) {
-      logger.info("-------------> /login: successful")
+      logger.info(" logger -------------> /login: successful Name: " + user.age)
+      println("-------------> /login: successful Name: " + user.name)
     } else {
       logger.info("-------------> /login: failed")
     }
   }
 
+  get("/data"){
+    requireLogin()
+    List(1,2,3,4,5)
+  }
+
+
   //
   get("/betausers"){
     requireLogin()
-    println("---->        " + user )
+    println("----> " + user.age )
     getBetaUsers
   }
 
 }
 
-case class MyScalatraServlet(db: Database) extends GnostixAPIStack with RestApiRoutes
+ case class MyScalatraServlet(db: Database) extends GnostixAPIStack with RestApiRoutes
 
