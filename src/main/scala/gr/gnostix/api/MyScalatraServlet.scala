@@ -10,32 +10,34 @@ import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.User
 
 
-trait RestApiRoutes extends ScalatraServlet with OraclePlainSQLQueries
+trait RestApiRoutes extends ScalatraServlet
+  with OraclePlainSQLQueries
   with JacksonJsonSupport
   with AuthenticationSupport {
 
-	// Sets up automatic case class to JSON output serialization, required by
-	// the JValueResult trait.
-	protected implicit val jsonFormats: Formats = DefaultFormats
+  // Sets up automatic case class to JSON output serialization, required by
+  // the JValueResult trait.
+  protected implicit val jsonFormats: Formats = DefaultFormats
 
-	before() {
-		contentType = formats("json")
-	}
+  before() {
+    contentType = formats("json")
+  }
 
   post("/login") {
     scentry.authenticate()
     if (isAuthenticated) {
-      logger.info("-------------> /login: successful")
-    } else {
+      logger.info("-------------> /login: successful" + user.name)
+    }
+    else {
       logger.info("-------------> /login: failed")
     }
   }
 
   //
-  get("/betausers"){
+  get("/betausers") {
     requireLogin()
-    println("---->        " + user )
-    getBetaUsers
+    logger.info("---->        " + user.name)
+    //getBetaUsers
   }
 
 }

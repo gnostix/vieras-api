@@ -14,7 +14,7 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  private def username = app.params.getOrElse("user", "")
+  private def username = app.params.getOrElse("username", "")
   private def password = app.params.getOrElse("password", "")
 
   /***
@@ -36,10 +36,9 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
 
     if(username == "foo" && password == "foo") {
       logger.info("UserPasswordStrategy: login succeeded")
-      Some(User("foobhjghjghjo", 25))
+      Some(User("foobhjghjghjo"))
     } else {
       logger.info("UserPasswordStrategy: login failed")
-      println("asdfasdfasdfasf")
       None
     }
   }
