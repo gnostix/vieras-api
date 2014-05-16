@@ -14,8 +14,8 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  private def username = app.params.getOrElse("user", "")
 
+  private def username = app.params.getOrElse("username", "")
   private def password = app.params.getOrElse("password", "")
 
   /** *

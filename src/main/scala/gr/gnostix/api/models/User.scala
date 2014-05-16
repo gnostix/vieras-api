@@ -10,3 +10,4 @@ case class User1(userId: Int, username: String, password: String, userLevel: Int
           company: String, language: String, expirationDate: Date, totalCounts: Int, totalKeywords: Int, enabled: Int,
           sentEmail: Int, totalProfiles: Int, totalFbFanPages: Int, totalTwitterAccounts: Int, totalTopicProfiles: String)
 */
+
