@@ -19,12 +19,13 @@ trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User] {
 
   protected def fromSession = { case name: String => {
                                                         logger.info("----> get from SessionStore")
-                                                        User(name,98)
+                                                        //User(name,98)
+                                                        User(name)
                                                      }
   }
-  protected def toSession   = { case usr: User => {
+  protected def toSession   = { case user: User => {
                                                       logger.info("-----> store to SessionStore")
-                                                      usr.name
+                                                      user.name
   } }
 
 

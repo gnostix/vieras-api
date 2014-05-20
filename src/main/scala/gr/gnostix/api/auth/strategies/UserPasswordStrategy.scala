@@ -37,7 +37,7 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
 
     if (username == "foo" && password == "foo") {
       logger.info("UserPasswordStrategy: login succeeded")
-      Some(User("Alex Pappas", 25))
+      Some(User("Alex Pappas"))
     } else {
       logger.info("-----------> UserPasswordStrategy: login failed")
       println("--------> auth failed")

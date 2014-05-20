@@ -2,7 +2,9 @@ package gr.gnostix.api.models
 
 import java.sql.Date
 
-case class User(name: String, age: Int)
+case class User(name: String)
+case class Customer(id: Int, name: String, lastname: String, t_results: Int)
+
 
 /*
 case class User1(userId: Int, username: String, password: String, userLevel: Int, firstname: String, lastname: String,
