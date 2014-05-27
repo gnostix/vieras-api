@@ -5,11 +5,13 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.scalatra.auth.ScentryStrategy
 import org.slf4j.LoggerFactory
 import gr.gnostix.api.models.{UserDao, User}
+import scala.slick.jdbc.JdbcBackend.Database
 
 class UserPasswordStrategy(protected val app: ScalatraBase)
                           (implicit request: HttpServletRequest, response: HttpServletResponse)
   extends ScentryStrategy[User] {
 
+  //val db: Database
   override def name: String = "UserPassword"
 
   val logger = LoggerFactory.getLogger(getClass)
@@ -36,7 +38,7 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
     logger.info("UserPasswordStrategy: attempting authentication")
 
 
-    findByUsername(username) match {
+    UserDao.findByUsername(username) match {
       case Some(user) => { logger.info("UserPasswordStrategy: login succeeded") ; Some(user) }
       case None => { logger.info("-----------> UserPasswordStrategy: login failed") ; None }
     }

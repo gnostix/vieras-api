@@ -3,12 +3,12 @@ package gr.gnostix.api.auth
 
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.{ScentryConfig, ScentrySupport}
-import gr.gnostix.api.models.{User,UserDao}
+import gr.gnostix.api.models.{UserDao, User}
 import gr.gnostix.api.auth.strategies.UserPasswordStrategy
 //import com.constructiveproof.hackertracker.auth.strategies.RememberMeStrategy
 import org.slf4j.LoggerFactory
 
-trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User] with UserDao {
+trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User]{
   self: ScalatraBase =>
 
   val logger = LoggerFactory.getLogger(getClass)
@@ -20,7 +20,7 @@ trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User] with 
   protected def fromSession = { case userId: String => {
                                                         logger.info("----> get from SessionStore")
                                                         //User(name,98)
-                                                        findById(userId.toInt)
+                                                        UserDao.findById(userId.toInt)
                                                      }
   }
   protected def toSession   = { case user: User => {

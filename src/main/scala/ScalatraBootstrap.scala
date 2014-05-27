@@ -1,5 +1,7 @@
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import gr.gnostix.api._
+import gr.gnostix.api.models.DB
+import javax.sql.DataSource
 import org.scalatra._
 import javax.servlet.ServletContext
 import org.slf4j.LoggerFactory
@@ -31,3 +33,4 @@ class ScalatraBootstrap extends LifeCycle {
     closeDbConnection
   }
 }
+

@@ -11,7 +11,6 @@ import gr.gnostix.api.models.{UserDao, User}
 
 
 trait RestApiRoutes extends ScalatraServlet
-with UserDao
 with JacksonJsonSupport
 with AuthenticationSupport
 with CorsSupport {
@@ -57,9 +56,9 @@ with CorsSupport {
   get("/users") {
     //requireLogin()
     // println("----> " + user.age )
-    getUsers
+    logger.info("---->   ALEX REQUEST     ")
+    UserDao.getUsers
 
-    //logger.info("---->        " + user.userId)
   }
 
   get("/facebook") {
