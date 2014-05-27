@@ -7,11 +7,11 @@ import scala.slick.jdbc.JdbcBackend.Database
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.{Customer, User}
+import gr.gnostix.api.models.{UserDao, User}
 
 
 trait RestApiRoutes extends ScalatraServlet
-with OraclePlainSQLQueries
+with UserDao
 with JacksonJsonSupport
 with AuthenticationSupport
 with CorsSupport {
@@ -32,23 +32,21 @@ with CorsSupport {
     scentry.authenticate()
     if (isAuthenticated) {
       // logger.info(" logger -------------> /login: successful Name: " + user.age)
-      println("-------------> /login: successful Name: " + user.name)
+      println("--------------> /login: successful Name: " + user.userId)
     } else {
-      logger.info("-------------> /login: successful" + user.name)
+      logger.info("-----------------------> /login: successful" + user.userId)
     }
   }
 
   get("/data") {
-    // logger.info("-------------> after getting the data " + user.age)
-    logger.info("-------------> after getting the data " + user.name)
+    logger.info("-------------> after getting the data " + user.userId)
 
     requireLogin()
     List(1, 2, 3, 4, 5)
 
   }
   get("/data2") {
-    // logger.info("-------------> after getting the data " + user.age)
-    logger.info("-------------> after getting the data2 " + user.name)
+    //logger.info("-------------> after getting the data2 " + user.userId)
 
     requireLogin()
     List(1, 2, 3, 4, 5)
@@ -56,27 +54,27 @@ with CorsSupport {
   }
 
   //
-  get("/betausers") {
-    requireLogin()
+  get("/users") {
+    //requireLogin()
     // println("----> " + user.age )
-    getBetaUsers
+    getUsers
 
-    logger.info("---->        " + user.name)
+    //logger.info("---->        " + user.userId)
   }
 
   get("/facebook") {
     val fbStats = Map("likes" -> 987664, "comments" -> 6243)
     //List(fbStats)
-    var usr = Customer(100, "Bil", "Vat", 86535)
-    session.put("my_user", usr: Customer)
+    //var usr = Customer(100, "Bil", "Vat", 86535)
+    //session.put("my_user", usr: Customer)
     logger.info("----> Customer added to session")
     fbStats
   }
 
   get("/twitter") {
     val twStats = Map("followers" -> 234664, "tweets" -> 6243)
-    val theUser = session.getAttribute("my_user").asInstanceOf[Customer]
-    logger.info("----> get the user from the session : " + theUser.t_results)
+    //val theUser = session.getAttribute("my_user").asInstanceOf[Customer]
+    //logger.info("----> get the user from the session : " + theUser.t_results)
     twStats
   }
 

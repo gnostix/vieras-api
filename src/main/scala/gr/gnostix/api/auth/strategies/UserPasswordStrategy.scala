@@ -4,7 +4,7 @@ import org.scalatra.ScalatraBase
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.scalatra.auth.ScentryStrategy
 import org.slf4j.LoggerFactory
-import gr.gnostix.api.models.User
+import gr.gnostix.api.models.{UserDao, User}
 
 class UserPasswordStrategy(protected val app: ScalatraBase)
                           (implicit request: HttpServletRequest, response: HttpServletResponse)
@@ -35,13 +35,10 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
   def authenticate()(implicit request: HttpServletRequest, response: HttpServletResponse): Option[User] = {
     logger.info("UserPasswordStrategy: attempting authentication")
 
-    if (username == "foo" && password == "foo") {
-      logger.info("UserPasswordStrategy: login succeeded")
-      Some(User("Alex Pappas"))
-    } else {
-      logger.info("-----------> UserPasswordStrategy: login failed")
-      println("--------> auth failed")
-      None
+
+    findByUsername(username) match {
+      case Some(user) => { logger.info("UserPasswordStrategy: login succeeded") ; Some(user) }
+      case None => { logger.info("-----------> UserPasswordStrategy: login failed") ; None }
     }
   }
 

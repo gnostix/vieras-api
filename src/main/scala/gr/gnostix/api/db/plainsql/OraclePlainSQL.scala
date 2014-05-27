@@ -10,24 +10,23 @@ import gr.gnostix.api.models._
 trait OraclePlainSQLQueries {
 
 	val db: Database
-	case class BetaUser(id: Int, firstName: String, lastName: String, company: String,
-											email: String, newsletter: Int, signupDate: Date, expirationDate: Date)
 
 
-	implicit val getBetaUserResult = GetResult(r => BetaUser(r.<<, r.<<, r.<<, r.<<,
-		r.<<, r.<<, r.<<, r.<<))
+/*
+	implicit val getUserResult = GetResult(r => User1(r.<<, r.<<, r.<<, r.<<,
+    UserDetails(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<),
+		UserTotals(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<)))
 
-
-	def getBetaUsers = {
+	def getUsers = {
 		db withSession {
 			implicit session =>
-				val records = Q.queryNA[BetaUser]("select * from BETA_TESTING")/* foreach {
+				val records = Q.queryNA[User1]("select * from USERS")/* foreach {
 					u =>
 						println("------>" + u.email)
 				}*/
 				records.list()
 		}
-	}
+	}*/
 
 /*  def authUser(username: String, password: String): Option[User] = {
     db withSession {
@@ -40,4 +39,3 @@ trait OraclePlainSQLQueries {
   }*/
 
 }
-
