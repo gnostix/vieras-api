@@ -7,7 +7,7 @@ import scala.slick.jdbc.JdbcBackend.Database
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.{UserDao, User}
+import gr.gnostix.api.models._
 
 
 trait RestApiRoutes extends ScalatraServlet
@@ -22,6 +22,7 @@ with CorsSupport {
   // Sets up automatic case class to JSON output serialization, required by
   // the JValueResult trait.
   protected implicit val jsonFormats: Formats = DefaultFormats
+  //val db: Database
 
   before() {
     contentType = formats("json")
@@ -52,13 +53,21 @@ with CorsSupport {
 
   }
 
+  get("/datafindings/twitter") {
+    logger.info("---->   /datafindings/twitter     ")
+    DtTwitterLineGraphDAO.getTWLineDataByDay
+    //AlexDAO.getAlexNumb
+  }
+
   //
   get("/users") {
-    //requireLogin()
-    // println("----> " + user.age )
+    logger.info("---->   ALEX REQUEST     ")
+    UserDao.findByUsername("test")
+  }
+
+  get("/users1") {
     logger.info("---->   ALEX REQUEST     ")
     UserDao.getUsers
-
   }
 
   get("/facebook") {
@@ -77,7 +86,10 @@ with CorsSupport {
     twStats
   }
 
+  get("/jndi") {
+    UserDao.getJndi
+  }
 }
 
-case class MyScalatraServlet(db: Database) extends GnostixAPIStack with RestApiRoutes
+case class MyScalatraServlet() extends GnostixAPIStack with RestApiRoutes
 

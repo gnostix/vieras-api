@@ -1,0 +1,12 @@
+<New id="DSTest" class="org.eclipse.jetty.plus.jndi.Resource">
+    <Arg></Arg>
+    <Arg>jdbc/DSTest</Arg>
+    <Arg>
+        <New class="com.mchange.v2.c3p0.ComboPooledDataSource">
+            <Set name="driverClass">oracle.jdbc.driver.OracleDriver</Set>
+            <Set name="jdbcUrl">jdbc:oracle:thin:@db.gnstx.gr:1521:ora</Set>
+            <Set name="user">DUSR_BACKUP</Set>
+            <Set name="password">sandripappa1977</Set>
+        </New>
+    </Arg>
+</New>
