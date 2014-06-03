@@ -5,7 +5,6 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.scalatra.auth.ScentryStrategy
 import org.slf4j.LoggerFactory
 import gr.gnostix.api.models.{UserDao, User}
-import scala.slick.jdbc.JdbcBackend.Database
 
 class UserPasswordStrategy(protected val app: ScalatraBase)
                           (implicit request: HttpServletRequest, response: HttpServletResponse)
@@ -18,6 +17,7 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
 
 
   private def username = app.params.getOrElse("username", "")
+
   private def password = app.params.getOrElse("password", "")
 
   /** *
@@ -39,8 +39,19 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
 
 
     UserDao.findByUsername(username) match {
-      case Some(user) => { logger.info("UserPasswordStrategy: login succeeded") ; Some(user) }
-      case None => { logger.info("-----------> UserPasswordStrategy: login failed") ; None }
+      case Some(user) => {
+        logger.info("UserPasswordStrategy: found the username in DB")
+        if (checkUserPassword(username, password, user.password)) {
+          Some(user)
+        } else {
+          logger.info("-----------> UserPasswordStrategy: login failed --> user and pass did not match!!");
+          None
+        }
+      }
+      case None => {
+        logger.info("-----------> UserPasswordStrategy: login failed");
+        None
+      }
     }
   }
 
@@ -50,6 +61,18 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
   override def unauthenticated()(implicit request: HttpServletRequest, response: HttpServletResponse) {
     //app.redirect("/sessions/new")
     logger.info("---------> UserPasswordStrategy: login unauthenticated, was redirected")
+    app.redirect("/login")
+  }
 
+  def checkUserPassword(username: String, password: String, userDbPassword: String): Boolean = {
+    logger.info (s"---------> UserPasswordStrategy checkUserPassword :  $username $password")
+    if (md5Hash (username + password) == userDbPassword) true else false
+  }
+
+  // create a md5 hash from a string
+  def md5Hash(text: String): String = java.security.MessageDigest.getInstance("MD5").digest(text.getBytes()).map(0xFF & _).map {
+    "%02x".format(_)
+  }.foldLeft("") {
+    _ + _
   }
 }

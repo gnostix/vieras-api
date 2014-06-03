@@ -3,9 +3,7 @@ package gr.gnostix.api.db.plainsql
 //import slick.driver.JdbcDriver.backend.Database
 import scala.slick.jdbc.JdbcBackend.Database
 //import Database.dynamicSession
-import scala.slick.jdbc.{GetResult, StaticQuery => Q}
-import java.sql.Date
-import gr.gnostix.api.models._
+import scala.slick.jdbc.{StaticQuery => Q}
 
 trait OraclePlainSQLQueries {
 

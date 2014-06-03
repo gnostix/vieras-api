@@ -1,13 +1,11 @@
-package gr.gnostix.api
+package gr.gnostix.api.servlets
 
+import gr.gnostix.api.auth.AuthenticationSupport
 import org.scalatra._
-import scalate.ScalateSupport
-import gr.gnostix.api.db.plainsql.OraclePlainSQLQueries
-import scala.slick.jdbc.JdbcBackend.Database
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
-import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models._
+import gr.gnostix.api.GnostixAPIStack
+import gr.gnostix.api.models.{DtTwitterLineGraphDAO, UserDao}
 
 
 trait RestApiRoutes extends ScalatraServlet
@@ -32,16 +30,15 @@ with CorsSupport {
     scentry.authenticate()
     if (isAuthenticated) {
       // logger.info(" logger -------------> /login: successful Name: " + user.age)
-      println("--------------> /login: successful Name: " + user.userId)
+      println("--------------> /login: successful Id: " + user.userId)
     } else {
-      logger.info("-----------------------> /login: successful" + user.userId)
+      logger.info("-----------------------> /login: NOT successful")
     }
   }
 
   get("/data") {
-    logger.info("-------------> after getting the data " + user.userId)
-
     requireLogin()
+    logger.info("-------------> after getting the data " + user.userId)
     List(1, 2, 3, 4, 5)
 
   }
@@ -54,9 +51,17 @@ with CorsSupport {
   }
 
   get("/datafindings/twitter") {
-    logger.info("---->   /datafindings/twitter     ")
+    logger.info(s"---->   /datafindings/twitter ${params("fromDate")}  ${params("toDate")}  ")
     DtTwitterLineGraphDAO.getTWLineDataByDay
     //AlexDAO.getAlexNumb
+  }
+
+  get("/api/:profileId/datafindings/:topicID/twitter") {
+    println(params("profileId"))
+    println(params("topicID"))
+    println(params("fromDate"))
+    println(params("toDate"))
+
   }
 
   //
@@ -86,9 +91,9 @@ with CorsSupport {
     twStats
   }
 
-  get("/jndi") {
+/*  get("/jndi") {
     UserDao.getJndi
-  }
+  }*/
 }
 
 case class MyScalatraServlet() extends GnostixAPIStack with RestApiRoutes

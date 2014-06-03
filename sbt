@@ -83,13 +83,13 @@ get_script_path () {
 # a ham-fisted attempt to move some memory settings in concert
 # so they need not be dicked around with individually.
 get_mem_opts () {
-  local mem=${1:-1536}
+  local mem=${1:-2048}
   local perm=$(( $mem / 4 ))
   (( $perm > 256 )) || perm=256
   (( $perm < 1024 )) || perm=1024
   local codecache=$(( $perm / 2 ))
-
-  echo "-Xms${mem}m -Xmx${mem}m -XX:MaxPermSize=${perm}m -XX:ReservedCodeCacheSize=${codecache}m"
+# by Alex added
+  echo "-Xms${mem}m -Xmx${mem}m -XX:MaxPermSize=1024m -XX:ReservedCodeCacheSize=${codecache}m"
 }
 
 die() {
