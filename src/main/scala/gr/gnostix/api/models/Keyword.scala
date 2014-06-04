@@ -19,7 +19,7 @@ object KeywordDao extends DatabaseAccessSupport {
   implicit val getKeywordResult = GetResult(r => Keyword(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<))
 
-  def findById(keywordId: String) = {
+  def findById(keywordId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Keyword](s"""select * from keywords where K_ID = $keywordId""")
@@ -27,7 +27,7 @@ object KeywordDao extends DatabaseAccessSupport {
     }
   }
 
-  def getAllKeywords(topicId: String) = {
+  def getAllKeywords(topicId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Keyword](s"""select * from keywords k where k.fk_sd_id = $topicId""")

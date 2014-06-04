@@ -14,7 +14,8 @@ with AuthenticationSupport
 with CorsSupport {
 
   options("/*") {
-    response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+    response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, HEAD, OPTIONS")
   }
 
   // Sets up automatic case class to JSON output serialization, required by

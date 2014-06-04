@@ -12,7 +12,7 @@ case class Topic(topicId: Int, topicName: String, topicAttributes: String, profi
   implicit val getTopicResult = GetResult(r => Topic(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<))
 
-  def findById(topicId: String) = {
+  def findById(topicId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Topic]( s"""select * from search_domains where SD_ID = $topicId""")
@@ -20,7 +20,7 @@ case class Topic(topicId: Int, topicName: String, topicAttributes: String, profi
     }
   }
 
-  def getAllTopics(profileId: String) = {
+  def getAllTopics(profileId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Topic]( s"""select * from search_domains where FK_CUSTOMER_ID = $profileId""")

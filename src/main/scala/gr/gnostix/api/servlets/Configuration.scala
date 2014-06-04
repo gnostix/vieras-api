@@ -17,6 +17,7 @@ with CorsSupport {
     response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
   }
 
+
   // Sets up automatic case class to JSON output serialization, required by
   // the JValueResult trait.
   protected implicit val jsonFormats: Formats = DefaultFormats
@@ -27,30 +28,30 @@ with CorsSupport {
 
   get("/:userId/profiles/all") {
     logger.info("---->   return all profiles with id and name     ")
-    ProfileDao.getAllProfiles(params("userId"))
+    ProfileDao.getAllProfiles(params("userId").toInt)
   }
 
   get("/:userId/profile/:id") {
     logger.info(s"---->   return profile with id ${params("id")}     ")
-    ProfileDao.findById(params("id"))
+    ProfileDao.findById(params("id").toInt)
   }
 
 
   get("/:userId/profiles/:profileId/topics/all") {
     logger.info(s"---->   return all the topics for this profileId ${params("profileId")}     ")
-    TopicDao.getAllTopics(params("profileId"))
+    TopicDao.getAllTopics(params("profileId").toInt)
   }
 
 
   get("/:userId/profile/:profileId/topic/:id") {
     logger.info(s"---->   return all the topics for this profileId ${params("id")}     ")
-    TopicDao.findById(params("id"))
+    TopicDao.findById(params("id").toInt)
   }
 
 
   get("/:userId/profile/:profileId/topic/:topicId/keywords/all") {
     logger.info(s"---->   return all the keywords for this topicID ${params("topicId")}     ")
-    KeywordDao.getAllKeywords(params("topicId"))
+    KeywordDao.getAllKeywords(params("topicId").toInt)
   }
 
 }

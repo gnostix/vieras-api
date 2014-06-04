@@ -20,7 +20,7 @@ object ProfileDao extends DatabaseAccessSupport {
   implicit val getProfileResult = GetResult(r => Profile(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<< ))
 
-  def findById(profileId: String) = {
+  def findById(profileId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Profile](s"""select c.customer_id, c.customer_firstname,
@@ -30,7 +30,7 @@ object ProfileDao extends DatabaseAccessSupport {
     }
   }
 
-  def getAllProfiles(userId: String) = {
+  def getAllProfiles(userId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Profile](s"""select c.customer_id, c.customer_firstname,
