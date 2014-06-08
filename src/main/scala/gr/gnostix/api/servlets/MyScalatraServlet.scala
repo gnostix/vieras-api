@@ -6,6 +6,10 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.models.{DtTwitterLineGraphDAO, UserDao}
+import java.util.Date
+import java.text.SimpleDateFormat
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 
 
 trait RestApiRoutes extends ScalatraServlet
@@ -14,8 +18,8 @@ with AuthenticationSupport
 with CorsSupport {
 
   options("/*") {
+    println("--------------> OPTIONS ------------")
     response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
-    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, HEAD, OPTIONS")
   }
 
   // Sets up automatic case class to JSON output serialization, required by
@@ -25,6 +29,9 @@ with CorsSupport {
 
   before() {
     contentType = formats("json")
+    //response.setHeader("Access-Control-Allow-Origin", "*");
+    //response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    //response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
   }
 
   post("/login") {
@@ -51,10 +58,23 @@ with CorsSupport {
 
   }
 
-  get("/datafindings/twitter") {
+  get("/datafindings/twitter/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/twitter ${params("fromDate")}  ${params("toDate")}  ")
-    DtTwitterLineGraphDAO.getTWLineDataByDay
-    //AlexDAO.getAlexNumb
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+               DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      //val pattern: String = "dd-MM-yyyy HH:mm:ss"
+      //val fromDate: DateTime = DateTimeFormat.forPattern(pattern).parseDateTime(params("fromDate"))
+
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+                        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+
+      DtTwitterLineGraphDAO.getTWLineData(fromDate, toDate)
+    } catch {
+      case e: Exception => "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+    }
   }
 
   get("/api/:profileId/datafindings/:topicID/twitter") {
@@ -92,9 +112,9 @@ with CorsSupport {
     twStats
   }
 
-/*  get("/jndi") {
-    UserDao.getJndi
-  }*/
+  /*  get("/jndi") {
+      UserDao.getJndi
+    }*/
 }
 
 case class MyScalatraServlet() extends GnostixAPIStack with RestApiRoutes

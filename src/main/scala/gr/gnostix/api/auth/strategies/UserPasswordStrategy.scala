@@ -61,7 +61,7 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
   override def unauthenticated()(implicit request: HttpServletRequest, response: HttpServletResponse) {
     //app.redirect("/sessions/new")
     logger.info("---------> UserPasswordStrategy: login unauthenticated, was redirected")
-    app.redirect("/login")
+    //app.redirect("/login")
   }
 
   def checkUserPassword(username: String, password: String, userDbPassword: String): Boolean = {

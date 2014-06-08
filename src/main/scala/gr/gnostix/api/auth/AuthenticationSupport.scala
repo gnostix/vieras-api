@@ -33,7 +33,7 @@ trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User]{
       //redirect("/sessions/new")
       logger.info("------------------> trait:requiredLogin: was redirected")
       //halt(401, "Unauth")
-      redirect("/login")
+      //redirect("/login")
     }
   }
 
