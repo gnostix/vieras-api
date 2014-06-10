@@ -8,5 +8,8 @@ val pattern: String = "dd-MM-yyyy HH:mm:ss"
 
 val toDate: DateTime = new DateTime(toDateStr)
 
-val fmt: DateTimeFormatter  = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+val fmt: DateTimeFormatter  = DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss");
 val sqlTimeString: String  = fmt.print(toDate);
+
+//DateTime.parse(toDateStr,
+//  DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))

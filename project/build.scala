@@ -4,6 +4,7 @@ import org.scalatra.sbt._
 import com.mojolly.scalate.ScalatePlugin._
 import ScalateKeys._
 
+
 object ScalatraoraBuild extends Build {
   val Organization = "gr.gnostix"
   val Name = "GnostixAPI"
@@ -27,7 +28,7 @@ object ScalatraoraBuild extends Build {
         "org.scalatra" %% "scalatra-scalate" % ScalatraVersion withJavadoc(),
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test" withJavadoc(),
         "ch.qos.logback" % "logback-classic" % "1.0.6" % "runtime" withJavadoc(),
-        "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container" withJavadoc(),
+        "org.eclipse.jetty" % "jetty-webapp" % "8.1.10.v20130312" % "container;compile" withJavadoc(),
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar")),
         "c3p0" % "c3p0" % "0.9.1.2" withJavadoc(),
 				"org.scalatra" %% "scalatra-json" % "2.2.2" withJavadoc(),
@@ -35,6 +36,8 @@ object ScalatraoraBuild extends Build {
         "com.typesafe.slick" %% "slick" % "2.0.2" withJavadoc(),
         "com.typesafe.slick" %% "slick-extensions" % "2.0.2" withJavadoc(),
         "org.scalatra" %% "scalatra-auth" % ScalatraVersion withJavadoc()
+        //"org.joda" %% "joda-time" % "2.2"  ,
+        //"org.joda" %% "joda-convert" % "1.6"
       ),
 
       unmanagedJars in Compile ++= {

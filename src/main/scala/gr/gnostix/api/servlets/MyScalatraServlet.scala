@@ -5,11 +5,12 @@ import org.scalatra._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
 import gr.gnostix.api.GnostixAPIStack
-import gr.gnostix.api.models.{DtTwitterLineGraphDAO, UserDao}
+import gr.gnostix.api.models._
 import java.util.Date
 import java.text.SimpleDateFormat
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import gr.gnostix.api.models.DataResponse
 
 
 trait RestApiRoutes extends ScalatraServlet
@@ -18,7 +19,6 @@ with AuthenticationSupport
 with CorsSupport {
 
   options("/*") {
-    println("--------------> OPTIONS ------------")
     response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
   }
 
@@ -29,15 +29,13 @@ with CorsSupport {
 
   before() {
     contentType = formats("json")
-    //response.setHeader("Access-Control-Allow-Origin", "*");
-    //response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    //response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
   }
+
+
 
   post("/login") {
     scentry.authenticate()
     if (isAuthenticated) {
-      // logger.info(" logger -------------> /login: successful Name: " + user.age)
       println("--------------> /login: successful Id: " + user.userId)
     } else {
       logger.info("-----------------------> /login: NOT successful")
@@ -58,20 +56,55 @@ with CorsSupport {
 
   }
 
-  get("/datafindings/twitter/:fromDate/:toDate") {
-    logger.info(s"---->   /datafindings/twitter ${params("fromDate")}  ${params("toDate")}  ")
+  get("/datafindings/line/stats/all/:fromDate/:toDate") {
+    logger.info(s"---->   /datafindings/line/stats/all ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
-               DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
-      //val pattern: String = "dd-MM-yyyy HH:mm:ss"
-      //val fromDate: DateTime = DateTimeFormat.forPattern(pattern).parseDateTime(params("fromDate"))
-
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
       logger.info(s"---->   parsed date ---> ${fromDate}    ")
 
       val toDate: DateTime = DateTime.parse(params("toDate"),
-                        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
 
-      DtTwitterLineGraphDAO.getTWLineData(fromDate, toDate)
+      val myDataList = List(DtTwitterLineGraphDAO.getLineData(fromDate, toDate), DtFacebookLineGraphDAO.getLineData(fromDate, toDate))
+      AllDataResponse("200", "Bravo malaka!!!",myDataList)
+
+    } catch {
+      case e: Exception => "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+    }
+  }
+
+  get("/datafindings/line/stats/twitter/:fromDate/:toDate") {
+    logger.info(s"---->   /datafindings/twitter ${params("fromDate")}  ${params("toDate")}  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+      val lineData = DtTwitterLineGraphDAO.getLineData(fromDate, toDate)
+      DataResponse("200", "Bravo malaka!!!",lineData)
+    } catch {
+      case e: Exception => "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+    }
+  }
+
+  get("/datafindings/line/stats/facebook/:fromDate/:toDate") {
+    logger.info(s"---->   /datafindings/facebook ${params("fromDate")}  ${params("toDate")}  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+      val lineData = DtFacebookLineGraphDAO.getLineData(fromDate, toDate)
+      DataResponse("200", "Bravo malaka!!!",lineData)
+
     } catch {
       case e: Exception => "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
     }
