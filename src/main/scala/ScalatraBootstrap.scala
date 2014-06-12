@@ -1,4 +1,4 @@
-import gr.gnostix.api.servlets.{ConfigurationServlet, MyScalatraServlet}
+import gr.gnostix.api.servlets.{DatafindingsServlet, ConfigurationServlet, MyScalatraServlet}
 import org.scalatra._
 import javax.servlet.ServletContext
 import org.slf4j.LoggerFactory
@@ -21,9 +21,9 @@ class ScalatraBootstrap extends LifeCycle {
 
     context.mount(new MyScalatraServlet(), "/*")
 
-    context.mount(new ConfigurationServlet(), "/api/user/*")
-    //context.initParameters("org.scalatra.cors.allowedMethods") = "GET, PUT, DELETE, HEAD, OPTIONS, POST"
-    //context.initParameters("org.scalatra.cors.allowedOrigins") = "http://192.168.2.23:8080"
+    context.mount(new ConfigurationServlet(), "/api/user/account/*")
+
+    context.mount(new DatafindingsServlet(), "/api/user/datafindings/*")
 
   }
 

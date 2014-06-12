@@ -1,7 +1,5 @@
 package gr.gnostix.api.models
 
-package gr.gnostix.api.models
-
 import java.sql.Timestamp
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 import org.joda.time.{Days, DateTime}
@@ -19,28 +17,15 @@ object DtGoogleplusLineGraphDAO extends DatabaseAccessSupport {
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  val twSqlLineByDay = """select count(*), trunc(itemdate,'HH') from googleplus_results i
-                           where itemdate between TO_DATE('2014-02-27', 'YYYY/MM/DD')
-                           and TO_DATE('2014-02-27', 'YYYY/MM/DD')
-                           group  BY trunc(itemdate,'HH')
-                           order by trunc(itemdate, 'HH') asc"""
 
-  def getLineDataByDay = {
-    getConnection withSession {
-      implicit session =>
-        val records = Q.queryNA[DataLineGraph](twSqlLineByDay)
-        records.list()
-    }
-  }
+  def getLineData(fromDate: DateTime, toDate: DateTime, profileId: Int) = {
 
-  def getLineData(fromDate: DateTime, toDate: DateTime) = {
-
-    val sqlQ = buildQuery(fromDate, toDate)
+    val sqlQ = buildQuery(fromDate, toDate, profileId)
     var myData = List[DataLineGraph]()
 
     getConnection withSession {
       implicit session =>
-        println("getTWLineData ------------->" + sqlQ)
+        logger.info("getLineData ------------->" + sqlQ)
         val records = Q.queryNA[DataLineGraph](sqlQ)
         myData = records.list()
     }
@@ -49,11 +34,11 @@ object DtGoogleplusLineGraphDAO extends DatabaseAccessSupport {
   }
 
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime): String = {
-    println("-------------> buildTwQuery -----------")
+  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int): String = {
+    logger.info("-------------> buildQuery -----------")
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
-    println("------------->" + numDays + "-----------")
+    logger.info("------------->" + numDays + "-----------")
     var datePattern: String = ""
 
     if (numDays == 0) {
@@ -71,17 +56,17 @@ object DtGoogleplusLineGraphDAO extends DatabaseAccessSupport {
                            where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=10)))
+                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
                            group  BY trunc(itemdate,'HH')
                            order by trunc(itemdate, 'HH') asc"""
-      println("------------>" + sql)
+      logger.info("------------>" + sql)
       sql
     } else if (numDays > 1 && numDays <= 30) {
       val sql = s"""select count(*), trunc(itemdate) from googleplus_results i
                            where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=10)))
+                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
                            group  BY trunc(itemdate)
                            order by trunc(itemdate) asc"""
       sql
@@ -90,7 +75,7 @@ object DtGoogleplusLineGraphDAO extends DatabaseAccessSupport {
                            where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=10)))
+                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
                            group  BY trunc(itemdate,'ww')
                            order by trunc(itemdate, 'ww') asc"""
       sql
@@ -99,7 +84,7 @@ object DtGoogleplusLineGraphDAO extends DatabaseAccessSupport {
                            where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=10)))
+                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
                            group  BY trunc(itemdate,'month')
                            order by trunc(itemdate, 'month') asc"""
       sql

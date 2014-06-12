@@ -4,12 +4,13 @@ import java.sql.Timestamp
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
 import scala.slick.driver.JdbcDriver.backend.Database
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
+import org.slf4j.LoggerFactory
 
 
-case class User(userId: Int, username: String, password: String,
+case class User(userId: Int, username: String, var password: String,
                 userLevel: Int,
                 userDetails: UserDetails,
-                userTotals: UserTotals)
+                userTotals: UserTotals) extends Payload
 
 case class UserDetails(firstName: String, lastName: String,
                        registrationDate: Timestamp, email: String, streetAddress: String,
@@ -25,6 +26,8 @@ case class UserTotals(totalCounts: Int, totalKeywords: Int,
                       totalYoutubeAccounts: Int, totalHotelAccounts: Int)
 
 object UserDao extends DatabaseAccessSupport{
+
+  val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getUserResult = GetResult(r => User(r.<<, r.<<, r.<<, r.<<,
     UserDetails(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<),

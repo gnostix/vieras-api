@@ -9,12 +9,11 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import gr.gnostix.api.utilities.DateUtils
 
 
-object DtFacebookLineGraphDAO extends DatabaseAccessSupport {
+object DtYoutubeLineGraphDAO extends DatabaseAccessSupport {
 
-  implicit val getDtFacebookLineGraphResult = GetResult(r => DataLineGraph(r.<<, r.<<))
+  implicit val getDtYoutubeLineGraphResult = GetResult(r => DataLineGraph(r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
-
 
   def getLineData(fromDate: DateTime, toDate: DateTime, profileId: Int) = {
 
@@ -27,13 +26,13 @@ object DtFacebookLineGraphDAO extends DatabaseAccessSupport {
         val records = Q.queryNA[DataLineGraph](sqlQ)
         myData = records.list()
     }
-    val lineData = SocialData("facebook", myData)
+    val lineData = SocialData("youtube", myData)
     lineData
   }
 
 
   def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int): String = {
-    logger.info("-------------> buildTwQuery -----------")
+    logger.info("-------------> buildQuery -----------")
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
@@ -50,41 +49,41 @@ object DtFacebookLineGraphDAO extends DatabaseAccessSupport {
     val toDateStr: String = fmt.print(toDate)
 
     if (numDays == 0) {
-      val sql = s"""select count(*), trunc(f_created_time,'HH') from facebook_results i
-                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+      val sql = s"""select count(*), trunc(Y_PUBLISHED_AT,'HH') from youtube_results i
+                           where Y_PUBLISHED_AT between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where fk_k_id in
                            (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
-                           group  BY trunc(f_created_time,'HH')
-                           order by trunc(f_created_time, 'HH') asc"""
+                           group  BY trunc(Y_PUBLISHED_AT,'HH')
+                           order by trunc(Y_PUBLISHED_AT, 'HH') asc"""
       logger.info("------------>" + sql)
       sql
     } else if (numDays > 1 && numDays <= 30) {
-      val sql = s"""select count(*), trunc(f_created_time) from facebook_results i
-                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
+      val sql = s"""select count(*), trunc(Y_PUBLISHED_AT) from youtube_results i
+                           where Y_PUBLISHED_AT between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
                            (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
-                           group  BY trunc(f_created_time)
-                           order by trunc(f_created_time) asc"""
+                           group  BY trunc(Y_PUBLISHED_AT)
+                           order by trunc(Y_PUBLISHED_AT) asc"""
       sql
     } else if (numDays > 30 && numDays < 90) {
-      val sql = s"""select count(*), trunc(f_created_time,'ww') from facebook_results i
-                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
+      val sql = s"""select count(*), trunc(Y_PUBLISHED_AT,'ww') from youtube_results i
+                           where Y_PUBLISHED_AT between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
                            (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
-                           group  BY trunc(f_created_time,'ww')
-                           order by trunc(f_created_time, 'ww') asc"""
+                           group  BY trunc(Y_PUBLISHED_AT,'ww')
+                           order by trunc(Y_PUBLISHED_AT, 'ww') asc"""
       sql
     } else {
-      val sql = s"""select count(*), trunc(f_created_time,'month') from facebook_results i
-                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
+      val sql = s"""select count(*), trunc(Y_PUBLISHED_AT,'month') from youtube_results i
+                           where Y_PUBLISHED_AT between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
                            (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
-                           group  BY trunc(f_created_time,'month')
-                           order by trunc(f_created_time, 'month') asc"""
+                           group  BY trunc(Y_PUBLISHED_AT,'month')
+                           order by trunc(Y_PUBLISHED_AT, 'month') asc"""
       sql
     }
   }

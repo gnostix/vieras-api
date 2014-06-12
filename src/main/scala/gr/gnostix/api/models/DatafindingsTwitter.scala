@@ -16,28 +16,14 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  val twSqlLineByDay = """select count(*), trunc(t_created_at,'HH') from twitter_results i
-                           where t_created_at between TO_DATE('2014-02-27', 'YYYY/MM/DD')
-                           and TO_DATE('2014-02-27', 'YYYY/MM/DD')
-                           group  BY trunc(t_created_at,'HH')
-                           order by trunc(t_created_at, 'HH') asc"""
+  def getLineData(fromDate: DateTime, toDate: DateTime, profileId: Int) = {
 
-  def getLineDataByDay = {
-    getConnection withSession {
-      implicit session =>
-        val records = Q.queryNA[DataLineGraph](twSqlLineByDay)
-        records.list()
-    }
-  }
-
-  def getLineData(fromDate: DateTime, toDate: DateTime) = {
-
-    val sqlQ = buildQuery(fromDate, toDate)
+    val sqlQ = buildQuery(fromDate, toDate, profileId)
     var myData = List[DataLineGraph]()
 
     getConnection withSession {
       implicit session =>
-        println("getTWLineData ------------->" + sqlQ)
+        logger.info("getTWLineData ------------->" + sqlQ)
         val records = Q.queryNA[DataLineGraph](sqlQ)
         myData = records.list()
     }
@@ -46,11 +32,11 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
   }
 
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime): String = {
-    println("-------------> buildTwQuery -----------")
+  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int): String = {
+    logger.info("-------------> buildTwQuery -----------")
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
-    println("------------->" + numDays + "-----------")
+    logger.info("------------->" + numDays + "-----------")
     var datePattern: String = ""
 
     if (numDays == 0) {
@@ -68,17 +54,17 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
                            where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=10)))
+                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
                            group  BY trunc(t_created_at,'HH')
                            order by trunc(t_created_at, 'HH') asc"""
-      println("------------>" + sql)
+      logger.info("------------>" + sql)
       sql
     } else if (numDays > 1 && numDays <= 30) {
       val sql = s"""select count(*), trunc(t_created_at) from twitter_results i
                            where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=10)))
+                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
                            group  BY trunc(t_created_at)
                            order by trunc(t_created_at) asc"""
       sql
@@ -87,7 +73,7 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
                            where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=10)))
+                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
                            group  BY trunc(t_created_at,'ww')
                            order by trunc(t_created_at, 'ww') asc"""
       sql
@@ -96,7 +82,7 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
                            where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
                            fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=10)))
+                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
                            group  BY trunc(t_created_at,'month')
                            order by trunc(t_created_at, 'month') asc"""
       sql
