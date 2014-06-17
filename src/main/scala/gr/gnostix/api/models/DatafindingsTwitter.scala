@@ -6,8 +6,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 import org.joda.time.{Days, DateTime}
 import org.slf4j.LoggerFactory
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import gr.gnostix.api.utilities.DateUtils
-
+import gr.gnostix.api.utilities.{SqlUtils, DateUtils}
 
 
 object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
@@ -16,9 +15,29 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  def getLineData(fromDate: DateTime, toDate: DateTime, profileId: Int) = {
 
-    val sqlQ = buildQuery(fromDate, toDate, profileId)
+  def getLineDataDefault(fromDate: DateTime, toDate: DateTime, profileId: Int): SocialData = {
+    val mySqlDynamic = SqlUtils.getLineDataDefaultObj(fromDate,toDate,profileId)
+    //bring the actual data
+    getLineData(fromDate,toDate,profileId,mySqlDynamic)
+  }
+
+  def getLineDataByKeywords(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int]): SocialData = {
+    val mySqlDynamic = SqlUtils.getLineDataByKeywordsObj(fromDate,toDate,profileId,keywords)
+    //bring the actual data
+    getLineData(fromDate,toDate,profileId,mySqlDynamic)
+  }
+
+  def getLineDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int]): SocialData = {
+    val mySqlDynamic = SqlUtils.getLineDataByTopicsObj(fromDate,toDate,profileId,topics)
+    //bring the actual data
+    getLineData(fromDate,toDate,profileId,mySqlDynamic)
+  }
+
+
+  def getLineData(fromDate: DateTime, toDate: DateTime, profileId: Int, sqlDynamicKeywordsTopics: String) = {
+
+    val sqlQ = buildQuery(fromDate, toDate, profileId, sqlDynamicKeywordsTopics)
     var myData = List[DataLineGraph]()
 
     getConnection withSession {
@@ -32,7 +51,7 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
   }
 
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int): String = {
+  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, sqlDynamicKeywordsTopics: String): String = {
     logger.info("-------------> buildTwQuery -----------")
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
@@ -49,12 +68,17 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
+    getSql(numDays, fromDateStr, toDateStr, sqlDynamicKeywordsTopics)
+
+
+  }
+
+  def getSql(numDays: Int, fromDateStr: String, toDateStr: String, sqlGetProfileData: String) = {
     if (numDays == 0) {
       val sql = s"""select count(*), trunc(t_created_at,'HH') from twitter_results i
                            where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
-                           fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
+                           fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
                            group  BY trunc(t_created_at,'HH')
                            order by trunc(t_created_at, 'HH') asc"""
       logger.info("------------>" + sql)
@@ -63,8 +87,7 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
       val sql = s"""select count(*), trunc(t_created_at) from twitter_results i
                            where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
-                           fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
+                           fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
                            group  BY trunc(t_created_at)
                            order by trunc(t_created_at) asc"""
       sql
@@ -72,8 +95,7 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
       val sql = s"""select count(*), trunc(t_created_at,'ww') from twitter_results i
                            where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
-                           fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
+                           fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
                            group  BY trunc(t_created_at,'ww')
                            order by trunc(t_created_at, 'ww') asc"""
       sql
@@ -81,8 +103,7 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
       val sql = s"""select count(*), trunc(t_created_at,'month') from twitter_results i
                            where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
-                           fk_query_id in (select q_id from queries where fk_k_id in
-                           (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})))
+                           fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
                            group  BY trunc(t_created_at,'month')
                            order by trunc(t_created_at, 'month') asc"""
       sql

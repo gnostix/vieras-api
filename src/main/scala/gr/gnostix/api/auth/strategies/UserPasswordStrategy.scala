@@ -66,7 +66,9 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
 
   def checkUserPassword(username: String, password: String, userDbPassword: String): Boolean = {
     logger.info (s"---------> UserPasswordStrategy checkUserPassword :  $username $password")
-    if (md5Hash (username + password) == userDbPassword) true else false
+    //logger.info (s"---------> UserPasswordStrategy userDbPassword : $userDbPassword")
+    //logger.info (s"---------> UserPasswordStrategy Password :  ${md5Hash (username + password)}")
+    if (md5Hash (username + password) == userDbPassword.toLowerCase) true else false
   }
 
   // create a md5 hash from a string

@@ -36,7 +36,7 @@ object ProfileDao extends DatabaseAccessSupport {
         val records = Q.queryNA[Profile](s"""select c.customer_id, c.customer_firstname,
           c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language
           from customers c, user_customer_map m, users u
-          where c.customer_id = m.customer_id and u.user_id = m.user_id and u.user_id = 16""")
+          where c.customer_id = m.customer_id and u.user_id = m.user_id and u.user_id = $userId """)
          records.list
     }
   }
