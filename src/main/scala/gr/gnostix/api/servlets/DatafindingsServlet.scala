@@ -91,6 +91,30 @@ with CorsSupport {
     }
   }
 
+  get("/profile/:profileId/line/data/twitter/:fromDate/:toDate") {
+    logger.info(s"---->   /datafindings/data/twitter ${params("fromDate")}  ${params("toDate")}  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val lineData = DtTwitterLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId)
+      DataResponse(200, "Coulio Bro!!!", lineData)
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+
   post("/profile/:profileId/line/stats/twitter/:fromDate/:toDate/:keyortopic") {
     logger.info(s"---->   /datafindings/twitter ${params("fromDate")}  ${params("toDate")}  ")
     val idsList = parsedBody.extract[List[Int]]
@@ -124,7 +148,7 @@ with CorsSupport {
 
 
 
-  post("/profile/:profileId/line/stats/facebook/:fromDate/:toDate") {
+  get("/profile/:profileId/line/stats/facebook/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/facebook ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -181,7 +205,7 @@ with CorsSupport {
   }
 
 
-  post("/profile/:profileId/line/stats/gplus/:fromDate/:toDate") {
+  get("/profile/:profileId/line/stats/gplus/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/gplus ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -238,7 +262,7 @@ with CorsSupport {
 
 
 
-  post("/profile/:profileId/line/stats/youtube/:fromDate/:toDate") {
+  get("/profile/:profileId/line/stats/youtube/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/youtube ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -294,7 +318,7 @@ with CorsSupport {
   }
 
 
-  post("/profile/:profileId/line/stats/feed/:type/:fromDate/:toDate") {
+  get("/profile/:profileId/line/stats/feed/:type/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/feed ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -362,7 +386,7 @@ with CorsSupport {
     }
   }
 
-  post("/profile/:profileId/line/stats/:websource/:fromDate/:toDate") {
+  post("/profile/:profileId/line/stats/web/:websource/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/web ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -390,7 +414,7 @@ with CorsSupport {
     }
   }
 
-  post("/profile/:profileId/line/stats/:websource/:fromDate/:toDate/:keyortopic") {
+  post("/profile/:profileId/line/stats/web/:websource/:fromDate/:toDate/:keyortopic") {
     logger.info(s"---->   /datafindings/web ${params("fromDate")}  ${params("toDate")}  ")
     val idsList = parsedBody.extract[List[Int]]
 

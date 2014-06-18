@@ -43,23 +43,6 @@ with CorsSupport {
     //redirect("/login")
   }
 
-  get("/data") {
-    requireLogin()
-    logger.info("-------------> after getting the data " + user.userId)
-    List(1, 2, 3, 4, 5)
-
-  }
-
-  //
-  get("/users") {
-    logger.info("---->   ALEX REQUEST     ")
-    UserDao.findByUsername("test")
-  }
-
-  get("/users1") {
-    logger.info("---->   ALEX REQUEST     ")
-    UserDao.getUsers
-  }
 
 }
 

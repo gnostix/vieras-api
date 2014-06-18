@@ -19,7 +19,7 @@ class ScalatraBootstrap extends LifeCycle {
     logger.info("-->  create a Database")
     //val db = Database.forDataSource(cpds)  // create a Database which uses the DataSource
 
-    context.mount(new MyScalatraServlet(), "/*")
+    context.mount(new MyScalatraServlet(), "/api/*")
 
     context.mount(new ConfigurationServlet(), "/api/user/account/*")
 
