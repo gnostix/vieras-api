@@ -43,6 +43,12 @@ with CorsSupport {
     //redirect("/login")
   }
 
+  get("/getUserInfo") {
+    requireLogin()
+    user.password = ""
+    user
+    AllDataResponse(200,"all good",List(user))
+  }
 
 }
 
