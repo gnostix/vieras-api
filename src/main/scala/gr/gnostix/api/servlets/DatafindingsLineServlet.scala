@@ -11,7 +11,7 @@ import gr.gnostix.api.models._
 import gr.gnostix.api.models.DataResponse
 import gr.gnostix.api.models.AllDataResponse
 
-trait RestDatafindingsRoutes extends ScalatraServlet
+trait RestDatafindingsLineRoutes extends ScalatraServlet
 with JacksonJsonSupport
 with AuthenticationSupport
 with CorsSupport {
@@ -70,29 +70,6 @@ with CorsSupport {
 
   get("/profile/:profileId/line/stats/twitter/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/twitter ${params("fromDate")}  ${params("toDate")}  ")
-    try {
-      val fromDate: DateTime = DateTime.parse(params("fromDate"),
-        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
-      logger.info(s"---->   parsed date ---> ${fromDate}    ")
-
-      val toDate: DateTime = DateTime.parse(params("toDate"),
-        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
-      logger.info(s"---->   parsed date ---> ${toDate}    ")
-
-      val profileId = params("profileId").toInt
-      val lineData = DtTwitterLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId)
-      DataResponse(200, "Coulio Bro!!!", lineData)
-    } catch {
-      case e: NumberFormatException => "wrong profile number"
-      case e: Exception => {
-        logger.info(s"-----> ${e.printStackTrace()}")
-        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
-      }
-    }
-  }
-
-  get("/profile/:profileId/line/data/twitter/:fromDate/:toDate") {
-    logger.info(s"---->   /datafindings/data/twitter ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -452,4 +429,4 @@ with CorsSupport {
 
 }
 
-case class DatafindingsServlet() extends GnostixAPIStack with RestDatafindingsRoutes
+case class DatafindingsLineServlet() extends GnostixAPIStack with RestDatafindingsLineRoutes

@@ -16,19 +16,19 @@ object DtFacebookLineGraphDAO extends DatabaseAccessSupport {
   val logger = LoggerFactory.getLogger(getClass)
 
   def getLineDataDefault(fromDate: DateTime, toDate: DateTime, profileId: Int): SocialData = {
-    val mySqlDynamic = SqlUtils.getLineDataDefaultObj(fromDate, toDate, profileId)
+    val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
     //bring the actual data
     getLineData(fromDate, toDate, profileId, mySqlDynamic)
   }
 
   def getLineDataByKeywords(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int]): SocialData = {
-    val mySqlDynamic = SqlUtils.getLineDataByKeywordsObj(fromDate, toDate, profileId, keywords)
+    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
     //bring the actual data
     getLineData(fromDate, toDate, profileId, mySqlDynamic)
   }
 
   def getLineDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int]): SocialData = {
-    val mySqlDynamic = SqlUtils.getLineDataByTopicsObj(fromDate, toDate, profileId, topics)
+    val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)
     //bring the actual data
     getLineData(fromDate, toDate, profileId, mySqlDynamic)
   }
@@ -54,13 +54,8 @@ object DtFacebookLineGraphDAO extends DatabaseAccessSupport {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
-    var datePattern: String = ""
 
-    if (numDays == 0) {
-      datePattern = "dd-MM-yyyy HH:mm:ss"
-    } else {
-      datePattern = "dd-MM-yyyy"
-    }
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
 
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
@@ -79,26 +74,26 @@ object DtFacebookLineGraphDAO extends DatabaseAccessSupport {
                            order by trunc(f_created_time, 'HH') asc"""
       logger.info("------------>" + sql)
       sql
-    } else if (numDays > 1 && numDays <= 30) {
+    } else if (numDays >= 1 && numDays <= 30) {
       val sql = s"""select count(*), trunc(f_created_time) from facebook_results i
-                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
-                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
+                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where   ${sqlGetProfileData} )
                            group  BY trunc(f_created_time)
                            order by trunc(f_created_time) asc"""
       sql
     } else if (numDays > 30 && numDays < 90) {
       val sql = s"""select count(*), trunc(f_created_time,'ww') from facebook_results i
-                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
-                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
+                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where   ${sqlGetProfileData} )
                            group  BY trunc(f_created_time,'ww')
                            order by trunc(f_created_time, 'ww') asc"""
       sql
     } else {
       val sql = s"""select count(*), trunc(f_created_time,'month') from facebook_results i
-                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
-                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
+                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where   ${sqlGetProfileData} )
                            group  BY trunc(f_created_time,'month')
                            order by trunc(f_created_time, 'month') asc"""

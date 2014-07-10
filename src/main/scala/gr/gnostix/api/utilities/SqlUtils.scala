@@ -9,12 +9,12 @@ import org.joda.time.DateTime
 object SqlUtils {
 
 
-  def getLineDataDefaultObj(fromDate: DateTime, toDate: DateTime, profileId: Int): String = {
+  def getDataDefaultObj(profileId: Int): String = {
     val mySqlDyn = s"""fk_k_id in (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId}))"""
     mySqlDyn
   }
 
-  def getLineDataByKeywordsObj(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int]): String = {
+  def getDataByKeywordsObj(profileId: Int, keywords: List[Int]): String = {
     val mySqlDyn = keywords match {
       case List() => s"""fk_k_id in (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId}))"""
       case List(x) => s""" fk_k_id = ${keywords.head}"""
@@ -23,7 +23,7 @@ object SqlUtils {
     mySqlDyn
   }
 
-  def getLineDataByTopicsObj(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int]): String = {
+  def getDataByTopicsObj(profileId: Int, topics: List[Int]): String = {
     val mySqlDyn = topics match {
       case List() => s""" fk_k_id in (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})) """
       case List(x) => s""" fk_k_id in (select k_id from KEYWORDS where fk_sd_id = ${topics.head} ) """

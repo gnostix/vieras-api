@@ -17,21 +17,21 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
 
 
   def getLineDataDefault(fromDate: DateTime, toDate: DateTime, profileId: Int): SocialData = {
-    val mySqlDynamic = SqlUtils.getLineDataDefaultObj(fromDate,toDate,profileId)
+    val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
     //bring the actual data
-    getLineData(fromDate,toDate,profileId,mySqlDynamic)
+    getLineData(fromDate, toDate, profileId, mySqlDynamic)
   }
 
   def getLineDataByKeywords(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int]): SocialData = {
-    val mySqlDynamic = SqlUtils.getLineDataByKeywordsObj(fromDate,toDate,profileId,keywords)
+    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
     //bring the actual data
-    getLineData(fromDate,toDate,profileId,mySqlDynamic)
+    getLineData(fromDate, toDate, profileId, mySqlDynamic)
   }
 
   def getLineDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int]): SocialData = {
-    val mySqlDynamic = SqlUtils.getLineDataByTopicsObj(fromDate,toDate,profileId,topics)
+    val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)
     //bring the actual data
-    getLineData(fromDate,toDate,profileId,mySqlDynamic)
+    getLineData(fromDate, toDate, profileId, mySqlDynamic)
   }
 
 
@@ -56,13 +56,9 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
-    var datePattern: String = ""
 
-    if (numDays == 0) {
-      datePattern = "dd-MM-yyyy HH:mm:ss"
-    } else {
-      datePattern = "dd-MM-yyyy"
-    }
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+
 
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
@@ -83,26 +79,26 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
                            order by trunc(t_created_at, 'HH') asc"""
       logger.info("------------>" + sql)
       sql
-    } else if (numDays > 1 && numDays <= 30) {
+    } else if (numDays >= 1 && numDays <= 30) {
       val sql = s"""select count(*), trunc(t_created_at) from twitter_results i
-                           where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
-                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
+                           where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
                            group  BY trunc(t_created_at)
                            order by trunc(t_created_at) asc"""
       sql
     } else if (numDays > 30 && numDays < 90) {
       val sql = s"""select count(*), trunc(t_created_at,'ww') from twitter_results i
-                           where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
-                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
+                           where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
                            group  BY trunc(t_created_at,'ww')
                            order by trunc(t_created_at, 'ww') asc"""
       sql
     } else {
       val sql = s"""select count(*), trunc(t_created_at,'month') from twitter_results i
-                           where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY')
-                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY') and
+                           where t_created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
                            group  BY trunc(t_created_at,'month')
                            order by trunc(t_created_at, 'month') asc"""

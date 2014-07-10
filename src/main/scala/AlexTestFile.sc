@@ -22,3 +22,11 @@ val koko = myList match {
   case x :: xs  => println("the list has many elements")
 
 }
+
+val dt = "gplus"
+dt match {
+  case "twitter" => println("twitter")
+  case "facebook" => println("facebook")
+  case "gplus" => println("gplus")
+  case _ => println("unknown")
+}

@@ -1,18 +1,17 @@
 package gr.gnostix.api.models
 
 import java.sql.Timestamp
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 import org.joda.time.{Days, DateTime}
 import org.slf4j.LoggerFactory
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import gr.gnostix.api
 import gr.gnostix.api.utilities.{SqlUtils, DateUtils}
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
 
 
-object DtGoogleplusLineGraphDAO extends DatabaseAccessSupport {
+object DtFacebookDataGraphDAO extends DatabaseAccessSupport {
 
-  implicit val getDtGoogleplusLineGraphResult = GetResult(r => DataLineGraph(r.<<, r.<<))
+  implicit val getDtFacebookLineGraphResult = GetResult(r => DataFacebookGraph(r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -37,15 +36,15 @@ object DtGoogleplusLineGraphDAO extends DatabaseAccessSupport {
   def getLineData(fromDate: DateTime, toDate: DateTime, profileId: Int, sqlDynamicKeywordsTopics: String) = {
 
     val sqlQ = buildQuery(fromDate, toDate, profileId, sqlDynamicKeywordsTopics)
-    var myData = List[DataLineGraph]()
+    var myData = List[DataFacebookGraph]()
 
     getConnection withSession {
       implicit session =>
         logger.info("getLineData ------------->" + sqlQ)
-        val records = Q.queryNA[DataLineGraph](sqlQ)
+        val records = Q.queryNA[DataFacebookGraph](sqlQ)
         myData = records.list()
     }
-    val lineData = SocialData("googleplus", myData)
+    val lineData = SocialData("facebook", myData)
     lineData
   }
 
@@ -56,50 +55,49 @@ object DtGoogleplusLineGraphDAO extends DatabaseAccessSupport {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
-    val datePattern = "dd-MM-yyyy HH:mm:ss"
+     val datePattern = "dd-MM-yyyy HH:mm:ss"
 
 
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-
     getSql(numDays, fromDateStr, toDateStr, sqlDynamicKeywordsTopics)
   }
 
   def getSql(numDays: Int, fromDateStr: String, toDateStr: String, sqlGetProfileData: String) = {
     if (numDays == 0) {
-      val sql = s"""select count(*), trunc(itemdate,'HH') from googleplus_results i
-                           where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+      val sql = s"""select count(*), trunc(f_created_time,'HH') from facebook_results i
+                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
                            fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
-                           group  BY trunc(itemdate,'HH')
-                           order by trunc(itemdate, 'HH') asc"""
+                           group  BY trunc(f_created_time,'HH')
+                           order by trunc(f_created_time, 'HH') asc"""
       logger.info("------------>" + sql)
       sql
     } else if (numDays >= 1 && numDays <= 30) {
-      val sql = s"""select count(*), trunc(itemdate) from googleplus_results i
-                           where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+      val sql = s"""select count(*), trunc(f_created_time) from facebook_results i
+                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
-                           fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
-                           group  BY trunc(itemdate)
-                           order by trunc(itemdate) asc"""
+                           fk_query_id in (select q_id from queries where   ${sqlGetProfileData} )
+                           group  BY trunc(f_created_time)
+                           order by trunc(f_created_time) asc"""
       sql
     } else if (numDays > 30 && numDays < 90) {
-      val sql = s"""select count(*), trunc(itemdate,'ww') from googleplus_results i
-                           where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+      val sql = s"""select count(*), trunc(f_created_time,'ww') from facebook_results i
+                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
-                           fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
-                           group  BY trunc(itemdate,'ww')
-                           order by trunc(itemdate, 'ww') asc"""
+                           fk_query_id in (select q_id from queries where   ${sqlGetProfileData} )
+                           group  BY trunc(f_created_time,'ww')
+                           order by trunc(f_created_time, 'ww') asc"""
       sql
     } else {
-      val sql = s"""select count(*), trunc(itemdate,'month') from googleplus_results i
-                           where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+      val sql = s"""select count(*), trunc(f_created_time,'month') from facebook_results i
+                           where f_created_time between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS') and
-                           fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
-                           group  BY trunc(itemdate,'month')
-                           order by trunc(itemdate, 'month') asc"""
+                           fk_query_id in (select q_id from queries where   ${sqlGetProfileData} )
+                           group  BY trunc(f_created_time,'month')
+                           order by trunc(f_created_time, 'month') asc"""
       sql
     }
   }
