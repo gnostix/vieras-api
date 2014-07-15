@@ -84,7 +84,7 @@ object DatafindingsFirstLevelDataDAO extends DatabaseAccessSupport {
   }
 
   def getSqlTW(fromDateStr: String, toDateStr: String, sqlGetProfileData: String): String = {
-    val sql = s"""select t.t_tweet_id, t.t_text, t.t_from_user, t_created_at, t.fk_query_id, M.SENTIMENT as sentiment,
+    val sql = s"""select t.tw_id, t.t_text, t.t_from_user, t_created_at, t.fk_query_id, M.SENTIMENT as sentiment,
                     'www.twitter.com/' || t_from_user || '/statuses/' || t_tweet_id  as msg_Url
                       from twitter_results t,MSG_ANALYTICS m
                       where TW_ID = M.FK_MSG_ID and show_flag !=0 and fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
@@ -95,7 +95,7 @@ object DatafindingsFirstLevelDataDAO extends DatabaseAccessSupport {
   }
 
   def getSqlFB(fromDateStr: String, toDateStr: String, sqlGetProfileData: String): String = {
-    val sql = s"""select f_msg_id, SUBSTR(NVL(f_message, NVL(f_link_caption, NVL(f_link_description,''))),1,100), f_from_name as from_user, f_created_time,
+    val sql = s"""select fb_id, SUBSTR(NVL(f_message, NVL(f_link_caption, NVL(f_link_description,''))),1,100), f_from_name as from_user, f_created_time,
                   fk_query_id,  M.SENTIMENT as sentiment, 'www.facebook.com/' || f_from_id || '/posts/'|| f_msg_id as msg_Url
                       from facebook_results
                       inner join  MSG_ANALYTICS m on FB_ID = M.FK_MSG_ID
@@ -108,7 +108,7 @@ object DatafindingsFirstLevelDataDAO extends DatabaseAccessSupport {
   }
 
   def getSqlGplus(fromDateStr: String, toDateStr: String, sqlGetProfileData: String): String = {
-    val sql = s"""select itemid, SUBSTR(NVL(itemtitle, NVL(itemcontent, NVL(attachname,''))),1,100), actorname, itemdate, fk_query_id,  M.SENTIMENT as sentiment, ITEMURL
+    val sql = s"""select gplus_id, SUBSTR(NVL(itemtitle, NVL(itemcontent, NVL(attachname,''))),1,100), actorname, itemdate, fk_query_id,  M.SENTIMENT as sentiment, ITEMURL
                       from googleplus_results i
                       inner join  MSG_ANALYTICS m on GPLUS_ID = M.FK_MSG_ID
                       where itemdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -121,7 +121,7 @@ object DatafindingsFirstLevelDataDAO extends DatabaseAccessSupport {
   }
 
   def getSqlYT(fromDateStr: String, toDateStr: String, sqlGetProfileData: String): String = {
-    val sql = s"""select Y_VIDEO_ID, SUBSTR(NVL(y_title, NVL(description, '')),1,100), Y_AUTHOR_NAME, Y_PUBLISHED_AT, fk_query_id,  M.SENTIMENT as sentiment, y_player_url
+    val sql = s"""select YOU_ID, SUBSTR(NVL(y_title, NVL(description, '')),1,100), Y_AUTHOR_NAME, Y_PUBLISHED_AT, fk_query_id,  M.SENTIMENT as sentiment, y_player_url
                       from youtube_results i
                       inner join  MSG_ANALYTICS m on YOU_ID = M.FK_MSG_ID
                       where Y_PUBLISHED_AT between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
