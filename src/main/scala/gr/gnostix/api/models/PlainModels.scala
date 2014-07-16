@@ -11,6 +11,8 @@ case class SocialData(datasource: String, data: List[DataGraph]) extends Payload
 case class DataResponse(status: Int, message: String, payload: SocialData)
 case class AllDataResponse(status: Int, message: String, payload: List[Payload])
 
+
+// first level data model - one model for all the datasources
 case class FirstLevelData(msgId: Int, text: String, fromUser: String, msgDate: Timestamp, queryId: Int, sentiment: String,
                           msgUrl: String) extends DataGraph
 
@@ -29,6 +31,15 @@ case class SecondLevelDataYoutube(videoId: String, favoritesCount: Int, viewCoun
 
 case class SecondLevelDataFeed(message: String) extends DataGraph
 case class SecondLevelDataWeb(url: String, description: String) extends DataGraph
+
+
+// Third level data models
+case class ThirdLevelDataTwitter(firstLevel: FirstLevelData, secondLevel: SecondLevelDataTwitter) extends DataGraph
+case class ThirdLevelDataFacebook(firstLevel: FirstLevelData, secondLevel: SecondLevelDataFacebook) extends DataGraph
+case class ThirdLevelDataGplus(firstLevel: FirstLevelData, secondLevel: SecondLevelDataGplus) extends DataGraph
+case class ThirdLevelDataYoutube(firstLevel: FirstLevelData, secondLevel: SecondLevelDataYoutube) extends DataGraph
+case class ThirdLevelDataFeed(firstLevel: FirstLevelData, secondLevel: SecondLevelDataFeed) extends DataGraph
+case class ThirdLevelDataWeb(firstLevel: FirstLevelData, secondLevel: SecondLevelDataWeb) extends DataGraph
 
 
 // classes for the messages of each datasource

@@ -27,6 +27,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new DatafindingsDataServlet(), "/api/user/datafindings/raw/*")
     context.mount(new DatafindingsFirstLevelDataServlet(), "/api/user/datafindings/raw/firstlevel/*")
     context.mount(new DatafindingsSecondLevelDataServlet(), "/api/user/datafindings/raw/secondlevel/*")
+    context.mount(new DatafindingsThirdLevelDataServlet(), "/api/user/datafindings/raw/thirdlevel/*")
   }
 
   //

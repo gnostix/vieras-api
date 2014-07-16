@@ -45,6 +45,7 @@ object DatafindingsSecondLevelDataDAO extends DatabaseAccessSupport {
       case "twitter" => List[SecondLevelDataTwitter]()
       case "facebook" => List[SecondLevelDataFacebook]()
       case "youtube" => List[SecondLevelDataYoutube]()
+      case "gplus" => List[SecondLevelDataGplus]()
       case "web" => List[SecondLevelDataWeb]()
       case "linkedin" => List[SecondLevelDataWeb]()
       case "blog" => List[SecondLevelDataFeed]()

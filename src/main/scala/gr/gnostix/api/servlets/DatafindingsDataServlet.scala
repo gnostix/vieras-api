@@ -30,6 +30,10 @@ with CorsSupport {
     requireLogin()
   }
 
+
+  // mount point /api/user/datafindings/raw/*
+
+
   get("/profile/:profileId/data/stats/all/:fromDate/:toDate") {
 /*    logger.info(s"---->   /datafindings/profile/:profileId/data/stats/all ${params("fromDate")}  ${params("toDate")}  ")
     try {

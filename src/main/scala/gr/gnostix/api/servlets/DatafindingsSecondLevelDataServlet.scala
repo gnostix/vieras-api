@@ -31,6 +31,8 @@ with CorsSupport {
   }
 
 
+  // mount point /api/user/datafindings/raw/secondlevel/*
+
    get("/profile/:profileId/data/:datasource/:msgId") {
     logger.info(s"---->   second level /data/:datasource/:msgId ${params("datasource")}  ${params("msgId")}  ")
     try {

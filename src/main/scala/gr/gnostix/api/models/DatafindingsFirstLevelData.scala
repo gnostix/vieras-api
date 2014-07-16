@@ -137,9 +137,9 @@ object DatafindingsFirstLevelDataDAO extends DatabaseAccessSupport {
     val sql = s"""select web_id, SUBSTR(title,1,100), null as author,item_date, fk_queries_id, M.SENTIMENT as sentiment, url
                     from web_Results i
                     inner join  MSG_ANALYTICS m on web_id = M.FK_MSG_ID
-                    where item_date between TO_DATE('07-07-2012 00:00:00', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('09-07-2014 23:59:59', 'DD-MM-YYYY HH24:MI:SS')
+                    where item_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and fk_grp_id = ${webType}
-                    and fk_query_id in (select q_id from queries where  ${sqlGetProfileData} )
+                    and fk_queries_id in (select q_id from queries where  ${sqlGetProfileData} )
                     and show_flag !=0
                   order  BY item_date"""
     sql

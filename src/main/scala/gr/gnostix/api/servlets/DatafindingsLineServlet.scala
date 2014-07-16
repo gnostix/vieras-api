@@ -30,8 +30,12 @@ with CorsSupport {
     requireLogin()
   }
 
+  // mount point /api/user/datafindings/line/*
 
-  get("/profile/:profileId/line/stats/all/:fromDate/:toDate") {
+
+  // this has to be ASYNC !!
+
+/*  get("/profile/:profileId/line/stats/all/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/profile/:profileId/line/stats/all ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -66,7 +70,7 @@ with CorsSupport {
         "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
       }
     }
-  }
+  }*/
 
   get("/profile/:profileId/line/stats/twitter/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/twitter ${params("fromDate")}  ${params("toDate")}  ")

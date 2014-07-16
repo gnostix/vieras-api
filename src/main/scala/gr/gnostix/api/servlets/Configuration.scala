@@ -26,6 +26,10 @@ with CorsSupport {
     requireLogin()
   }
 
+
+  //mount point /api/user/account/*
+
+
   get("/profiles/usage") {
     logger.info("---->   return all profiles/usage with userlevel id     ")
     try {
