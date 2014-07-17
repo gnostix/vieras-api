@@ -367,7 +367,7 @@ with CorsSupport {
     }
   }
 
-  post("/profile/:profileId/line/stats/web/:websource/:fromDate/:toDate") {
+  get("/profile/:profileId/line/stats/web/:websource/:fromDate/:toDate") {
     logger.info(s"---->   /datafindings/web ${params("fromDate")}  ${params("toDate")}  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
