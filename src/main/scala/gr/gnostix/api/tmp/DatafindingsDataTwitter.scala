@@ -1,12 +1,13 @@
-package gr.gnostix.api.models
+package gr.gnostix.api.tmp
 
-import java.sql.Timestamp
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
-import scala.slick.jdbc.{GetResult, StaticQuery => Q}
-import org.joda.time.{Days, DateTime}
-import org.slf4j.LoggerFactory
+import gr.gnostix.api.models.{DataTwitterGraph, SocialData}
+import gr.gnostix.api.utilities.{DateUtils, SqlUtils}
+import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import gr.gnostix.api.utilities.{SqlUtils, DateUtils}
+import org.slf4j.LoggerFactory
+
+import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
 
 object DatafindingsDataTwitterDAO extends DatabaseAccessSupport {

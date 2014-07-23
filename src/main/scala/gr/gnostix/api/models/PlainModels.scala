@@ -5,10 +5,14 @@ import java.sql.Timestamp
 abstract class Payload
 abstract class DataGraph
 
+
 case class DataLineGraph(msgNum: Int, msgDate: Timestamp) extends DataGraph
 case class SocialData(datasource: String, data: List[DataGraph]) extends Payload
 
 case class DataResponse(status: Int, message: String, payload: SocialData)
+case class ErrorDataResponse(status: Int, message: String) extends Payload
+
+
 case class AllDataResponse(status: Int, message: String, payload: List[Payload])
 
 
@@ -48,3 +52,23 @@ case class DataTwitterGraph(twId: Int, msgDate: Timestamp, twitterHandle: String
                             sentiment: String) extends DataGraph
 
 case class DataFacebookGraph(twId: Int, msgDate: Timestamp)extends DataGraph // to be continued
+
+
+
+// Sentiment counts for each datasource
+case class SentimentLine( msgNum: Int,sentiment: String) extends DataGraph
+
+object SocialDatasources {
+  val twitter: String = "twitter"
+  val facebook: String = "facebook"
+  val gplus: String = "gplus"
+  val youtube: String = "youtube"
+  val web: String = "web"
+  val linkedin: String = "linkedin"
+  val news: String = "news"
+  val blog: String = "blog"
+  val personal: String = "personal"
+
+  val myDatasources = List("twitter", "facebook", "gplus", "youtube", "web", "linkedin", "news", "blog", "personal")
+}
+

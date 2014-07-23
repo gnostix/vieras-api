@@ -7,17 +7,7 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
 import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 
-object SocialDatasources {
-  val twitter: String = "twitter"
-  val facebook: String = "facebook"
-  val gplus: String = "gplus"
-  val youtube: String = "youtube"
-  val web: String = "web"
-  val linkedin: String = "linkedin"
-  val news: String = "news"
-  val blog: String = "blog"
-  val personal: String = "personal"
-}
+
 
 object DatafindingsSecondLevelDataDAO extends DatabaseAccessSupport {
 

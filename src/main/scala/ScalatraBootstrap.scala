@@ -1,4 +1,5 @@
 import gr.gnostix.api.servlets._
+import gr.gnostix.api.tmp.DatafindingsDataServlet
 import org.scalatra._
 import javax.servlet.ServletContext
 import org.slf4j.LoggerFactory
@@ -28,6 +29,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new DatafindingsFirstLevelDataServlet(), "/api/user/datafindings/raw/firstlevel/*")
     context.mount(new DatafindingsSecondLevelDataServlet(), "/api/user/datafindings/raw/secondlevel/*")
     context.mount(new DatafindingsThirdLevelDataServlet(), "/api/user/datafindings/raw/thirdlevel/*")
+    context.mount(new DatafindingsSentimentLineServlet(), "/api/user/datafindings/sentiment/*")
   }
 
   //
