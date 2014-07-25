@@ -5,6 +5,9 @@ import gr.gnostix.api.tmp.DatafindingsDataServlet
 import org.scalatra._
 import javax.servlet.ServletContext
 import org.slf4j.LoggerFactory
+
+import scala.concurrent.ExecutionContext
+
 //import scala.slick.driver.JdbcDriver.backend.Database
 import gr.gnostix.api.db.plainsql.DatabaseAccess
 
@@ -14,6 +17,7 @@ class ScalatraBootstrap extends LifeCycle {
 
   val system = ActorSystem()
   val myActor = system.actorOf(Props[GnxActor])
+  protected implicit def executor: ExecutionContext = system.dispatcher
 
   DatabaseAccess.createDatasource
   //val cpds = new ComboPooledDataSource
@@ -39,9 +43,9 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new DatafindingsSecondLevelDataServlet(), "/api/user/datafindings/raw/secondlevel/*")
     context.mount(new DatafindingsThirdLevelDataServlet(), "/api/user/datafindings/raw/thirdlevel/*")
     //async
-    context.mount(new DatafindingsSentimentLineServlet(), "/api/user/datafindings/sentiment/*")
-    context.mount(new TestAsyncServlet(system, myActor), "/api/actors/*")
-    context.mount(new FutureControllerServlet(system), "/api/futures/*")
+    context.mount(new DatafindingsSentimentLineServlet(executor), "/api/user/datafindings/sentiment/*")
+    //context.mount(new TestAsyncServlet(system, myActor), "/api/actors/*")
+    //context.mount(new FutureControllerServlet(system), "/api/futures/*")
 
   }
 

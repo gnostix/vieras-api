@@ -1,3 +1,5 @@
+import java.sql.Timestamp
+
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
 
@@ -35,9 +37,9 @@ val f: Future[String] = Future { "Hello world!" }*/
 val k1 = List(("positive",23), ("negative", 56), ("neutral", 89))
 val k2 = List(("positive",123), ("negative", 156), ("neutral", 189))
 val k3 = List(("positive",3), ("negative", 6), ("neutral", 9))
-val z = k1.zip(k2).zip(k3)
+//val z = k1.zip(k2).zip(k3)
 
-z.foreach(x => println(x))
+/*z.foreach(x => println(x))
 
 z.foreach(x => println(x._2))
 
@@ -61,10 +63,33 @@ k1.map(x => x._2).sum
 }.toList
 
 
-(k1 ::: k2).groupBy(_._1).mapValues(_.map(_._2).sum).toList.sortWith(_._2 < _._2)
+
+(k1 ::: k2).groupBy(_._1).mapValues(_.map(_._2).sum).toList.sortWith(_._2 < _._2)*/
 
 
+abstract class DataGraph
+abstract class Payload
+case class SocialData( datasource: String,  data: List[DataGraph]) extends Payload
+case class SentimentLine( sentiment: String, msgNum: Int) extends DataGraph
+
+val t1 = new SocialData("twitter",List(new SentimentLine("positive",23),
+  new SentimentLine("negative", 56), new SentimentLine("neutral", 89)))
+val t2 = new SocialData("facebook",List(new SentimentLine("positive",253),
+  new SentimentLine("negative", 536), new SentimentLine("neutral", 289)))
+
+/*( t1.data ++ t2.data  ).groupBy( _._1 ).map{
+  case (key,tuples) => (key, tuples.map( _._2).sum )
+}.toList*/
+
+( t1.data ++ t2.data ).groupBy(_.asInstanceOf[SentimentLine].sentiment).map{
+  case (key, sentimentList) => (key, sentimentList.map(_.asInstanceOf[SentimentLine].msgNum).sum)
+}.toList
 
 
+println("koko")
+List.concat(k1,k2,k3)
 
+val allSocialData = List(t1,t2)
+
+val mydata = allSocialData.map(_.data).flatten//.map(List.concat(_)))
 

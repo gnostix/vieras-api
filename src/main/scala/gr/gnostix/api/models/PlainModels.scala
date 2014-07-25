@@ -56,7 +56,7 @@ case class DataFacebookGraph(twId: Int, msgDate: Timestamp)extends DataGraph // 
 
 
 // Sentiment counts for each datasource
-case class SentimentLine( msgNum: Int,sentiment: String) extends DataGraph
+case class SentimentLine( sentiment: String, msgNum: Int) extends DataGraph
 
 object SocialDatasources {
   val twitter: String = "twitter"
