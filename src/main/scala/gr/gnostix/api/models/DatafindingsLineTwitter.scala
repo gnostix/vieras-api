@@ -26,7 +26,7 @@ object DtTwitterLineGraphDAO extends DatabaseAccessSupport {
     val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
     //bring the actual data
     getLineData(fromDate, toDate, profileId, mySqlDynamic)
-  }
+   }
 
   def getLineDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int]): SocialData = {
     val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)

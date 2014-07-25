@@ -35,7 +35,9 @@ object ScalatraoraBuild extends Build {
 				"org.json4s"   %% "json4s-jackson" % "3.2.6" withJavadoc(),
         "com.typesafe.slick" %% "slick" % "2.0.2" withJavadoc(),
         "com.typesafe.slick" %% "slick-extensions" % "2.0.2" withJavadoc(),
-        "org.scalatra" %% "scalatra-auth" % ScalatraVersion withJavadoc()
+        "org.scalatra" %% "scalatra-auth" % ScalatraVersion withJavadoc(),
+        "com.typesafe.akka" %% "akka-actor" % "2.3.4",
+        "net.databinder.dispatch" %% "dispatch-core" % "0.11.1"
         //"org.joda" %% "joda-time" % "2.2"  ,
         //"org.joda" %% "joda-convert" % "1.6"
       ),

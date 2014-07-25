@@ -1,3 +1,5 @@
+import _root_.akka.actor.{ActorSystem, Props}
+import gr.gnostix.api.models.GnxActor
 import gr.gnostix.api.servlets._
 import gr.gnostix.api.tmp.DatafindingsDataServlet
 import org.scalatra._
@@ -10,12 +12,19 @@ class ScalatraBootstrap extends LifeCycle {
 
   val logger = LoggerFactory.getLogger(getClass)
 
+  val system = ActorSystem()
+  val myActor = system.actorOf(Props[GnxActor])
+
   DatabaseAccess.createDatasource
   //val cpds = new ComboPooledDataSource
   logger.info("-->  Created c3p0 connection pool")
 
   //
   override def init(context: ServletContext) {
+
+
+
+
     val db = DatabaseAccess.database
     logger.info("-->  create a Database")
     //val db = Database.forDataSource(cpds)  // create a Database which uses the DataSource
@@ -29,7 +38,11 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new DatafindingsFirstLevelDataServlet(), "/api/user/datafindings/raw/firstlevel/*")
     context.mount(new DatafindingsSecondLevelDataServlet(), "/api/user/datafindings/raw/secondlevel/*")
     context.mount(new DatafindingsThirdLevelDataServlet(), "/api/user/datafindings/raw/thirdlevel/*")
+    //async
     context.mount(new DatafindingsSentimentLineServlet(), "/api/user/datafindings/sentiment/*")
+    context.mount(new TestAsyncServlet(system, myActor), "/api/actors/*")
+    context.mount(new FutureControllerServlet(system), "/api/futures/*")
+
   }
 
   //
@@ -43,6 +56,7 @@ class ScalatraBootstrap extends LifeCycle {
   override def destroy(context: ServletContext) {
     super.destroy(context)
     closeDbConnection
+    system.shutdown()
   }
 }
 
