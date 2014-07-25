@@ -1,4 +1,4 @@
-package gr.gnostix.api.models
+package gr.gnostix.api.tmp
 
 import akka.actor.Actor
 import org.slf4j.LoggerFactory
