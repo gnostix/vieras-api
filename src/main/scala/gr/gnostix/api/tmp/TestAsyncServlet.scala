@@ -1,5 +1,5 @@
 
-package gr.gnostix.api.servlets
+package gr.gnostix.api.tmp
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
@@ -7,10 +7,10 @@ import akka.util.Timeout
 import gr.gnostix.api.auth.AuthenticationSupport
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.JacksonJsonSupport
-import org.scalatra.{Accepted, CorsSupport, FutureSupport, ScalatraServlet}
+import org.scalatra.{CorsSupport, FutureSupport, ScalatraServlet}
 
-import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 
 case class TestAsyncServlet(system: ActorSystem, myActor: ActorRef) extends ScalatraServlet
