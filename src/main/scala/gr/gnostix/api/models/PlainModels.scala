@@ -8,8 +8,9 @@ abstract class DataGraph
 
 case class DataLineGraph(msgNum: Int, msgDate: Timestamp) extends DataGraph
 case class SocialData(datasource: String, data: List[DataGraph]) extends Payload
+case class SocialDataSum(datasource: String, data: Int) extends Payload
 
-case class DataResponse(status: Int, message: String, payload: SocialData)
+case class DataResponse(status: Int, message: String, payload: Payload)
 case class ErrorDataResponse(status: Int, message: String) extends Payload
 
 

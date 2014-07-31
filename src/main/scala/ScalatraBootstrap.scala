@@ -43,6 +43,12 @@ class ScalatraBootstrap extends LifeCycle {
     //context.mount(new TestAsyncServlet(system, myActor), "/api/actors/*")
     //context.mount(new FutureControllerServlet(system), "/api/futures/*")
 
+    // social channels routes
+    context.mount(new DatafindingsSentimentLineServlet(executor), "/api/user/socialchannels/line/*")
+
+
+    // count of data from each datasource
+    context.mount(new DatafindingsDataCountServlet(executor), "/api/user/datafindings/counts/*")
   }
 
   //

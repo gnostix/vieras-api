@@ -1,5 +1,4 @@
 
-
 package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
@@ -13,7 +12,7 @@ import gr.gnostix.api.models._
 
 import scala.concurrent.ExecutionContext
 
-trait RestDatafindingsSentimentLineDataRoutes extends GnostixAPIStack
+trait RestDatafindingsDataCountDataRoutes extends GnostixAPIStack
 with JacksonJsonSupport
 with AuthenticationSupport
 with CorsSupport
@@ -32,7 +31,7 @@ with FutureSupport {
     requireLogin()
   }
 
-  // mount point "/api/user/datafindings/sentiment/*
+  // mount point "/api/user/datafindings/counts/*
 
 
 
@@ -48,12 +47,13 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
-      val rawData = DatafindingsSentimentLineDao.getDataDefault(fromDate, toDate, profileId, params("datasource"))
-      rawData match {
-        case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
-        case None => ErrorDataResponse(404, "Error on data")
+      val rawData = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, params("datasource"))
+      new AsyncResult {
+        val is =
+          for {
+            data <- rawData
+          } yield f2(data)
       }
-
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
@@ -63,6 +63,13 @@ with FutureSupport {
     }
   }
 
+  def f2( tuple: Option[(String, Int)] ) = {
+     tuple match {
+      case Some(x: (String, Int)) => DataResponse(200, "Data count",  SocialDataSum(x._1, x._2))
+      case None => ErrorDataResponse(404, "Error on data")
+    }
+
+  }
 
   post("/profile/:profileId/:datasource/:fromDate/:toDate/:keyortopic") {
     logger.info(s"---->   /sentiment/twitter ${params("fromDate")}  ${params("toDate")}  ")
@@ -80,15 +87,27 @@ with FutureSupport {
 
       val profileId = params("profileId").toInt
 
-      val rawData = params("keyortopic") match {
-        case "keywords" => DatafindingsSentimentLineDao.getDataByKeywords(fromDate, toDate, profileId, idsList, params("datasource"))
-        case "topics" => DatafindingsSentimentLineDao.getDataByTopics(fromDate, toDate, profileId, idsList, params("datasource"))
+      params("keyortopic") match {
+        case "keywords" => {
+          val rawData = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, params("datasource"))
+          new AsyncResult {
+            val is =
+              for {
+                data <- rawData
+              } yield f2(data)
+          }
+        }
+        case "topics" => {
+          val rawData = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, params("datasource"))
+          new AsyncResult {
+            val is =
+              for {
+                data <- rawData
+              } yield f1(List(data.get))
+          }
+        }
       }
 
-      rawData match {
-        case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
-        case None => ErrorDataResponse(404, "Error on data")
-      }
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
@@ -111,15 +130,15 @@ with FutureSupport {
 
     val profileId = params("profileId").toInt
 
-    val dt1 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "twitter")
-    val dt2 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "facebook")
-    val dt3 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "youtube")
-    val dt4 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "gplus")
-    val dt5 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "web")
-    val dt6 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "linkedin")
-    val dt7 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "news")
-    val dt8 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "blog")
-    val dt9 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "personal")
+    val dt1 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "twitter")
+    val dt2 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "facebook")
+    val dt3 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "youtube")
+    val dt4 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "gplus")
+    val dt5 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "web")
+    val dt6 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "linkedin")
+    val dt7 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "news")
+    val dt8 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "blog")
+    val dt9 = DatafindingsDataCountFutureDao.getDataDefault(executor, fromDate, toDate, profileId, "personal")
     new AsyncResult {
       val is =
         for {
@@ -136,15 +155,10 @@ with FutureSupport {
     }
   }
 
-  def f1(allSocialData: List[SocialData]) = {
-    val mydata = allSocialData.map(_.data).flatten
+  def f1(allSocialDataSum: List[(String, Int)]) = {
+    val mydata = allSocialDataSum.map(_._2).sum
 
-    val k = (allSocialData.map(_.data).flatten).groupBy(_.asInstanceOf[SentimentLine].sentiment).map {
-      case (key, sentimentList) => (key, sentimentList.map(_.asInstanceOf[SentimentLine].msgNum).sum)
-    }.map {
-      case (x, y) => new SentimentLine(x, y)
-    }
-    val s = SocialData("all datasources", k.toList)
+    val s = SocialDataSum("all datasources", mydata)
     DataResponse(200, "Coulio Bro!!!", s)
 
   }
@@ -167,15 +181,15 @@ with FutureSupport {
 
       params("keyortopic") match {
         case "keywords" => {
-          val dt1 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "twitter")
-          val dt2 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "facebook")
-          val dt3 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "youtube")
-          val dt4 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "gplus")
-          val dt5 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "web")
-          val dt6 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "linkedin")
-          val dt7 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "news")
-          val dt8 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "blog")
-          val dt9 = FutureSentimentDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "personal")
+          val dt1 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "twitter")
+          val dt2 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "facebook")
+          val dt3 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "youtube")
+          val dt4 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "gplus")
+          val dt5 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "web")
+          val dt6 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "linkedin")
+          val dt7 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "news")
+          val dt8 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "blog")
+          val dt9 = DatafindingsDataCountFutureDao.getDataByKeywords(executor, fromDate, toDate, profileId, idsList, "personal")
           new AsyncResult {
             val is =
               for {
@@ -192,15 +206,15 @@ with FutureSupport {
           }
         }
         case "topics" => {
-          val dt1 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "twitter")
-          val dt2 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "facebook")
-          val dt3 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "youtube")
-          val dt4 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "gplus")
-          val dt5 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "web")
-          val dt6 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "linkedin")
-          val dt7 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "news")
-          val dt8 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "blog")
-          val dt9 = FutureSentimentDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "personal")
+          val dt1 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "twitter")
+          val dt2 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "facebook")
+          val dt3 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "youtube")
+          val dt4 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "gplus")
+          val dt5 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "web")
+          val dt6 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "linkedin")
+          val dt7 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "news")
+          val dt8 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "blog")
+          val dt9 = DatafindingsDataCountFutureDao.getDataByTopics(executor, fromDate, toDate, profileId, idsList, "personal")
           new AsyncResult {
             val is =
               for {
@@ -229,9 +243,8 @@ with FutureSupport {
   }
 
 
-
-
 }
 
-case class DatafindingsSentimentLineServlet(executor: ExecutionContext) extends GnostixAPIStack with RestDatafindingsSentimentLineDataRoutes
+case class DatafindingsDataCountServlet(executor: ExecutionContext) extends GnostixAPIStack with RestDatafindingsDataCountDataRoutes
+
 
