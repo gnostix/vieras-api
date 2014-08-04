@@ -7,12 +7,15 @@ import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.models._
 
+import scala.concurrent.ExecutionContext
+
 
 trait ConfigApiRoutes extends ScalatraServlet
 with JacksonJsonSupport
 with AuthenticationSupport
 with CorsSupport
-with MethodOverride {
+with MethodOverride
+with FutureSupport {
 
   options("/*") {
     response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
@@ -85,7 +88,7 @@ with MethodOverride {
     logger.info(s"---->   delete list of topic(s) for this profileId ${params("profileId")}     ")
     val topicIds = parsedBody.extract[List[Int]]
     logger.info(s"---->   delete list of topic(s) ${topicIds.size}     ")
-    if (topicIds.size > 0 )
+    if (topicIds.size > 0)
       TopicDao.deleteTopics(topicIds, params("profileId").toInt, user.userId)
   }
 
@@ -122,10 +125,89 @@ with MethodOverride {
     logger.info(s"---->   delete list of keyword(s) for this topicID ${params("topicId")}     ")
     val keywordIds = parsedBody.extract[List[Int]]
     logger.info(s"---->   delete list of keyword(s) ${keywordIds.size}     ")
-    if (keywordIds.size > 0 )
+    if (keywordIds.size > 0)
       KeywordDao.deleteKeyword(keywordIds)
+  }
+
+
+  // Social accounts
+
+  get("/profile/:profileId/socialchannel/all") {
+
+    val tw = SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
+    val fb = SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
+    val yt = SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
+    val ga = SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
+    val ho = SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
+    new AsyncResult {
+      val is =
+        for {
+          d1 <- tw
+          d2 <- fb
+          d3 <- yt
+          d4 <- ga
+          d5 <- ho
+        } yield f1(List(d1, d2, d3, d4, d5))
+    }
+  }
+
+  def f1(socialAccounts: List[SocialAccounts]) = {
+    DataResponseAccounts(200, "Coulio Bro!!!", socialAccounts)
+  }
+
+
+  get("/profile/:profileId/socialchannel/:datasource/:queryId") {
+    logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+    params("datasource") match {
+      case "twitter" => SocialAccountsTwitterDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "facebook" => SocialAccountsFacebookDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "youtube" => SocialAccountsYoutubeDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "hotel" => SocialAccountsHotelDao.findById(params("profileId").toInt, params("queryId").toInt)
+    }
+
+  }
+
+  get("/profile/:profileId/socialchannel/:datasource/all") {
+    logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+    params("datasource") match {
+      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
+      case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
+      case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
+      case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
+    }
+  }
+
+
+  post("/profile/:profileId/socialchannel/:datasource/account") {
+    logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+    params("datasource") match {
+      case "twitter" => {
+        val mykeywords = parsedBody.extract[List[Keyword]]
+        logger.info(s"---->   add a new keyword ${mykeywords.size}    ")
+        mykeywords.foreach(KeywordDao.addKeyword)
+        SocialAccountsTwitterDao.findById(params("profileId").toInt, params("queryId").toInt)
+      }
+      case "facebook" => SocialAccountsFacebookDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "youtube" => SocialAccountsYoutubeDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "hotel" => SocialAccountsHotelDao.findById(params("profileId").toInt, params("queryId").toInt)
+    }
+
+  }
+
+  delete("/profile/:profileId/socialchannel/:datasource/account") {
+    logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+    params("datasource") match {
+      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
+      case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
+      case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
+      case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
+    }
   }
 
 }
 
-case class ConfigurationServlet() extends GnostixAPIStack with ConfigApiRoutes
+case class ConfigurationServlet(executor: ExecutionContext) extends GnostixAPIStack with ConfigApiRoutes

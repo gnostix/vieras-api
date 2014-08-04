@@ -31,7 +31,7 @@ class ScalatraBootstrap extends LifeCycle {
 
     context.mount(new MyScalatraServlet(), "/api/*")
 
-    context.mount(new ConfigurationServlet(), "/api/user/account/*")
+    context.mount(new ConfigurationServlet(executor), "/api/user/account/*")
 
     context.mount(new DatafindingsLineServlet(), "/api/user/datafindings/line/*")
     context.mount(new DatafindingsDataServlet(), "/api/user/datafindings/raw/*")

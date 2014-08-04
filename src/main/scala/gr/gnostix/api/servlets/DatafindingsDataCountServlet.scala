@@ -11,6 +11,7 @@ import org.joda.time.format.DateTimeFormat
 import gr.gnostix.api.models._
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 trait RestDatafindingsDataCountDataRoutes extends GnostixAPIStack
 with JacksonJsonSupport
@@ -53,6 +54,7 @@ with FutureSupport {
           for {
             data <- rawData
           } yield f2(data)
+
       }
     } catch {
       case e: NumberFormatException => "wrong profile number"
@@ -63,9 +65,9 @@ with FutureSupport {
     }
   }
 
-  def f2( tuple: Option[(String, Int)] ) = {
-     tuple match {
-      case Some(x: (String, Int)) => DataResponse(200, "Data count",  SocialDataSum(x._1, x._2))
+  def f2(tuple: Option[(String, Int)]) = {
+    tuple match {
+      case Some(x: (String, Int)) => DataResponse(200, "Data count", SocialDataSum(x._1, x._2))
       case None => ErrorDataResponse(404, "Error on data")
     }
 
