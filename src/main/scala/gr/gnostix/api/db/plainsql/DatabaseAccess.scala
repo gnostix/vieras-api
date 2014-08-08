@@ -20,6 +20,7 @@ object DatabaseAccess {
     ds.setAcquireIncrement(1)
     ds.setMaxPoolSize(5)
     ds.setInitialPoolSize(1)
+    ds.setAutoCommitOnClose(true)
     ds
   }
   val myDS = createDatasource

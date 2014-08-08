@@ -45,8 +45,7 @@ object KeywordDao extends DatabaseAccessSupport {
     }
   }
 
-  // prepei na kano add kai ta queries tou kath keyword !!!!!!!!!!!!!!!!!!!!!
-  def addKeyword(keyword: Keyword) {
+   def addKeyword(keyword: Keyword) {
     getConnection withSession {
       implicit session =>
         try {

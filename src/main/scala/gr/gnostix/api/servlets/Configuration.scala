@@ -1,5 +1,6 @@
 package gr.gnostix.api.servlets
 
+import gr.gnostix.api.db.lifted.OracleLiftedTables
 import org.scalatra._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
@@ -27,11 +28,12 @@ with FutureSupport {
 
   before() {
     contentType = formats("json")
-    requireLogin()
+    //requireLogin()
   }
 
 
   //mount point /api/user/account/*
+
 
 
   get("/profiles/usage") {
@@ -63,7 +65,7 @@ with FutureSupport {
 
 
   get("/profile/:profileId/topic/:id") {
-    logger.info(s"---->   return all the topics for this profileId ${params("id")}     ")
+    logger.info(s"---->   return the topic id for this profileId ${params("id")}     ")
     TopicDao.findById(params("id").toInt, params("profileId").toInt, user.userId)
   }
 
@@ -179,32 +181,47 @@ with FutureSupport {
     }
   }
 
-
   post("/profile/:profileId/socialchannel/:datasource/account") {
-    logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+    logger.info(s"---->   adds social account for this datasource ${params("datasource")} ")
     params("datasource") match {
       case "twitter" => {
-        val mykeywords = parsedBody.extract[List[Keyword]]
-        logger.info(s"---->   add a new keyword ${mykeywords.size}    ")
-        mykeywords.foreach(KeywordDao.addKeyword)
-        SocialAccountsTwitterDao.findById(params("profileId").toInt, params("queryId").toInt)
+        val account = parsedBody.extract[List[SocialCredentialsTw]]
+        logger.info(s"---->   add a new account ${account.size}    ")
+        account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
+       }
+      case "facebook" => {
+        val account = parsedBody.extract[List[SocialCredentialsFb]]
+        logger.info(s"---->   add a new account ${account.size}    ")
+        account.foreach(SocialAccountsFacebookDao.addAccount(params("profileId").toInt, _))
       }
-      case "facebook" => SocialAccountsFacebookDao.findById(params("profileId").toInt, params("queryId").toInt)
-      case "youtube" => SocialAccountsYoutubeDao.findById(params("profileId").toInt, params("queryId").toInt)
-      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(params("profileId").toInt, params("queryId").toInt)
-      case "hotel" => SocialAccountsHotelDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "youtube" => {
+        val account = parsedBody.extract[List[SocialCredentialsYt]]
+        logger.info(s"---->   add a new account ${account.size}    ")
+        account.foreach(SocialAccountsYoutubeDao.addAccount(params("profileId").toInt, _))
+      }
+      case "ganalytics" => {
+        val account = parsedBody.extract[List[SocialCredentialsGa]]
+        logger.info(s"---->   add a new account ${account.size}    ")
+        account.foreach(SocialAccountsGAnalyticsDao.addAccount(params("profileId").toInt, _))
+      }
+      case "hotel" => {
+        val account = parsedBody.extract[List[SocialCredentialsHotel]]
+        logger.info(s"---->   add a new account ${account.size} ")
+        account.foreach(SocialAccountsHotelDao.addAccount(params("profileId").toInt, _))
+      }
     }
 
   }
 
-  delete("/profile/:profileId/socialchannel/:datasource/account") {
+  delete("/profile/:profileId/socialchannel/:datasource/:credId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
+      case "hotel" => SocialAccountsHotelDao.deleteHotel(params("profileId").toInt, params("credId").toInt)
+
+      case "twitter" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
       case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
       case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
       case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
-      case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
     }
   }
 

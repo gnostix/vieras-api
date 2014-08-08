@@ -1,10 +1,12 @@
 package gr.gnostix.api.db.lifted
 
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
 
-trait OracleLiftedQueries {
+
+object OracleLiftedQueries extends DatabaseAccessSupport {
 	import com.typesafe.slick.driver.oracle.OracleDriver.simple._
 
-  val db: Database
+  val db: Database = getConnection
 
   def getBetaUsers = {
     val query = for (c <- OracleLiftedTables.betaUsers) yield c.email
