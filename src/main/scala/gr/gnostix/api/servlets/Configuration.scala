@@ -8,7 +8,8 @@ import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.models._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
+import scala.util.{Try, Failure, Success}
 
 
 trait ConfigApiRoutes extends ScalatraServlet
@@ -134,7 +135,7 @@ with FutureSupport {
 
   // Social accounts
 
-  get("/profile/:profileId/socialchannel/all") {
+  get("/profile/:profileId/socialchannels/all") {
 
     val tw = SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
     val fb = SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
@@ -173,13 +174,13 @@ with FutureSupport {
   get("/profile/:profileId/socialchannel/:datasource/all") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
+      case "twitter" =>  SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
       case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
       case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
       case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
       case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
     }
-  }
+   }
 
   post("/profile/:profileId/socialchannel/:datasource/account") {
     logger.info(s"---->   adds social account for this datasource ${params("datasource")} ")
@@ -190,6 +191,7 @@ with FutureSupport {
         account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
        }
       case "facebook" => {
+        logger.info(s"---->   add a new facebook  account ")
         val account = parsedBody.extract[List[SocialCredentialsFb]]
         logger.info(s"---->   add a new account ${account.size}    ")
         account.foreach(SocialAccountsFacebookDao.addAccount(params("profileId").toInt, _))
@@ -213,15 +215,14 @@ with FutureSupport {
 
   }
 
-  delete("/profile/:profileId/socialchannel/:datasource/:credId") {
+  delete("/profile/:profileId/socialchannel/:datasource/:queryId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      case "hotel" => SocialAccountsHotelDao.deleteHotel(params("profileId").toInt, params("credId").toInt)
-
-      case "twitter" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
-      case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
-      case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
-      case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
+      case "hotel" => SocialAccountsHotelDao.deleteHotel(params("profileId").toInt, params("queryId").toInt)
+      case "twitter" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
+      case "facebook" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
+      case "youtube" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
+      case "ganalytics" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
     }
   }
 
