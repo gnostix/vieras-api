@@ -4,6 +4,16 @@ val k1 = List(("positive",23), ("negative", 56), ("neutral", 89))
 val k2 = List(("positive",123), ("negative", 156), ("neutral", 189))
 val k3 = List(("positive",3), ("negative", 6), ("neutral", 9))
 
+(k1 ++ k2 ++ k3).groupBy(_._1).map{
+  case (key, value) => (key, value.map(_._2).sum)
+}.toList
+
+(k1 ++ k2 ++ k3).groupBy(_._1)
+
+
+
+/*
+
 val k4 = List(1,2,3,4,5)
 
 val k5 = List((SocialDataSum("positive",3),
@@ -31,9 +41,7 @@ k1.map(_._2).sum
 (k1 ++ k2 ++ k3).map(_._2)
 (k1 ++ k2 ++ k3).map(_._2).max
 
-(k1 ++ k2 ++ k3).groupBy(_._1).map{
-  case (key, value) => (key, value.map(_._2).sum)
-}.toList
+
 
 k6.groupBy(_._1).map
   {
@@ -45,3 +53,4 @@ k6.groupBy(_._1).map
 
 
 
+*/

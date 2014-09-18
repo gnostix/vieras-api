@@ -88,8 +88,6 @@ val t2 = new SocialData("facebook",List(new SentimentLine("positive",253),
 
 println("koko")
 List.concat(k1,k2,k3)
-
 val allSocialData = List(t1,t2)
-
 val mydata = allSocialData.map(_.data).flatten//.map(List.concat(_)))
 
