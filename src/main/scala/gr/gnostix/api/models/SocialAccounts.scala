@@ -9,6 +9,7 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Future, Promise, ExecutionContext}
+import scala.io.Source
 import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 
 
@@ -500,7 +501,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
       case e: Exception => {
         deleteHotelQueriesExc(credId)
         logger.error("---------->  Error on inserting the hotel queries " + e.printStackTrace())
-        }
+      }
     }
   }
 
@@ -549,6 +550,35 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
           case e: Exception => logger.error("---------->  deleteSocialCredentials " + e.printStackTrace())
         }
     }
+  }
+
+  def checkHotelurl(url: String): Boolean = {
+
+    try {
+      // check if the url source contains the Hotel name
+      val validUrl = Source.fromURL(url)
+      //      val content = validUrl.mkString
+      //      logger.error("---------->  URL content  " + content)
+      true
+    } catch {
+      case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
+        false
+    }
+
+  }
+
+  def getHospitalitySites() = {
+    try {
+      getConnection withSession {
+        implicit session =>
+          val credId = Q.queryNA[(String, Int)](s""" select ds_name,ds_id from datasources where fk_g_id=9 """)
+          credId.list()
+      }
+
+    } catch {
+      case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
+    }
+
   }
 
 }

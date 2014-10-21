@@ -133,6 +133,13 @@ with FutureSupport {
   }
 
 
+  //get supported hospitality sites
+  get("/profile/:profileId/datasources/hospitality/all") {
+    val validUrl = SocialAccountsHotelDao.getHospitalitySites
+    logger.info(s"---->   get supported hospitality sites ")
+    validUrl
+  }
+
   // Social accounts
 
   get("/profile/:profileId/socialchannels/all") {
@@ -171,16 +178,17 @@ with FutureSupport {
 
   }
 
+
   get("/profile/:profileId/socialchannel/:datasource/all") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      case "twitter" =>  SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
+      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
       case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
       case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
       case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
       case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
     }
-   }
+  }
 
   post("/profile/:profileId/socialchannel/:datasource/account") {
     logger.info(s"---->   adds social account for this datasource ${params("datasource")} ")
@@ -189,7 +197,7 @@ with FutureSupport {
         val account = parsedBody.extract[List[SocialCredentialsTw]]
         logger.info(s"---->   add a new account ${account.size}    ")
         account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
-       }
+      }
       case "facebook" => {
         logger.info(s"---->   add a new facebook  account ")
         val account = parsedBody.extract[List[SocialCredentialsFb]]
@@ -225,6 +233,18 @@ with FutureSupport {
       case "ganalytics" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
     }
   }
+
+  //first check and then add hotel url
+  post("/profile/:profileId/socialchannel/hotel/url") {
+    val hotel = parsedBody.extract[SocialCredentialsHotel]
+    val validUrl = SocialAccountsHotelDao.checkHotelurl(hotel.hotelUrl)
+    if (validUrl) {
+      // save hotel in db
+      SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
+    }
+    logger.info(s"---->   check hotel url  ${hotel.hotelUrl} ")
+  }
+
 
 }
 
