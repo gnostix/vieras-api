@@ -1,6 +1,9 @@
 package gr.gnostix.api.models
 
 import java.sql.Timestamp
+import java.util.Date
+
+import org.joda.time.DateTime
 
 abstract class Payload
 abstract class DataGraph
@@ -54,7 +57,7 @@ case class DataTwitterGraph(twId: Int, msgDate: Timestamp, twitterHandle: String
                             followers: Int, following: Int, listed: Int, text: String, userProfileImage: String,
                             sentiment: String) extends DataGraph
 
-case class DataFacebookGraph(twId: Int, msgDate: Timestamp)extends DataGraph // to be continued
+case class DataFacebookGraph(fbId: Int, msgDate: Timestamp)extends DataGraph // to be continued
 
 
 
@@ -75,3 +78,6 @@ object SocialDatasources {
   val myDatasources = List("twitter", "facebook", "gplus", "youtube", "web", "linkedin", "news", "blog", "personal")
 }
 
+//facebook fan page
+case class FacebookPage(pageName: String, pageId: String)
+case class FacebookPageAuth(token: String, expires: Date, fanpages: List[FacebookPage]) extends Payload

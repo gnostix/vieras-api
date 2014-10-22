@@ -12,7 +12,7 @@ object ScalatraoraBuild extends Build {
   val ScalaVersion = "2.10.3"
   val ScalatraVersion = "2.2.2"
 
-  lazy val project = Project (
+  lazy val project = Project(
     "GnostixAPI",
     file("."),
     settings = Defaults.defaultSettings ++ ScalatraPlugin.scalatraWithJRebel ++ scalateSettings ++ Seq(
@@ -21,7 +21,7 @@ object ScalatraoraBuild extends Build {
       version := Version,
       scalaVersion := ScalaVersion,
       resolvers += Classpaths.typesafeReleases,
-      resolvers += "Sonatype Releases"  at "http://oss.sonatype.org/content/repositories/releases",
+      resolvers += "Sonatype Releases" at "http://oss.sonatype.org/content/repositories/releases",
       resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/maven-releases/",
       libraryDependencies ++= Seq(
         "org.scalatra" %% "scalatra" % ScalatraVersion withJavadoc(),
@@ -31,13 +31,14 @@ object ScalatraoraBuild extends Build {
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.10.v20130312" % "container;compile" withJavadoc(),
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar")),
         "c3p0" % "c3p0" % "0.9.1.2" withJavadoc(),
-				"org.scalatra" %% "scalatra-json" % "2.2.2" withJavadoc(),
-				"org.json4s"   %% "json4s-jackson" % "3.2.6" withJavadoc(),
+        "org.scalatra" %% "scalatra-json" % "2.2.2" withJavadoc(),
+        "org.json4s" %% "json4s-jackson" % "3.2.6" withJavadoc(),
         "com.typesafe.slick" %% "slick" % "2.0.2" withJavadoc(),
         "com.typesafe.slick" %% "slick-extensions" % "2.0.2" withJavadoc(),
         "org.scalatra" %% "scalatra-auth" % ScalatraVersion withJavadoc(),
         "com.typesafe.akka" %% "akka-actor" % "2.3.4",
-        "net.databinder.dispatch" %% "dispatch-core" % "0.11.1"
+        "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
+        "com.restfb" % "restfb" % "1.6.16"
         //"org.joda" %% "joda-time" % "2.2"  ,
         //"org.joda" %% "joda-convert" % "1.6"
       ),
@@ -48,14 +49,14 @@ object ScalatraoraBuild extends Build {
         customJars.classpath
       },
 
-      scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
+      scalateTemplateConfig in Compile <<= (sourceDirectory in Compile) { base =>
         Seq(
           TemplateConfig(
             base / "webapp" / "WEB-INF" / "templates",
-            Seq.empty,  /* default imports should be added here */
+            Seq.empty, /* default imports should be added here */
             Seq(
               Binding("context", "_root_.org.scalatra.scalate.ScalatraRenderContext", importMembers = true, isImplicit = true)
-            ),  /* add extra bindings here */
+            ), /* add extra bindings here */
             Some("templates")
           )
         )

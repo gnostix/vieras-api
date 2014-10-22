@@ -1,6 +1,7 @@
 package gr.gnostix.api.servlets
 
 import gr.gnostix.api.db.lifted.OracleLiftedTables
+import gr.gnostix.api.utilities.FbExtendedToken
 import org.scalatra._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
@@ -10,6 +11,7 @@ import gr.gnostix.api.models._
 
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Try, Failure, Success}
+import scala.collection.JavaConversions._
 
 
 trait ConfigApiRoutes extends ScalatraServlet
@@ -36,6 +38,21 @@ with FutureSupport {
   //mount point /api/user/account/*
 
 
+  get("/fb/pages/:token"){
+    // I have to create a PROC for updating the Fb access token!!
+    logger.info("---->   GET FB TOKEN !!!!    ")
+    //val token = Map("token" -> FbExtendedToken.getExtendedToken(params("token")))
+    val token = FbExtendedToken.getExtendedToken(params("token"))
+    val pages = FbExtendedToken.getUserPages(token.getAccessToken)
+    val data = FacebookPageAuth(token.getAccessToken, token.getExpires, pages.toList)
+    DataResponse(200, "All good", data)
+   }
+
+  get("/fb/pages"){
+    logger.info("---->   GET FB PAGES !!!!    ")
+    val pages = FbExtendedToken.getUserPages("CAACfbmDZBqF0BAFvLIViNIZBuZCQESer8kEGUJMoDYWlyLmd492pCBcdKYmNPZC8yWNviiZA2kBnJhtE3P0ku87Y8zBe8skxbLiuxYMmxquZAM61VBwFDfLlbPhUjTIAhFWi7YALe1BsY4eUz5FH068Uy6wCmqZAZCbKyQ98Chwr7B2w03jQIGkX")
+    pages.toList
+  }
 
   get("/profiles/usage") {
     logger.info("---->   return all profiles/usage with userlevel id     ")
