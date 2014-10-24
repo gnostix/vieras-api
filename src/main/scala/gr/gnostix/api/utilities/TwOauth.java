@@ -1,5 +1,6 @@
 package gr.gnostix.api.utilities;
 
+import gr.gnostix.api.models.SocialAccountsTwitterDao;
 import org.omg.CORBA.Request;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -20,11 +21,13 @@ public class TwOauth {
 
     public static String getUrlAuth() {
         String url = null;
-        RequestToken requestToken = null;
         try {
-            requestToken = getTwitter().getOAuthRequestToken();
-            setRequestToken(requestToken);
-            url = requestToken.getAuthorizationURL();
+            if (getTwitter() == null || TwOauth.requestToken == null) {
+                TwOauth.requestToken = getTwitter().getOAuthRequestToken();
+                url = TwOauth.requestToken.getAuthorizationURL();
+            } else {
+                url = TwOauth.requestToken.getAuthorizationURL();
+            }
             System.out.println("------------> " + url);
         } catch (Exception e) {
             e.printStackTrace();
@@ -32,7 +35,7 @@ public class TwOauth {
         return url;
     }
 
-    public static String getUserToken(String pin) {
+    public static String getUserToken(String pin, int profileId) {
         AccessToken accessToken = null;
 
         try {
@@ -41,21 +44,12 @@ public class TwOauth {
             System.out.println("------------> " + accessToken.getToken() + " " + accessToken.getScreenName() + " "
                     + accessToken.getTokenSecret());
             // save the user account
+            SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(), accessToken.getScreenName());
         } catch (Exception e) {
             e.printStackTrace();
             return "error on auth";
         }
         return accessToken.getScreenName();
-    }
-
-    private static void setRequestToken(RequestToken requestToken) {
-        TwOauth.requestToken = requestToken;
-        System.out.println("------------> set token " + TwOauth.requestToken);
-    }
-
-    private RequestToken getRequestToken() {
-        System.out.println("------------> set token " + TwOauth.requestToken);
-        return TwOauth.requestToken;
     }
 
     private static void setTwitter() {

@@ -14,6 +14,7 @@ case class SocialData(datasource: String, data: List[DataGraph]) extends Payload
 case class SocialDataSum(datasource: String, data: Int) extends Payload
 case class SocialAccounts(datasource: String, data: List[DataGraph]) extends Payload
 
+case class SimpleResponse(status: Int, message: String)
 case class DataResponse(status: Int, message: String, payload: Payload)
 case class DataResponseAccounts(status: Int, message: String, payload: List[Payload])
 case class ErrorDataResponse(status: Int, message: String) extends Payload

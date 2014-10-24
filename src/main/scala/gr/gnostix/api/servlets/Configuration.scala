@@ -40,8 +40,10 @@ with FutureSupport {
   //mount point /api/user/account/*
 
 
-  post("/fb/pages") {
+  post("/profile/:id/fb/pages") {
     val fbToken = parsedBody.extract[FacebookToken]
+    val profileId = params("id").toInt
+
     logger.info("---->   GET FB TOKEN !!!!    ")
     val token = FbExtendedToken.getExtendedToken(fbToken.token)
     val pages = FbExtendedToken.getUserPages(token.getAccessToken)
@@ -50,14 +52,19 @@ with FutureSupport {
   }
 
 
-  get("/tw/auth/:pin") {
-    logger.info("---->   Twitter PIN !!!!    ")
-    TwOauth.getUserToken(params("pin"))
+  // 1. Step - Give the user the url for accepting the gnostix app
+  get("/profile/:id/tw/auth") {
+    logger.info("---->   Twitter AUTH!!!!    ")
+    Map("url" -> TwOauth.getUrlAuth)
   }
 
-  get("/tw/auth") {
-    logger.info("---->   Twitter AUTH!!!!    ")
-    TwOauth.getUrlAuth
+  // 2. Step - Get the authorization of Twitter and save the account
+  get("/profile/:id/tw/auth/:pin") {
+    logger.info("---->   Twitter PIN !!!!    ")
+    val profileId = params("id").toInt
+    // return the twitter handle
+    val handle = TwOauth.getUserToken(params("pin"), profileId)
+    Map("status" -> 200, "message" -> "all good","twitter_handle" -> handle)
   }
 
 
@@ -213,14 +220,14 @@ with FutureSupport {
       case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
     }
   }
-
+  // I don't see this working..maybe depricated
   post("/profile/:profileId/socialchannel/:datasource/account") {
     logger.info(s"---->   adds social account for this datasource ${params("datasource")} ")
     params("datasource") match {
       case "twitter" => {
         val account = parsedBody.extract[List[SocialCredentialsTw]]
         logger.info(s"---->   add a new account ${account.size}    ")
-        account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
+        //------------------account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
       }
       case "facebook" => {
         logger.info(s"---->   add a new facebook  account ")
