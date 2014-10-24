@@ -81,3 +81,4 @@ object SocialDatasources {
 //facebook fan page
 case class FacebookPage(pageName: String, pageId: String)
 case class FacebookPageAuth(token: String, expires: Date, fanpages: List[FacebookPage]) extends Payload
+case class FacebookToken(token: String)

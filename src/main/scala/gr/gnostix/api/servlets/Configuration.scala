@@ -41,11 +41,10 @@ with FutureSupport {
 
 
   post("/fb/pages/:token") {
-    // I have to create a PROC for updating the Fb access token!!
-    val fbToken = parsedBody.extract[String]
+     val fbToken = parsedBody.extract[FacebookToken]
     logger.info("---->   GET FB TOKEN !!!!    ")
     //val token = Map("token" -> FbExtendedToken.getExtendedToken(params("token")))
-    val token = FbExtendedToken.getExtendedToken(fbToken)
+    val token = FbExtendedToken.getExtendedToken(fbToken.token)
     val pages = FbExtendedToken.getUserPages(token.getAccessToken)
     val data = FacebookPageAuth(token.getAccessToken, token.getExpires, pages.toList)
     DataResponse(200, "All good", data)
@@ -71,6 +70,9 @@ with FutureSupport {
     TwOauth.getUrlAuth
   }
 
+  get("/tw/add/proc"){
+    SocialAccountsTwitterDao.addAccount();
+  }
 
 
   get("/profiles/usage") {
@@ -232,7 +234,7 @@ with FutureSupport {
       case "twitter" => {
         val account = parsedBody.extract[List[SocialCredentialsTw]]
         logger.info(s"---->   add a new account ${account.size}    ")
-        account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
+        //account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
       }
       case "facebook" => {
         logger.info(s"---->   add a new facebook  account ")
