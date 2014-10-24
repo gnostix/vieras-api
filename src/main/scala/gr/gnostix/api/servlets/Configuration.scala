@@ -45,7 +45,7 @@ with FutureSupport {
     val fbToken = parsedBody.extract[String]
     logger.info("---->   GET FB TOKEN !!!!    ")
     //val token = Map("token" -> FbExtendedToken.getExtendedToken(params("token")))
-    val token = FbExtendedToken.getExtendedToken(params("token"))
+    val token = FbExtendedToken.getExtendedToken(fbToken)
     val pages = FbExtendedToken.getUserPages(token.getAccessToken)
     val data = FacebookPageAuth(token.getAccessToken, token.getExpires, pages.toList)
     DataResponse(200, "All good", data)
