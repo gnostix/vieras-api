@@ -40,24 +40,14 @@ with FutureSupport {
   //mount point /api/user/account/*
 
 
-  post("/fb/pages/:token") {
-     val fbToken = parsedBody.extract[FacebookToken]
+  post("/fb/pages") {
+    val fbToken = parsedBody.extract[FacebookToken]
     logger.info("---->   GET FB TOKEN !!!!    ")
-    //val token = Map("token" -> FbExtendedToken.getExtendedToken(params("token")))
     val token = FbExtendedToken.getExtendedToken(fbToken.token)
     val pages = FbExtendedToken.getUserPages(token.getAccessToken)
     val data = FacebookPageAuth(token.getAccessToken, token.getExpires, pages.toList)
     DataResponse(200, "All good", data)
   }
-
-  //test route
-  get("/fb/pages") {
-    logger.info("---->   GET FB PAGES !!!!    ")
-    val pages = FbExtendedToken.getUserPages("CAACfbmDZBqF0BAFvLIViNIZBuZCQESer8kEGUJMoDYWlyLmd492pCBcdKYmNPZC8yWNviiZA2" +
-      "kBnJhtE3P0ku87Y8zBe8skxbLiuxYMmxquZAM61VBwFDfLlbPhUjTIAhFWi7YALe1BsY4eUz5FH068Uy6wCmqZAZCbKyQ98Chwr7B2w03jQIGkX")
-    pages.toList
-  }
-
 
 
   get("/tw/auth/:pin") {
@@ -68,10 +58,6 @@ with FutureSupport {
   get("/tw/auth") {
     logger.info("---->   Twitter AUTH!!!!    ")
     TwOauth.getUrlAuth
-  }
-
-  get("/tw/add/proc"){
-    SocialAccountsTwitterDao.addAccount();
   }
 
 
@@ -234,7 +220,7 @@ with FutureSupport {
       case "twitter" => {
         val account = parsedBody.extract[List[SocialCredentialsTw]]
         logger.info(s"---->   add a new account ${account.size}    ")
-        //account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
+        account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
       }
       case "facebook" => {
         logger.info(s"---->   add a new facebook  account ")

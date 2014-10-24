@@ -115,7 +115,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
     }
   }
 
-  def addAccount(): Unit ={
+  def addAccount(profileId: Int, cred: SocialCredentialsTw): Unit ={
     getConnection withSession {
       var myId = 0
       implicit session =>
@@ -126,7 +126,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
           //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2
 
           //add account
-          ( Q.u + s"""{call PRC_INSERT_SOCIAL_CREDENTIAL(1500, 'TWITTER', 'tokenin', 'tokensecret', '', 0, 'koko', '', '', '', ''  )}""" ).execute()
+          ( Q.u + s"""{call PRC_INSERT_SOCIAL_CREDENTIAL($profileId, 'TWITTER', '${cred.token}', '${cred.tokenSecret}', '', 0, '${cred.handle}', '', '', '', ''  )}""" ).execute()
 
           logger.info("---------->  Id  $myId ")
           myId
