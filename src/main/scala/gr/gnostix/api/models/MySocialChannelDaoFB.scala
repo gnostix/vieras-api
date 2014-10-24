@@ -5,6 +5,7 @@ import gr.gnostix.api.utilities.{DateUtils, SqlUtils}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
+import scala.concurrent.{Promise, Future, ExecutionContext}
 import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 
 
@@ -20,17 +21,40 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
 
 
   def getLineCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String): Option[SocialData] = {
-     //bring the actual data
-    val data = getData(fromDate, toDate, dataType, profileId)
+     val sql = buildQuery(fromDate, toDate, profileId, dataType)
+
+    //bring the actual data
+    val data = getData(fromDate, toDate, dataType, profileId, sql)
     data match {
       case Some(data) => Some(data)
       case None => None
     }
   }
 
-  private def getData(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int): Option[SocialData] = {
-
+  def getLineCountsByQueryId(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, queryId: Int): Option[SocialData] = {
     val sql = buildQuery(fromDate, toDate, profileId, dataType)
+
+    //bring the actual data
+    val data = getData(fromDate, toDate, dataType, profileId, sql)
+    data match {
+      case Some(data) => Some(data)
+      case None => None
+    }
+  }
+
+  def getLineAllData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String): Future[Option[SocialData]] = {
+    val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
+    //bring the actual data
+    val prom = Promise[Option[SocialData]]()
+
+    Future {
+      prom.success (getData(fromDate, toDate, dataType, profileId, mySqlDynamic) )
+    }
+    prom.future
+  }
+
+  private def getData(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int, sql: String): Option[SocialData] = {
+
     var myData = List[DataLineGraph]()
 
     getConnection withSession {
@@ -61,6 +85,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     dataType match {
       case "post" => getSqlPosts(numDays, fromDateStr, toDateStr, profileId)
       case "comment" => getSqlComments(numDays, fromDateStr, toDateStr)
+      case "all" => getSqlComments(numDays, fromDateStr, toDateStr)
     }
 
   }

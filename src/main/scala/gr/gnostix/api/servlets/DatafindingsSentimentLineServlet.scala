@@ -137,7 +137,6 @@ with FutureSupport {
   }
 
   def f1(allSocialData: List[SocialData]) = {
-    val mydata = allSocialData.map(_.data).flatten
 
     val k = (allSocialData.map(_.data).flatten).groupBy(_.asInstanceOf[SentimentLine].sentiment).map {
       case (key, sentimentList) => (key, sentimentList.map(_.asInstanceOf[SentimentLine].msgNum).sum)

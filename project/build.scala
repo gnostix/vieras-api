@@ -38,7 +38,8 @@ object ScalatraoraBuild extends Build {
         "org.scalatra" %% "scalatra-auth" % ScalatraVersion withJavadoc(),
         "com.typesafe.akka" %% "akka-actor" % "2.3.4",
         "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
-        "com.restfb" % "restfb" % "1.6.16"
+        "com.restfb" % "restfb" % "1.6.16",
+        "org.twitter4j" % "twitter4j-core" % "4.0.2"
         //"org.joda" %% "joda-time" % "2.2"  ,
         //"org.joda" %% "joda-convert" % "1.6"
       ),

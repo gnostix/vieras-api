@@ -115,6 +115,29 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
     }
   }
 
+  def addAccountProc(): Unit ={
+    getConnection withSession {
+      var myId = 0
+      implicit session =>
+        try {
+          //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
+          //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER,
+          //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
+          //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2
+
+          //add account
+          ( Q.u + s"""{call PRC_INSERT_SOCIAL_CREDENTIAL(1500, 'TWITTER', 'tokenin', 'tokensecret', '', 0,  )}""" ).execute()
+
+          logger.info("---------->  Id  $myId ")
+          myId
+        } catch {
+          case e: Exception => {
+            SocialAccountsQueriesDao.deleteSocialCredentialsExc(myId)
+            logger.error("---------->  addAccount twitter " + e.printStackTrace())
+          }
+        }
+    }
+  }
 }
 
 
@@ -571,7 +594,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     try {
       getConnection withSession {
         implicit session =>
-          val credId = Q.queryNA[(String, Int)](s""" select ds_name,ds_id from datasources where fk_g_id=9 """)
+          val credId = Q.queryNA[(String, Int)](s""" select ds_name, ds_id from vieras_datasources where fk_g_id=9 """)
           credId.list()
       }
 

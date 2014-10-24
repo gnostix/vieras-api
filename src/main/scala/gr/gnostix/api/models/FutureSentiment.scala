@@ -21,12 +21,12 @@ object FutureSentimentDao extends DatabaseAccessSupport {
     val prom = Promise[Option[SocialData]]()
 
     Future {
-      prom.success (getData(fromDate, toDate, mySqlDynamic, datasource) )
+      prom.success(getData(fromDate, toDate, mySqlDynamic, datasource))
 
-/*      data match {
-        case Some(data) => data
-        case None => None
-      }*/
+      /*      data match {
+              case Some(data) => data
+              case None => None
+            }*/
     }
     prom.future
   }
@@ -38,7 +38,7 @@ object FutureSentimentDao extends DatabaseAccessSupport {
     val prom = Promise[Option[SocialData]]()
 
     Future {
-      prom.success (getData(fromDate, toDate, mySqlDynamic, datasource) )
+      prom.success(getData(fromDate, toDate, mySqlDynamic, datasource))
 
     }
     prom.future
@@ -50,15 +50,14 @@ object FutureSentimentDao extends DatabaseAccessSupport {
     val prom = Promise[Option[SocialData]]()
 
     Future {
-      prom.success (getData(fromDate, toDate, mySqlDynamic, datasource) )
+      prom.success(getData(fromDate, toDate, mySqlDynamic, datasource))
 
     }
     prom.future
   }
 
 
-
-  private def getData(fromDate: DateTime, toDate: DateTime, mySqlDynamic: String, datasource: String): Option[SocialData]  = {
+  private def getData(fromDate: DateTime, toDate: DateTime, mySqlDynamic: String, datasource: String): Option[SocialData] = {
 
     val sql = buildQuery(fromDate, toDate, mySqlDynamic, datasource)
 
@@ -92,15 +91,15 @@ object FutureSentimentDao extends DatabaseAccessSupport {
     val toDateStr: String = fmt.print(toDate)
 
     datasource match {
-      case "twitter" => Some( getSqlTW(fromDateStr, toDateStr, sqlDynamic) )
-      case "facebook" => Some( getSqlFB(fromDateStr, toDateStr, sqlDynamic) )
-      case "gplus" => Some( getSqlGplus(fromDateStr, toDateStr, sqlDynamic) )
-      case "youtube" => Some( getSqlYT(fromDateStr, toDateStr, sqlDynamic) )
-      case "web" => Some( getSqlWebByType(fromDateStr, toDateStr, sqlDynamic, WebDatasources.web.head._1) )
-      case "linkedin" => Some( getSqlWebByType(fromDateStr, toDateStr, sqlDynamic, WebDatasources.linkedin.head._1) )
-      case "news" => Some( getSqlFeedByType(fromDateStr, toDateStr, sqlDynamic, FeedDatasources.news.head._1) )
-      case "blog" => Some( getSqlFeedByType(fromDateStr, toDateStr, sqlDynamic, FeedDatasources.blogs.head._1) )
-      case "personal" => Some( getSqlFeedByType(fromDateStr, toDateStr, sqlDynamic, FeedDatasources.personal.head._1) )
+      case "twitter" => Some(getSqlTW(fromDateStr, toDateStr, sqlDynamic))
+      case "facebook" => Some(getSqlFB(fromDateStr, toDateStr, sqlDynamic))
+      case "gplus" => Some(getSqlGplus(fromDateStr, toDateStr, sqlDynamic))
+      case "youtube" => Some(getSqlYT(fromDateStr, toDateStr, sqlDynamic))
+      case "web" => Some(getSqlWebByType(fromDateStr, toDateStr, sqlDynamic, WebDatasources.web.head._1))
+      case "linkedin" => Some(getSqlWebByType(fromDateStr, toDateStr, sqlDynamic, WebDatasources.linkedin.head._1))
+      case "news" => Some(getSqlFeedByType(fromDateStr, toDateStr, sqlDynamic, FeedDatasources.news.head._1))
+      case "blog" => Some(getSqlFeedByType(fromDateStr, toDateStr, sqlDynamic, FeedDatasources.blogs.head._1))
+      case "personal" => Some(getSqlFeedByType(fromDateStr, toDateStr, sqlDynamic, FeedDatasources.personal.head._1))
       case _ => {
         logger.info("---------> no sql code for this datasource ${datasource}  ")
         None
