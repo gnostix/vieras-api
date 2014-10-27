@@ -64,7 +64,7 @@ with FutureSupport {
     val profileId = params("id").toInt
     // return the twitter handle
     val handle = TwOauth.getUserToken(params("pin"), profileId)
-    Map("status" -> 200, "message" -> "all good","twitter_handle" -> handle)
+    Map("status" -> 200, "message" -> "all good", "twitter_handle" -> handle)
   }
 
 
@@ -171,6 +171,37 @@ with FutureSupport {
     validUrl
   }
 
+  // get customer hotel sites
+  get("/profile/:profileId/datasources/hospitality/hotel/urls") {
+    val custId = params("profileId").toInt
+    val hotelUrls = SocialAccountsHotelDao.getHotelUrls(custId)
+    logger.info(s"---->   get customer hotel sites ")
+    Map("status" -> 200, "message" -> "all good", "payload" -> hotelUrls)
+  }
+
+  // delete customer hotel sites
+  delete("/profile/:profileId/datasources/hospitality/hotel/:id") {
+    val custId = params("profileId").toInt
+    val hotelId = params("id").toInt
+    val hotelUrls = SocialAccountsHotelDao.deleteHotelUrl(custId, hotelId)
+    logger.info(s"---->   delete customer hotel url")
+    Map("status" -> 200, "message" -> "all good", "payload" -> hotelUrls)
+  }
+
+
+  //first check and then add hotel url
+  post("/profile/:profileId/socialchannel/hotel/url") {
+    val hotel = parsedBody.extract[SocialCredentialsHotel]
+    val validUrl = SocialAccountsHotelDao.checkHotelurl(hotel.hotelUrl)
+    if (validUrl) {
+      // save hotel in db
+      SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
+    }
+    logger.info(s"---->   check hotel url  ${hotel.hotelUrl} ")
+  }
+
+
+
   // Social accounts
 
   get("/profile/:profileId/socialchannels/all") {
@@ -257,7 +288,7 @@ with FutureSupport {
   delete("/profile/:profileId/socialchannel/:datasource/:queryId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      case "hotel" => SocialAccountsHotelDao.deleteHotel(params("profileId").toInt, params("queryId").toInt)
+      //case "hotel" => SocialAccountsHotelDao.deleteHotel(params("profileId").toInt, params("queryId").toInt)
       case "twitter" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
       case "facebook" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
       case "youtube" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
@@ -265,16 +296,6 @@ with FutureSupport {
     }
   }
 
-  //first check and then add hotel url
-  post("/profile/:profileId/socialchannel/hotel/url") {
-    val hotel = parsedBody.extract[SocialCredentialsHotel]
-    val validUrl = SocialAccountsHotelDao.checkHotelurl(hotel.hotelUrl)
-    if (validUrl) {
-      // save hotel in db
-      SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
-    }
-    logger.info(s"---->   check hotel url  ${hotel.hotelUrl} ")
-  }
 
 
 }

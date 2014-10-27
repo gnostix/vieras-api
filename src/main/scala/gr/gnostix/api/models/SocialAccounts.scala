@@ -41,6 +41,9 @@ case class SocialCredentialsGa(gaAuthKey: String, gaName: String)
 
 case class SocialCredentialsHotel(hotelUrl: String, hotelDatasource: String, hotelName: String)
 
+case class UserHotelUrls(hotelId: Int, hotelUrl: String, dsId: Int)
+
+case class SupportedHospitalitySites(ds_name: String, ds_id: Int)
 
 object SocialAccountsTwitterDao extends DatabaseAccessSupport {
   val logger = LoggerFactory.getLogger(getClass)
@@ -115,7 +118,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
     }
   }
 
-  def addAccount(profileId: Int, token: String, tokenSecret: String, handle: String): Unit ={
+  def addAccount(profileId: Int, token: String, tokenSecret: String, handle: String): Unit = {
     getConnection withSession {
       var myId = 0
       implicit session =>
@@ -126,10 +129,8 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
           //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2
 
           //add account
-          ( Q.u + s"""{call PRC_INSERT_SOCIAL_CREDENTIAL($profileId, 'TWITTER', '$token', '$tokenSecret', '', 0, '$handle', '', '', '', ''  )}""" ).execute()
+          (Q.u + s"""{call PRC_INSERT_SOCIAL_CREDENTIAL($profileId, 'TWITTER', '$token', '$tokenSecret', '', 0, '$handle', '', '', '', ''  )}""").execute()
 
-          logger.info("---------->  Id  $myId ")
-          myId
         } catch {
           case e: Exception => {
             SocialAccountsQueriesDao.deleteSocialCredentialsExc(myId)
@@ -385,6 +386,9 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
 
   implicit val getSocialAccountsHotelResult = GetResult(r => SocialAccountsHotel(r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getHotelUrsResult = GetResult(r => UserHotelUrls(r.<<, r.<<, r.<<))
+  implicit val getHospitalitylUrsResult = GetResult(r => SupportedHospitalitySites(r.<<, r.<<))
+
 
   def findById(profileId: Int, queryId: Int) = {
     getConnection withSession {
@@ -528,7 +532,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     }
   }
 
-  def deleteHotel(profileId: Int, queryId: Int) {
+  def deleteHotelOld(profileId: Int, queryId: Int) {
     try {
       getConnection withSession {
         implicit session =>
@@ -594,7 +598,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     try {
       getConnection withSession {
         implicit session =>
-          val credId = Q.queryNA[(String, Int)](s""" select ds_name, ds_id from vieras_datasources where fk_g_id=9 """)
+          val credId = Q.queryNA[SupportedHospitalitySites]( s""" select ds_name, ds_id from vieras_datasources where fk_g_id=9 """)
           credId.list()
       }
 
@@ -604,10 +608,40 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
 
   }
 
+  def getHotelUrls(profileId: Int) = {
+    try {
+      getConnection withSession {
+        implicit session =>
+          val urls = Q.queryNA[UserHotelUrls]( s""" select hotel_id,hotel_url,fk_datasource_id from ENG_CUST_HOTEL_CREDENTIALS i
+                                                      left join  eng_hotels on i.fk_hotel_id=hotel_id
+                                                      and I.FK_CUST_ID=$profileId """)
+          urls.list()
+      }
+
+    } catch {
+      case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
+    }
+  }
+
+  def deleteHotelUrl(profileId: Int, hotelId: Int) = {
+    try {
+      getConnection withSession {
+        implicit session =>
+
+          val delHotel = (Q.u + s"""{call PRC_DELETE_HOTEL_CREDENTIAL($profileId, $hotelId)}""").execute()
+          delHotel
+      }
+
+    } catch {
+      case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
+    }
+  }
+
 }
 
 
 object SocialAccountsQueriesDao extends DatabaseAccessSupport {
+
   val logger = LoggerFactory.getLogger(getClass)
 
   def insertQueries(credId: Int, datasource: String) {
