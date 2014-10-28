@@ -85,3 +85,4 @@ case class FacebookPageAuth(token: String, expires: Date, fanpages: List[Faceboo
 case class FacebookToken(token: String)
 
 // hotels
+case class HotelAddUrl(dsId: Int, hotelUrl: String)

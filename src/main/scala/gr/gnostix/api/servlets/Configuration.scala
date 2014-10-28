@@ -9,7 +9,7 @@ import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.models._
 import twitter4j.Twitter
-import twitter4j.auth.RequestToken
+import twitter4j.auth.{AccessToken, RequestToken}
 
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Try, Failure, Success}
@@ -40,34 +40,7 @@ with FutureSupport {
   //mount point /api/user/account/*
 
 
-  post("/profile/:id/fb/pages") {
-    val fbToken = parsedBody.extract[FacebookToken]
-    val profileId = params("id").toInt
-
-    logger.info("---->   GET FB TOKEN !!!!    ")
-    val token = FbExtendedToken.getExtendedToken(fbToken.token)
-    val pages = FbExtendedToken.getUserPages(token.getAccessToken)
-    val data = FacebookPageAuth(token.getAccessToken, token.getExpires, pages.toList)
-    DataResponse(200, "All good", data)
-  }
-
-
-  // 1. Step - Give the user the url for accepting the gnostix app
-  get("/profile/:id/tw/auth") {
-    logger.info("---->   Twitter AUTH!!!!    ")
-    Map("url" -> TwOauth.getUrlAuth)
-  }
-
-  // 2. Step - Get the authorization of Twitter and save the account
-  get("/profile/:id/tw/auth/:pin") {
-    logger.info("---->   Twitter PIN !!!!    ")
-    val profileId = params("id").toInt
-    // return the twitter handle
-    val handle = TwOauth.getUserToken(params("pin"), profileId)
-    Map("status" -> 200, "message" -> "all good", "twitter_handle" -> handle)
-  }
-
-
+  // profiles data
   get("/profiles/usage") {
     logger.info("---->   return all profiles/usage with userlevel id     ")
     try {
@@ -164,6 +137,42 @@ with FutureSupport {
   }
 
 
+  // facebook auth
+  post("/profile/:id/fb/pages") {
+    val fbToken = parsedBody.extract[FacebookToken]
+    val profileId = params("id").toInt
+
+    logger.info("---->   GET FB TOKEN !!!!    ")
+    val token = FbExtendedToken.getExtendedToken(fbToken.token)
+    val pages = FbExtendedToken.getUserPages(token.getAccessToken)
+    val data = FacebookPageAuth(token.getAccessToken, token.getExpires, pages.toList)
+    DataResponse(200, "All good", data)
+  }
+
+
+  // Twitter auth
+  // 1. Step - Give the user the url for accepting the gnostix app
+  get("/profile/:id/tw/auth") {
+    logger.info("---->   Twitter AUTH!!!!    ")
+    Map("url" -> TwOauth.getUrlAuth)
+  }
+
+  // 2. Step - Get the authorization of Twitter and save the account
+  get("/profile/:id/tw/auth/:pin") {
+    logger.info("---->   Twitter PIN !!!!    ")
+
+    val profileId = params("id").toInt
+    // add twitter account and then return the twitter handle
+    val accessToken: AccessToken = TwOauth.getUserToken(params("pin"), profileId)
+    val account = SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(),
+      accessToken.getScreenName())
+    account match {
+      case Some(data) => Map("status" -> 200, "message" -> "all good", "twitter_account" -> data)
+      case None => Map("status" -> 402, "message" -> "error on adding account")
+    }
+  }
+
+
   //get supported hospitality sites
   get("/profile/:profileId/datasources/hospitality/all") {
     val validUrl = SocialAccountsHotelDao.getHospitalitySites
@@ -179,30 +188,7 @@ with FutureSupport {
     Map("status" -> 200, "message" -> "all good", "payload" -> hotelUrls)
   }
 
-  // delete customer hotel sites
-  delete("/profile/:profileId/datasources/hospitality/hotel/:id") {
-    val custId = params("profileId").toInt
-    val hotelId = params("id").toInt
-    val hotelUrls = SocialAccountsHotelDao.deleteHotelUrl(custId, hotelId)
-    logger.info(s"---->   delete customer hotel url")
-    Map("status" -> 200, "message" -> "all good", "payload" -> hotelUrls)
-  }
-
-
-  //first check and then add hotel url
-  post("/profile/:profileId/socialchannel/hotel/url") {
-    val hotel = parsedBody.extract[SocialCredentialsHotel]
-    val validUrl = SocialAccountsHotelDao.checkHotelurl(hotel.hotelUrl)
-    if (validUrl) {
-      // save hotel in db
-      SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
-    }
-    logger.info(s"---->   check hotel url  ${hotel.hotelUrl} ")
-  }
-
-
-
-  // Social accounts
+  // ====================== Social accounts ====================================
 
   get("/profile/:profileId/socialchannels/all") {
 
@@ -227,20 +213,20 @@ with FutureSupport {
     DataResponseAccounts(200, "Coulio Bro!!!", socialAccounts)
   }
 
-
-  get("/profile/:profileId/socialchannel/:datasource/:queryId") {
+  //i need to refactor these
+  get("/profile/:profileId/socialchannel/:datasource/:credId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      case "twitter" => SocialAccountsTwitterDao.findById(params("profileId").toInt, params("queryId").toInt)
-      case "facebook" => SocialAccountsFacebookDao.findById(params("profileId").toInt, params("queryId").toInt)
-      case "youtube" => SocialAccountsYoutubeDao.findById(params("profileId").toInt, params("queryId").toInt)
-      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(params("profileId").toInt, params("queryId").toInt)
-      case "hotel" => SocialAccountsHotelDao.findById(params("profileId").toInt, params("queryId").toInt)
+      case "twitter" => SocialAccountsTwitterDao.findById(params("profileId").toInt, params("credId").toInt)
+      case "facebook" => SocialAccountsFacebookDao.findById(params("profileId").toInt, params("credId").toInt)
+      case "youtube" => SocialAccountsYoutubeDao.findById(params("profileId").toInt, params("credId").toInt)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(params("profileId").toInt, params("credId").toInt)
+      case "hotel" => SocialAccountsHotelDao.findById(params("profileId").toInt, params("credId").toInt)
     }
 
   }
 
-
+  //i need to refactor these
   get("/profile/:profileId/socialchannel/:datasource/all") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
@@ -251,13 +237,14 @@ with FutureSupport {
       case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
     }
   }
-  // I don't see this working..maybe depricated
+
+  // add social and hospitality accounts
   post("/profile/:profileId/socialchannel/:datasource/account") {
     logger.info(s"---->   adds social account for this datasource ${params("datasource")} ")
     params("datasource") match {
       case "twitter" => {
-        val account = parsedBody.extract[List[SocialCredentialsTw]]
-        logger.info(s"---->   add a new account ${account.size}    ")
+        //val account = parsedBody.extract[List[SocialCredentialsTw]]
+        logger.info(s"---->   add a new account. the account is added from the Auth route   !!!!! ")
         //------------------account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
       }
       case "facebook" => {
@@ -277,25 +264,34 @@ with FutureSupport {
         account.foreach(SocialAccountsGAnalyticsDao.addAccount(params("profileId").toInt, _))
       }
       case "hotel" => {
-        val account = parsedBody.extract[List[SocialCredentialsHotel]]
-        logger.info(s"---->   add a new account ${account.size} ")
-        account.foreach(SocialAccountsHotelDao.addAccount(params("profileId").toInt, _))
+        val hotel = parsedBody.extract[SocialCredentialsHotel]
+        val validUrl = SocialAccountsHotelDao.checkHotelurl(hotel.hotelUrl)
+        logger.info(s"---->   validUrl $validUrl ")
+        if (validUrl) {
+          // save hotel in db
+          val hotelId = SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
+          logger.info(s"---->   hotelId $hotelId ")
+          Map("status" -> 200, "message" -> "all good", "hotelId" -> hotelId)
+        } else {
+          Map("status" -> 402, "message" -> "bad url")
+        }
+
       }
     }
 
   }
 
-  delete("/profile/:profileId/socialchannel/:datasource/:queryId") {
+  delete("/profile/:profileId/socialchannel/:datasource/:hotelId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      //case "hotel" => SocialAccountsHotelDao.deleteHotel(params("profileId").toInt, params("queryId").toInt)
+      case "hotel" => SocialAccountsHotelDao.deleteHotelUrl(params("profileId").toInt, params("hotelId").toInt)
       case "twitter" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
       case "facebook" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
       case "youtube" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
       case "ganalytics" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
     }
+    Map("status" -> 200, "message" -> "all good")
   }
-
 
 
 }

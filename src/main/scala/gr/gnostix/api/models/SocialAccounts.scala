@@ -1,9 +1,10 @@
 package gr.gnostix.api.models
 
-import java.sql.Timestamp
+
+import java.sql.{Date, CallableStatement}
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
-import oracle.sql.TIMESTAMP
+
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -11,35 +12,36 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.{Future, Promise, ExecutionContext}
 import scala.io.Source
 import scala.slick.jdbc.{StaticQuery => Q, GetResult}
-
+import Q.interpolation
 
 /**
  * Created by rebel on 4/8/14.
  */
-case class SocialAccountsTwitter(queryId: Int, handle: String, followers: Int,
+case class SocialAccountsTwitter(credId: Int, handle: String, followers: Int,
                                  following: Int, listed: Int, statusNum: Int) extends DataGraph
 
-case class SocialAccountsFacebook(queryId: Int, fanpagefans: Int, friends: Int, talkingAboutCount: Int,
-                                  talkingAboutSixDays: Int, checkins: Int, reach: Int, fanpage: String) extends DataGraph
+case class SocialAccountsFacebook(credId: Int, fanPageFans: Int, friends: Int, talkingAboutCount: Int,
+                                  talkingAboutSixDays: Int, checkins: Int, reach: Int, fanPage: String) extends DataGraph
 
-case class SocialAccountsYoutube(queryId: Int, subscribers: Int, views: Int, totalViews: Int, channelName: String) extends DataGraph
+case class SocialAccountsYoutube(credId: Int, subscribers: Int, views: Int, totalViews: Int, channelName: String) extends DataGraph
 
-case class SocialAccountsGAnalytics(queryId: Int, profileName: String, visits: Int, avgTimeOnSite: Int, newVisits: Int)
+case class SocialAccountsGAnalytics(credId: Int, profileName: String, visits: Int, avgTimeOnSite: Int, newVisits: Int)
   extends DataGraph
 
-case class SocialAccountsHotel(queryId: Int, hotelId: Int, totalRating: Double, hotelName: String, hotelAddress: String,
+case class SocialAccountsHotel(credId: Int, hotelId: Int, totalRating: Double, hotelName: String, hotelAddress: String,
                                hotelStars: Int, totalReviews: Int, hotelUrl: String) extends DataGraph
 
-// social credntials
+// social credentials
 case class SocialCredentialsTw(token: String, tokenSecret: String, handle: String)
+case class SocialCredentialsSimple(credentialsId: Int, accountName: String)
 
-case class SocialCredentialsFb(token: String, fanpage: String, var validated: String, expireSec: Int)
+case class SocialCredentialsFb(token: String, fanpage: String, validated: java.util.Date, expireSec: Int)
 
 case class SocialCredentialsYt(channelname: String, channelId: String)
 
 case class SocialCredentialsGa(gaAuthKey: String, gaName: String)
 
-case class SocialCredentialsHotel(hotelUrl: String, hotelDatasource: String, hotelName: String)
+case class SocialCredentialsHotel(hotelUrl: String, dsId: Int)
 
 case class UserHotelUrls(hotelId: Int, hotelUrl: String, dsId: Int)
 
@@ -51,18 +53,18 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
   implicit val getSocialAccountsTwitterResult = GetResult(r => SocialAccountsTwitter(r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<))
 
-  def findById(profileId: Int, queryId: Int) = {
+  def findById(profileId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsTwitter](
-          s"""select fk_eng_engagement_data_quer_id, HANDLE,max(FOLLOWERS) ,
-                max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from eng_tw_stats
-                  where fk_eng_engagement_data_quer_id = $queryId
-                     and fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
+          s""" select fk_cust_social_engagement_id, HANDLE,max(FOLLOWERS) ,
+                max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from eng_tw_stats,eng_engagement_data_queries i
+                  where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
                       where q.is_active = 1 and q.attr = 'TW_FFSL'
+                        and fk_cust_social_engagement_id = $credId
                         and fk_cust_social_engagement_id in ( select s.id from eng_cust_social_credentials s
-                         where s.fk_cust_id = $profileId and s.fk_datasource_id = 2))
-                group by fk_eng_engagement_data_quer_id,handle """)
+                         where s.fk_cust_id = $profileId and s.fk_datasource_id = 2)) and fk_eng_engagement_data_quer_id=i.id
+                group by fk_cust_social_engagement_id,handle """)
         val accounts = records.list()
         SocialAccounts("twitter", accounts)
 
@@ -77,13 +79,13 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsTwitter](
-              s"""select fk_eng_engagement_data_quer_id, HANDLE,max(FOLLOWERS) ,
-                max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from eng_tw_stats
+              s"""select fk_cust_social_engagement_id, HANDLE,max(FOLLOWERS) ,
+                max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from eng_tw_stats,eng_engagement_data_queries i
                   where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
                       where q.is_active = 1 and q.attr = 'TW_FFSL'
                         and fk_cust_social_engagement_id in ( select s.id from eng_cust_social_credentials s
-                         where s.fk_cust_id = $profileId and s.fk_datasource_id = 2))
-                group by fk_eng_engagement_data_quer_id,handle """)
+                         where s.fk_cust_id = $profileId and s.fk_datasource_id = 2)) and fk_eng_engagement_data_quer_id=i.id
+                group by fk_cust_social_engagement_id,handle """)
             val accounts = records.list()
             SocialAccounts("twitter", accounts)
 
@@ -92,55 +94,54 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
     prom.future
   }
 
-  def addAccount1(profileId: Int, cred: SocialCredentialsTw) {
-    getConnection withSession {
-      var myId = 0
-      implicit session =>
-        try {
 
-          //add account
-          (Q.u + s"""insert into eng_cust_social_credentials (ID, TOKEN, TOKENSECRET, FK_DATASOURCE_ID, FK_CUST_ID, TWITTER_HANDLE)
-          values (SEQ_ENG_CUST_SOCIAL_CREDENTIAL.nextval, '${cred.token}', '${cred.tokenSecret}', 2, $profileId , '${cred.handle}')""").execute()
+  def addAccount(profileId: Int, token: String, tokenSecret: String, handle: String): Option[SocialCredentialsSimple] = {
+    try {
+      //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
+      //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
+      //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
+      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, CREDENTIAL_ID OUT NUMBER
 
-          // get Id
-          val result = Q.queryNA[Int]( s"""select id from eng_cust_social_credentials where TOKEN = '${cred.token}'
-                                and TOKENSECRET = '${cred.tokenSecret}' and fk_cust_id = $profileId""")
-          myId = result.first()
-          SocialAccountsQueriesDao.insertQueries(myId, "twitter")
-          logger.info("---------->  Id  $myId ")
-          myId
-        } catch {
-          case e: Exception => {
-            SocialAccountsQueriesDao.deleteSocialCredentialsExc(myId)
-            logger.error("---------->  addAccount twitter " + e.printStackTrace())
-          }
-        }
+      val date = new java.util.Date();
+      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val connection = getConnection.createConnection()
+      val callableStatement: CallableStatement = connection.prepareCall(sql)
+      callableStatement.setInt(1, profileId)
+      callableStatement.setString(2, "TWITTER")
+      callableStatement.setString(3, token)
+      callableStatement.setString(4, tokenSecret)
+      callableStatement.setString(5, "")
+      callableStatement.setInt(6, 0)
+      callableStatement.setDate(7, new java.sql.Date(date.getTime))
+      callableStatement.setString(8, handle)
+      callableStatement.setString(9, "")
+      callableStatement.setString(10, "")
+      callableStatement.setString(11, "")
+      callableStatement.setString(12, "")
+
+      callableStatement.registerOutParameter(13, java.sql.Types.INTEGER)
+
+      callableStatement.executeUpdate()
+
+      val credId: Int = callableStatement.getInt(13)
+      callableStatement.close()
+      connection.commit()
+      connection.close()
+
+      println("---------------------> " + credId)
+      logger.info("---------->  addAccount twitter account " + credId)
+
+      Some(SocialCredentialsSimple(credId, handle))
+
+    } catch {
+      case e: Exception => {
+        logger.error("---------->  addAccount twitter account" + e.printStackTrace())
+        None
+      }
     }
-  }
 
-  def addAccount(profileId: Int, token: String, tokenSecret: String, handle: String): Unit = {
-    getConnection withSession {
-      var myId = 0
-      implicit session =>
-        try {
-          //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
-          //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER,
-          //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
-          //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2
-
-          //add account
-          (Q.u + s"""{call PRC_INSERT_SOCIAL_CREDENTIAL($profileId, 'TWITTER', '$token', '$tokenSecret', '', 0, '$handle', '', '', '', ''  )}""").execute()
-
-        } catch {
-          case e: Exception => {
-            SocialAccountsQueriesDao.deleteSocialCredentialsExc(myId)
-            logger.error("---------->  addAccount twitter " + e.printStackTrace())
-          }
-        }
-    }
   }
 }
-
 
 object SocialAccountsFacebookDao extends DatabaseAccessSupport {
   val logger = LoggerFactory.getLogger(getClass)
@@ -148,18 +149,19 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
   implicit val getSocialAccountsFacebookResult = GetResult(r => SocialAccountsFacebook(r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
-  def findById(profileId: Int, queryId: Int) = {
+  def findById(profileId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsFacebook](
-          s"""select fk_eng_engagement_data_quer_id,max(fanpage_fans) , max(friend),
+          s""" select fk_cust_social_engagement_id ,max(fanpage_fans) , max(friend),
                 max(talking_about_count),max(talking_about_sixdays),  max(checkins),max(reach), max(fanpage)
-                  from eng_fb_stats where fk_eng_engagement_data_quer_id = $queryId
-                    and fk_eng_engagement_data_quer_id in ( select q.id from
+                  from eng_fb_stats ,eng_engagement_data_queries i
+                   where fk_eng_engagement_data_quer_id in ( select q.id from
                       eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FFSL'
+                      and fk_cust_social_engagement_id = $credId
                       and fk_cust_social_engagement_id in ( select s.id from eng_cust_social_credentials s
-                      where s.fk_cust_id = $profileId and s.fk_datasource_id = 1))
-              group by fk_eng_engagement_data_quer_id """)
+                where s.fk_cust_id = $profileId and s.fk_datasource_id = 1)) and fk_eng_engagement_data_quer_id=i.id
+              group by fk_cust_social_engagement_id """)
         val accounts = records.list()
         SocialAccounts("facebook", accounts)
 
@@ -174,13 +176,14 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsFacebook](
-              s"""select fk_eng_engagement_data_quer_id,max(fanpage_fans) , max(friend),
+              s"""select fk_cust_social_engagement_id,max(fanpage_fans) , max(friend),
                 max(talking_about_count),max(talking_about_sixdays),  max(checkins),max(reach), max(fanpage)
-                  from eng_fb_stats where fk_eng_engagement_data_quer_id in ( select q.id from
+                  from eng_fb_stats ,eng_engagement_data_queries i
+                   where fk_eng_engagement_data_quer_id in ( select q.id from
                       eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FFSL'
                       and fk_cust_social_engagement_id in ( select s.id from eng_cust_social_credentials s
-                      where s.fk_cust_id = $profileId and s.fk_datasource_id = 1))
-              group by fk_eng_engagement_data_quer_id """)
+                where s.fk_cust_id = $profileId and s.fk_datasource_id = 1)) and fk_eng_engagement_data_quer_id=i.id
+              group by fk_cust_social_engagement_id """)
             val accounts = records.list()
             SocialAccounts("facebook", accounts)
 
@@ -189,40 +192,52 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
     prom.future
   }
 
-  def addAccount(profileId: Int, cred: SocialCredentialsFb) {
-    getConnection withSession {
-      val datePattern = "dd-MM-yyyy HH:mm:ss"
-      val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
-      //val fromDateStr: String = fmt.print(cred.validated)*/
 
-      val fromDate: DateTime = DateTime.parse(cred.validated,
-        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
-      logger.info("-----------------> $fromDateStr")
-      val fromDateStr: String = fmt.print(fromDate)
+  def addAccount(profileId: Int, cred: SocialCredentialsFb): Option[SocialCredentialsSimple] = {
+    try {
+      //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
+      //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
+      //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
+      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, CREDENTIAL_ID OUT NUMBER
 
-      var myId = 0
-      implicit session =>
-        try {
+      val date = new java.util.Date();
+      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val connection = getConnection.createConnection()
+      val callableStatement: CallableStatement = connection.prepareCall(sql)
+      callableStatement.setInt(1, profileId)
+      callableStatement.setString(2, "FACEBOOK")
+      callableStatement.setString(3, cred.token)
+      callableStatement.setString(4, "")
+      callableStatement.setString(5, cred.fanpage)
+      callableStatement.setInt(6, cred.expireSec)
+      callableStatement.setDate(7, new java.sql.Date(cred.validated.getTime))
+      callableStatement.setString(8, "")
+      callableStatement.setString(9, "")
+      callableStatement.setString(10, "")
+      callableStatement.setString(11, "")
+      callableStatement.setString(12, "")
 
-          //add account
-          (Q.u + s"""insert into eng_cust_social_credentials (ID, TOKEN, FB_FAN_PAGE, FK_DATASOURCE_ID, FK_CUST_ID, VALIDATED, FACEBOOK_EXPIRES_SEC)
-                        values (SEQ_ENG_CUST_SOCIAL_CREDENTIAL.nextval, '${cred.token}', '${cred.fanpage}', 1, $profileId ,
-                          TO_TIMESTAMP('$fromDateStr','DD-MM-YYYY HH24:MI:SS'), ${cred.expireSec})""").execute()
+      callableStatement.registerOutParameter(13, java.sql.Types.INTEGER)
 
-          // get Id
-          val result = Q.queryNA[Int]( s"""select id from eng_cust_social_credentials where TOKEN = '${cred.token}'
-                                and FB_FAN_PAGE = '${cred.fanpage}' and fk_cust_id = $profileId""")
-          myId = result.first()
-          SocialAccountsQueriesDao.insertQueries(myId, "facebook")
-          logger.info("---------->  Id  $myId ")
-          myId
-        } catch {
-          case e: Exception => {
-            SocialAccountsQueriesDao.deleteSocialCredentialsExc(myId)
-            logger.error("---------->  addAccount facebook " + e.printStackTrace())
-          }
-        }
+      callableStatement.executeUpdate()
+
+      val credId: Int = callableStatement.getInt(13)
+      callableStatement.close()
+      connection.commit()
+      connection.close()
+
+      println("---------------------> " + credId)
+      logger.info("---------->  addAccount facebook account " + credId)
+
+      Some(SocialCredentialsSimple(credId, cred.fanpage))
+
+    } catch {
+      case e: Exception => {
+        logger.error("---------->  addAccount facebook account" + e.printStackTrace())
+        None
+      }
     }
+
   }
 
 
@@ -394,18 +409,13 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsHotel](
-          s"""select m.fk_eng_engagement_data_quer_id, h.HOTEL_ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
-              h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL
-                from eng_hotels h, eng_queryid_hotelid m
-                where h.hotel_id = m.fk_eng_var_hotel_id
-                  and h.is_enabled = 1
-                  and m.fk_eng_engagement_data_quer_id = $queryId
-                  and m.fk_eng_engagement_data_quer_id in (
-                    select q.id from eng_engagement_data_queries q where q.is_active = 1
-                        and fk_cust_social_engagement_id in (
-                           select s.id from eng_cust_social_credentials s where s.fk_cust_id = $profileId )
-                    )
-                    order by h.TOTAL_RATING desc """)
+          s"""select c.id, h.HOTEL_ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
+                     h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL
+                   from eng_hotels h, ENG_CUST_HOTEL_CREDENTIALS c
+                     where h.hotel_id = c.fk_hotel_id
+                      and c.fk_cust_id = $profileId
+                      and c.id = $queryId
+                   order by h.TOTAL_RATING desc """)
         val accounts = records.list()
         SocialAccounts("hotel", accounts)
 
@@ -420,17 +430,12 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsHotel](
-              s"""select m.fk_eng_engagement_data_quer_id, h.HOTEL_ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
-              h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL
-                from eng_hotels h, eng_queryid_hotelid m
-                where h.hotel_id = m.fk_eng_var_hotel_id
-                  and h.is_enabled = 1
-                  and m.fk_eng_engagement_data_quer_id in (
-                    select q.id from eng_engagement_data_queries q where q.is_active = 1
-                        and fk_cust_social_engagement_id in (
-                           select s.id from eng_cust_social_credentials s where s.fk_cust_id = $profileId )
-                    )
-                    order by h.TOTAL_RATING desc """)
+              s""" select c.id, h.HOTEL_ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
+                       h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL
+                     from eng_hotels h, ENG_CUST_HOTEL_CREDENTIALS c
+                       where h.hotel_id = c.fk_hotel_id
+                        and c.fk_cust_id = $profileId
+                     order by h.TOTAL_RATING desc """)
             val accounts = records.list()
             SocialAccounts("hotel", accounts)
 
@@ -440,152 +445,42 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
   }
 
 
-  def addAccount(profileId: Int, cred: SocialCredentialsHotel) {
-    getConnection withSession {
-      var myId = 0
-
-      val datasourceId = cred.hotelDatasource match {
-        case "tripadvisor" => 3
-        case "booking" => 13
-        case "expedia" => 16
-        case "zoover" => 17
-        case "holydaycheck" => 18
-      }
-      implicit session =>
-        try {
-
-          //add account
-          (Q.u + s"""insert into eng_cust_social_credentials (ID, FK_DATASOURCE_ID, FK_CUST_ID, HOTELS)
-          values (SEQ_ENG_CUST_SOCIAL_CREDENTIAL.nextval, $datasourceId, $profileId, '${cred.hotelName}')""").execute()
-
-          // get Id
-          val result = Q.queryNA[Int](
-            s"""select id from eng_cust_social_credentials
-               where  FK_DATASOURCE_ID = $datasourceId and HOTELS = '${cred.hotelName}' and fk_cust_id = $profileId
-              order by id desc """)
-          if (result.list().size != 0) {
-            myId = result.first()
-
-            addAccountHotelQueries(myId, cred)
-            logger.info("---------->  Id  $myId ")
-          } else {
-            logger.error("---------->  addAccount NOT ADDED!!!")
-          }
-        } catch {
-          case e: Exception => {
-            SocialAccountsQueriesDao.deleteSocialCredentialsExc(myId)
-            logger.error("---------->  addAccount ganalytics " + e.printStackTrace())
-          }
-        }
-    }
-  }
-
-  private def addAccountHotelQueries(credId: Int, cred: SocialCredentialsHotel) {
+  def addAccount(profileId: Int, cred: SocialCredentialsHotel) = {
     try {
-      getConnection withSession {
-        implicit session =>
-          val ffsl = "HOTELS_DATA"
-          // add queries
-          (Q.u +
-            s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 86400, sysdate-1, '$ffsl') """).execute()
-          // get the queryId so we can use it
-          val myQueryId = Q.queryNA[Int](
-            s"""select id from eng_engagement_data_queries
-               where  FK_CUST_SOCIAL_ENGAGEMENT_ID = $credId and ATTR = '$ffsl' order by id desc""").first()
+      val sql: String = "{call PRC_INSERT_HOTEL_CREDENTIAL(?,?,?,?)}"
+      val connection = getConnection.createConnection()
+      val callableStatement: CallableStatement = connection.prepareCall(sql)
+      callableStatement.setInt(1, profileId)
+      callableStatement.setInt(2, cred.dsId)
+      callableStatement.setString(3, cred.hotelUrl)
+      callableStatement.registerOutParameter(4, java.sql.Types.INTEGER)
 
-          // check if the hotel url already exists in our database
-          var hotelId = 0
-          val rs1 = Q.queryNA[Int]( s""" select hotel_id from eng_hotels where hotel_url = '${cred.hotelUrl}' """)
+      callableStatement.executeUpdate()
 
-          if (rs1.list.size != 0) {
-            hotelId = rs1.first()
-          }
+      val hotelId: Int = callableStatement.getInt(4)
+      callableStatement.close()
+      connection.commit()
+      connection.close()
 
-          if (hotelId == 0) {
-            // we don't have this hotel url so we add it to our system
-            (Q.u +
-              s""" insert into  eng_hotels (HOTEL_ID, HOTEL_URL)
-            values (ENG_HOTELS_SEQ.nextval, '${cred.hotelUrl}') """).execute()
+      println("---------------------> " + hotelId)
+      logger.info("---------->  addAccount hotel url " + hotelId)
 
-            // get the new hotel id
-            hotelId = Q.queryNA[Int]( s""" select hotel_id from eng_hotels where hotel_url = '${cred.hotelUrl}' """).first()
+      hotelId
 
-            // add query id with hotel id
-            (Q.u +
-              s""" insert into  ENG_QUERYID_HOTELID (FK_ENG_ENGAGEMENT_DATA_QUER_ID, FK_ENG_VAR_HOTEL_ID)
-            values ($myQueryId, $hotelId) """).execute()
-
-          } else {
-            // add query id with hotel id
-            (Q.u +
-              s""" insert into  ENG_QUERYID_HOTELID (FK_ENG_ENGAGEMENT_DATA_QUER_ID, FK_ENG_VAR_HOTEL_ID)
-            values ($myQueryId, $hotelId) """).execute()
-          }
-      }
     } catch {
-
       case e: Exception => {
-        deleteHotelQueriesExc(credId)
-        logger.error("---------->  Error on inserting the hotel queries " + e.printStackTrace())
+        logger.error("---------->  addAccount hotel url " + e.printStackTrace())
       }
     }
+
   }
 
-  def deleteHotelOld(profileId: Int, queryId: Int) {
-    try {
-      getConnection withSession {
-        implicit session =>
-          val credId = Q.queryNA[Int]( s""" select id from eng_cust_social_credentials s where s.fk_cust_id = $profileId and id in (
-                                              select FK_CUST_SOCIAL_ENGAGEMENT_ID from eng_engagement_data_queries q where ID = $queryId )""").first()
-          if (credId != 0) {
-            // delete ENG_QUERYID_HOTELID query
-            (Q.u + s""" delete from eng_queryid_hotelid m
-                    where m.fk_eng_engagement_data_quer_id in (
-                        select q.id from eng_engagement_data_queries q where fk_cust_social_engagement_id  = $credId
-                          and fk_cust_social_engagement_id in (
-                               select s.id from eng_cust_social_credentials s where s.fk_cust_id = $profileId )
-                        )""").execute()
-
-            // delete the eng queries
-            (Q.u + s""" delete from eng_engagement_data_queries q where fk_cust_social_engagement_id = $credId
-            and fk_cust_social_engagement_id in (
-                               select s.id from eng_cust_social_credentials s where s.fk_cust_id = $profileId )
-                        """).execute()
-
-            // delete the eng credentials
-            (Q.u + s""" delete from eng_cust_social_credentials s where s.fk_cust_id = $profileId and s.id = $credId""").execute()
-          }
-      }
-    } catch {
-      case e: Exception => logger.error("---------->  Error on deleting the hotel queries " + e.printStackTrace())
-    }
-  }
-
-
-  def deleteHotelQueriesExc(credId: Int) {
-    getConnection withSession {
-      implicit session =>
-        try {
-          (Q.u + s""" delete from eng_queryid_hotelid where fk_eng_engagement_data_quer_id in (
-                          select id from eng_engagement_data_queries where fk_cust_social_engagement_id = $credId) """).execute()
-
-          (Q.u + s""" delete from eng_engagement_data_queries q where FK_CUST_SOCIAL_ENGAGEMENT_ID = $credId """).execute()
-
-          (Q.u + s""" delete from eng_cust_social_credentials s where s.id = $credId""").execute()
-        } catch {
-          case e: Exception => logger.error("---------->  deleteSocialCredentials " + e.printStackTrace())
-        }
-    }
-  }
 
   def checkHotelurl(url: String): Boolean = {
 
     try {
       // check if the url source contains the Hotel name
       val validUrl = Source.fromURL(url)
-      //      val content = validUrl.mkString
-      //      logger.error("---------->  URL content  " + content)
       true
     } catch {
       case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())

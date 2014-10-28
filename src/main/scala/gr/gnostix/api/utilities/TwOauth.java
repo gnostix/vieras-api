@@ -1,13 +1,10 @@
 package gr.gnostix.api.utilities;
 
-import gr.gnostix.api.models.SocialAccountsTwitterDao;
-import org.omg.CORBA.Request;
+import gr.gnostix.api.models.SocialCredentialsSimple;
 import twitter4j.Twitter;
-import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
-import twitter4j.conf.ConfigurationBuilder;
 
 /**
  * Created by rebel on 23/10/14.
@@ -35,8 +32,9 @@ public class TwOauth {
         return url;
     }
 
-    public static String getUserToken(String pin, int profileId) {
+    public static AccessToken getUserToken(String pin, int profileId)  {
         AccessToken accessToken = null;
+        SocialCredentialsSimple twAccount = null;
 
         try {
             System.out.println("------------> " + TwOauth.requestToken);
@@ -44,12 +42,12 @@ public class TwOauth {
             System.out.println("------------> " + accessToken.getToken() + " " + accessToken.getScreenName() + " "
                     + accessToken.getTokenSecret());
             // save the user account
-            SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(), accessToken.getScreenName());
+            //SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(), accessToken.getScreenName());
         } catch (Exception e) {
             e.printStackTrace();
-            return "error on auth";
+            return null;
         }
-        return accessToken.getScreenName();
+        return accessToken;
     }
 
     private static void setTwitter() {
