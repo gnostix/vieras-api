@@ -45,7 +45,7 @@ case class SocialCredentialsHotel(hotelUrl: String, dsId: Int)
 
 case class UserHotelUrls(hotelId: Int, hotelUrl: String, dsId: Int)
 
-case class SupportedHospitalitySites(ds_name: String, ds_id: Int)
+case class SupportedHospitalitySites(name: String, id: Int)
 
 object SocialAccountsTwitterDao extends DatabaseAccessSupport {
   val logger = LoggerFactory.getLogger(getClass)
@@ -249,17 +249,20 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
   implicit val getSocialAccountsYoutubeResult = GetResult(r => SocialAccountsYoutube(r.<<, r.<<,
     r.<<, r.<<, r.<<))
 
-  def findById(profileId: Int, queryId: Int) = {
+  def findById(profileId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsYoutube](
-          s"""select fk_eng_engagement_data_quer_id, max(subscribers) , max(video_views) , max(total_views), max(channel_name)
-               from ENG_YT_STATS where fk_eng_engagement_data_quer_id = $queryId
-                 and  fk_eng_engagement_data_quer_id in
-                ( select q.id from eng_engagement_data_queries q where q.is_active = 1 and
-                q.attr = 'YT_FFSL' and fk_cust_social_engagement_id in ( select s.id
-                  from eng_cust_social_credentials s where s.fk_cust_id = $profileId  and s.fk_datasource_id = 9))
-              group by fk_eng_engagement_data_quer_id """)
+          s"""select fk_cust_social_engagement_id , max(subscribers) , max(video_views) , max(total_views), max(channel_name)
+               from ENG_YT_STATS ,eng_engagement_data_queries i
+               where fk_eng_engagement_data_quer_id in
+                ( select q.id from eng_engagement_data_queries q
+                    where q.is_active = 1 and  q.attr = 'YT_FFSL'
+                    and fk_cust_social_engagement_id = $credId
+                    and fk_cust_social_engagement_id in
+                      ( select s.id from eng_cust_social_credentials s where s.fk_cust_id = $profileId  and s.fk_datasource_id = 9))
+                       and fk_eng_engagement_data_quer_id=i.id
+              group by fk_cust_social_engagement_id ,fk_eng_engagement_data_quer_id """)
         val accounts = records.list()
         SocialAccounts("youtube", accounts)
 
@@ -274,12 +277,15 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsYoutube](
-              s"""select fk_eng_engagement_data_quer_id, max(subscribers) , max(video_views) , max(total_views), max(channel_name)
-               from ENG_YT_STATS where fk_eng_engagement_data_quer_id in
-                ( select q.id from eng_engagement_data_queries q where q.is_active = 1 and
-                q.attr = 'YT_FFSL' and fk_cust_social_engagement_id in ( select s.id
-                  from eng_cust_social_credentials s where s.fk_cust_id = $profileId  and s.fk_datasource_id = 9))
-              group by fk_eng_engagement_data_quer_id """)
+              s"""select fk_cust_social_engagement_id ,max(subscribers) , max(video_views) , max(total_views), max(channel_name)
+               from ENG_YT_STATS ,eng_engagement_data_queries i
+               where fk_eng_engagement_data_quer_id in
+                ( select q.id from eng_engagement_data_queries q
+                    where q.is_active = 1 and  q.attr = 'YT_FFSL'
+                    and fk_cust_social_engagement_id in
+                      ( select s.id from eng_cust_social_credentials s where s.fk_cust_id = $profileId  and s.fk_datasource_id = 9))
+                       and fk_eng_engagement_data_quer_id=i.id
+              group by fk_cust_social_engagement_id ,fk_eng_engagement_data_quer_id """)
             val accounts = records.list()
             SocialAccounts("youtube", accounts)
 
@@ -288,30 +294,49 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
     prom.future
   }
 
-  def addAccount(profileId: Int, cred: SocialCredentialsYt) {
-    getConnection withSession {
-      var myId = 0
-      implicit session =>
-        try {
+  def addAccount(profileId: Int, cred: SocialCredentialsYt): Option[SocialCredentialsSimple] =  {
+    try {
+      //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
+      //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
+      //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
+      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, CREDENTIAL_ID OUT NUMBER
 
-          //add account
-          (Q.u + s"""insert into eng_cust_social_credentials (ID, YOUTUBE_USER, FK_DATASOURCE_ID, FK_CUST_ID, YOUTUBE_CHANNELID)
-          values (SEQ_ENG_CUST_SOCIAL_CREDENTIAL.nextval, '${cred.channelname}', 9, $profileId , '${cred.channelId}')""").execute()
+      val date = new java.util.Date();
+      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val connection = getConnection.createConnection()
+      val callableStatement: CallableStatement = connection.prepareCall(sql)
+      callableStatement.setInt(1, profileId)
+      callableStatement.setString(2, "YOUTUBE")
+      callableStatement.setString(3, "")
+      callableStatement.setString(4, "")
+      callableStatement.setString(5, "")
+      callableStatement.setInt(6, 0)
+      callableStatement.setDate(7, new java.sql.Date(date.getTime))
+      callableStatement.setString(8, "")
+      callableStatement.setString(9, cred.channelname)
+      callableStatement.setString(10, cred.channelId)
+      callableStatement.setString(11, "")
+      callableStatement.setString(12, "")
 
-          // get Id
-          val result = Q.queryNA[Int](
-            s"""select id from eng_cust_social_credentials
-               where  YOUTUBE_USER = '${cred.channelname}' and fk_cust_id = $profileId""")
-          myId = result.first()
-          SocialAccountsQueriesDao.insertQueries(myId, "youtube")
-          logger.info("---------->  Id  $myId ")
-          myId
-        } catch {
-          case e: Exception => {
-            SocialAccountsQueriesDao.deleteSocialCredentialsExc(myId)
-            logger.error("---------->  addAccount youtube " + e.printStackTrace())
-          }
-        }
+      callableStatement.registerOutParameter(13, java.sql.Types.INTEGER)
+
+      callableStatement.executeUpdate()
+
+      val credId: Int = callableStatement.getInt(13)
+      callableStatement.close()
+      connection.commit()
+      connection.close()
+
+      println("---------------------> " + credId)
+      logger.info("---------->  addAccount youtube account " + credId)
+
+      Some(SocialCredentialsSimple(credId, cred.channelname))
+
+    } catch {
+      case e: Exception => {
+        logger.error("---------->  addAccount youtube account" + e.printStackTrace())
+        None
+      }
     }
   }
 
