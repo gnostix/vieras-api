@@ -44,7 +44,7 @@ case class SocialCredentialsGa(gaAuthKey: String, gaName: String)
 
 case class SocialCredentialsHotel(hotelUrl: String, dsId: Int)
 
-case class UserHotelUrls(hotelId: Int, hotelUrl: String, dsId: Int)
+case class UserHotelUrls(credId: Int, hotelUrl: String, dsId: Int)
 
 case class SupportedHospitalitySites(name: String, id: Int)
 

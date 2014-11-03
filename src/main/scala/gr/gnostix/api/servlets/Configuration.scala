@@ -242,6 +242,7 @@ with FutureSupport {
     logger.info(s"---->   adds social account for this datasource ${params("datasource")} ")
     params("datasource") match {
       case "twitter" => {
+        // we add the twitter account on /profile/:id/tw/auth/:pin !!!!!!!!!!!!!!!!!!!!!!!!!
         //val account = parsedBody.extract[List[SocialCredentialsTw]]
         logger.info(s"---->   add a new account. the account is added from the Auth route   !!!!! ")
         //------------------account.foreach(SocialAccountsTwitterDao.addAccount(params("profileId").toInt, _))
