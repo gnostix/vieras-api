@@ -33,6 +33,7 @@ case class SocialAccountsHotel(credId: Int, hotelId: Int, totalRating: Double, h
 
 // social credentials
 case class SocialCredentialsTw(token: String, tokenSecret: String, handle: String)
+
 case class SocialCredentialsSimple(credentialsId: Int, accountName: String)
 
 case class SocialCredentialsFb(token: String, fanpage: String, validated: java.util.Date, expireSec: Int)
@@ -46,6 +47,7 @@ case class SocialCredentialsHotel(hotelUrl: String, dsId: Int)
 case class UserHotelUrls(hotelId: Int, hotelUrl: String, dsId: Int)
 
 case class SupportedHospitalitySites(name: String, id: Int)
+
 
 object SocialAccountsTwitterDao extends DatabaseAccessSupport {
   val logger = LoggerFactory.getLogger(getClass)
@@ -294,7 +296,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
     prom.future
   }
 
-  def addAccount(profileId: Int, cred: SocialCredentialsYt): Option[SocialCredentialsSimple] =  {
+  def addAccount(profileId: Int, cred: SocialCredentialsYt): Option[SocialCredentialsSimple] = {
     try {
       //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
       //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
@@ -390,34 +392,52 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
     prom.future
   }
 
+  // change the data for Google Analytics
+  def addAccount(profileId: Int, cred: SocialCredentialsGa): Option[SocialCredentialsSimple] = {
+    try {
+      //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
+      //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
+      //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
+      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, CREDENTIAL_ID OUT NUMBER
 
-  def addAccount(profileId: Int, cred: SocialCredentialsGa) {
-    getConnection withSession {
-      var myId = 0
-      implicit session =>
-        try {
+      val date = new java.util.Date();
+      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val connection = getConnection.createConnection()
+      val callableStatement: CallableStatement = connection.prepareCall(sql)
+      callableStatement.setInt(1, profileId)
+      callableStatement.setString(2, "GOOGLEANALYTICS")
+      callableStatement.setString(3, "")
+      callableStatement.setString(4, "")
+      callableStatement.setString(5, "")
+      callableStatement.setInt(6, 0)
+      callableStatement.setDate(7, new java.sql.Date(date.getTime))
+      callableStatement.setString(8, "")
+      callableStatement.setString(9, "")
+      callableStatement.setString(10, "")
+      callableStatement.setString(11, cred.gaAuthKey)
+      callableStatement.setString(12, cred.gaName)
 
-          //add account
-          (Q.u + s"""insert into eng_cust_social_credentials (ID, G_ANALYTICS_AUTH_FILE, FK_DATASOURCE_ID, FK_CUST_ID, GA_ACCOUNT_NAME)
-          values (SEQ_ENG_CUST_SOCIAL_CREDENTIAL.nextval, '${cred.gaAuthKey}', 15, $profileId , '${cred.gaName}')""").execute()
+      callableStatement.registerOutParameter(13, java.sql.Types.INTEGER)
 
-          // get Id
-          val result = Q.queryNA[Int](
-            s"""select id from eng_cust_social_credentials
-               where  G_ANALYTICS_AUTH_FILE = '${cred.gaAuthKey}' and fk_cust_id = $profileId""")
-          myId = result.first()
-          SocialAccountsQueriesDao.insertQueries(myId, "youtube")
-          logger.info("---------->  Id  $myId ")
-          myId
-        } catch {
-          case e: Exception => {
-            SocialAccountsQueriesDao.deleteSocialCredentialsExc(myId)
-            logger.error("---------->  addAccount ganalytics " + e.printStackTrace())
-          }
-        }
+      callableStatement.executeUpdate()
+
+      val credId: Int = callableStatement.getInt(13)
+      callableStatement.close()
+      connection.commit()
+      connection.close()
+
+      println("---------------------> " + credId)
+      logger.info("---------->  addAccount youtube account " + credId)
+
+      Some(SocialCredentialsSimple(credId, cred.gaName))
+
+    } catch {
+      case e: Exception => {
+        logger.error("---------->  addAccount youtube account" + e.printStackTrace())
+        None
+      }
     }
   }
-
 }
 
 
@@ -532,9 +552,10 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     try {
       getConnection withSession {
         implicit session =>
-          val urls = Q.queryNA[UserHotelUrls]( s""" select hotel_id,hotel_url,fk_datasource_id from ENG_CUST_HOTEL_CREDENTIALS i
-                                                      left join  eng_hotels on i.fk_hotel_id=hotel_id
-                                                      and I.FK_CUST_ID=$profileId """)
+          val urls = Q.queryNA[UserHotelUrls]( s"""
+                                          select i.id,h.hotel_url,i.fk_datasource_id from ENG_CUST_HOTEL_CREDENTIALS i,eng_hotels h
+                                                      where i.fk_hotel_id=h.hotel_id
+                                                        and I.FK_CUST_ID=$profileId """)
           urls.list()
       }
 
@@ -543,118 +564,21 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     }
   }
 
-  def deleteHotelUrl(profileId: Int, hotelId: Int) = {
-    try {
-      getConnection withSession {
-        implicit session =>
-
-          val delHotel = (Q.u + s"""{call PRC_DELETE_HOTEL_CREDENTIAL($profileId, $hotelId)}""").execute()
-          delHotel
-      }
-
-    } catch {
-      case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
-    }
-  }
-
-}
-
-
-object SocialAccountsQueriesDao extends DatabaseAccessSupport {
-
-  val logger = LoggerFactory.getLogger(getClass)
-
-  def insertQueries(credId: Int, datasource: String) {
-    try {
-      getConnection withSession {
-        implicit session =>
-
-          datasource match {
-            case "twitter" => {
-              val ffsl = "TW_FFSL"
-              val query1 = "TW_Retweets"
-              val query2 = "TW_Mentions"
-              // add queries
-              (Q.u +
-                s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 86400, sysdate-1, '$ffsl') """).execute()
-              (Q.u +
-                s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 2000, sysdate-1, '$query1') """).execute()
-              (Q.u +
-                s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 2000, sysdate-1, '$query2') """).execute()
+  object SocialAccountsQueriesDao extends DatabaseAccessSupport {
+    def deleteSocialAccount(profileId: Int, credId: Int, datasource: String){
+      try {
+        getConnection withSession {
+          implicit session =>
+            datasource match {
+              case "hotel" => (Q.u + s"""{call PRC_DELETE_HOTEL_CREDENTIAL($profileId, $credId)}""").execute()
+              case "twitter" | "facebook" | "youtube" | "ganalytics" =>
+                (Q.u + s"""{call PRC_DELETE_SOCIAL_CREDENTIAL($profileId, $credId)}""").execute()
             }
-            case "facebook" => {
-              val ffsl = "FB_FFSL"
-              val query1 = "FB_FANPAGE_WALL"
-              // add queries
-              (Q.u +
-                s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 86400, sysdate-1, '$ffsl') """).execute()
-              (Q.u +
-                s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 2000, sysdate-1, '$query1') """).execute()
-            }
-            case "youtube" => {
-              val ffsl = "YT_FFSL"
-              val query1 = "YT_USER_WALL"
-              // add queries
-              (Q.u +
-                s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 86400, sysdate-1, '$ffsl') """).execute()
-              (Q.u +
-                s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 2000, sysdate-1, '$query1') """).execute()
-            }
-            case "ganalytics" => {
-              val ffsl = "GA_STATS"
-              // add queries
-              (Q.u +
-                s""" insert into  eng_engagement_data_queries (ID, FK_CUST_SOCIAL_ENGAGEMENT_ID, IS_ACTIVE, Q_TTS, LAST_UPDATE, ATTR)
-            values (SEQ_ENG_ENGAGEMENT_DATA_QUERIE.nextval, $credId, 1, 86400, sysdate-1, '$ffsl') """).execute()
-            }
-
-          }
-      }
-    } catch {
-      case e: Exception => {
-        deleteSocialCredentialsExc(credId)
-        logger.error("---------->  Not able to insert the queries " + e.printStackTrace())
-      }
-    }
-  }
-
-  def deleteSocialCredentials(profileId: Int, queryId: Int) {
-    getConnection withSession {
-      implicit session =>
-        try {
-          val credId = Q.queryNA[Int]( s""" select id from eng_cust_social_credentials s where s.fk_cust_id = $profileId and id in (
-                                              select FK_CUST_SOCIAL_ENGAGEMENT_ID from eng_engagement_data_queries q where ID = $queryId )""").first()
-
-          if (credId != 0) {
-            (Q.u + s""" delete from eng_cust_social_credentials s where s.fk_cust_id = $profileId and id = $credId""").execute()
-
-            (Q.u +
-              s""" delete from eng_engagement_data_queries q where q.FK_CUST_SOCIAL_ENGAGEMENT_ID = $credId
-               """).execute()
-          }
-        } catch {
-          case e: Exception => logger.error("---------->  deleteSocialCredentials " + e.printStackTrace())
         }
-    }
-  }
 
-  def deleteSocialCredentialsExc(credId: Int) {
-    getConnection withSession {
-      implicit session =>
-        try {
-          (Q.u + s""" delete from eng_engagement_data_queries q where FK_CUST_SOCIAL_ENGAGEMENT_ID = $credId""").execute()
-
-          (Q.u + s""" delete from eng_cust_social_credentials s where s.id = $credId""").execute()
-        } catch {
-          case e: Exception => logger.error("---------->  deleteSocialCredentials " + e.printStackTrace())
-        }
+      } catch {
+        case e: Exception => logger.error("---------->  delete social account error " + e.printStackTrace())
+      }
     }
   }
 

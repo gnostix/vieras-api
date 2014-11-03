@@ -1,19 +1,17 @@
 package gr.gnostix.api.servlets
 
-import gr.gnostix.api.db.lifted.OracleLiftedTables
-import gr.gnostix.api.utilities.{TwOauth, FbExtendedToken}
-import org.scalatra._
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.json._
-import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.GnostixAPIStack
+import gr.gnostix.api.auth.AuthenticationSupport
+import gr.gnostix.api.models.SocialAccountsHotelDao.SocialAccountsQueriesDao
 import gr.gnostix.api.models._
-import twitter4j.Twitter
-import twitter4j.auth.{AccessToken, RequestToken}
+import gr.gnostix.api.utilities.{FbExtendedToken, TwOauth}
+import org.json4s.{DefaultFormats, Formats}
+import org.scalatra._
+import org.scalatra.json._
+import twitter4j.auth.AccessToken
 
-import scala.concurrent.{Future, ExecutionContext}
-import scala.util.{Try, Failure, Success}
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext
 
 
 trait ConfigApiRoutes extends ScalatraServlet
@@ -285,11 +283,11 @@ with FutureSupport {
   delete("/profile/:profileId/socialchannel/:datasource/:credId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      case "hotel" => SocialAccountsHotelDao.deleteHotelUrl(params("profileId").toInt, params("credId").toInt)
-      case "twitter" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
-      case "facebook" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
-      case "youtube" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
-      case "ganalytics" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
+      case "hotel" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
+      case "twitter" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
+      case "facebook" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
+      case "youtube" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
+      case "ganalytics" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
     }
     Map("status" -> 200, "message" -> "all good")
   }
