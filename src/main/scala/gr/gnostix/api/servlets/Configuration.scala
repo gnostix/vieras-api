@@ -154,7 +154,7 @@ with FutureSupport {
   // 1. Step - Give the user the url for accepting the gnostix app
   get("/profile/:id/tw/auth") {
     logger.info("---->   Twitter AUTH!!!!    ")
-    Map("url" -> TwOauth.getUrlAuth)
+     Map("status" -> 200, "message" -> "all good", "url" -> TwOauth.getUrlAuth)
   }
 
   // 2. Step - Get the authorization of Twitter and save the account
@@ -177,7 +177,8 @@ with FutureSupport {
   get("/profile/:profileId/datasources/hospitality/all") {
     val validUrl = SocialAccountsHotelDao.getHospitalitySites
     logger.info(s"---->   get supported hospitality sites ")
-    validUrl
+    Map("status" -> 200, "message" -> "all good", "urls" -> validUrl)
+
   }
 
   // get customer hotel sites
