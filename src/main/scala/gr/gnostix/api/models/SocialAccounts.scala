@@ -492,12 +492,17 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
 
   def addAccount(profileId: Int, cred: SocialCredentialsHotel) = {
     try {
+
       val sql: String = "{call PRC_INSERT_HOTEL_CREDENTIAL(?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
       callableStatement.setInt(2, cred.dsId)
-      callableStatement.setString(3, cred.hotelUrl)
+      if (cred.hotelUrl.startsWith("http://")) {
+        callableStatement.setString(3, cred.hotelUrl)
+      } else {
+        callableStatement.setString(3, "http://" + cred.hotelUrl)
+      }
       callableStatement.registerOutParameter(4, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
@@ -521,18 +526,101 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
   }
 
 
-  def checkHotelurl(url: String): Boolean = {
+  def checkHotelUrl(url: String): (String, Boolean) = {
 
+    // check if the url is real
+    if (!checkIfUrlIsvalid(url)) {
+      ("bad url", false)
+    } else {
+
+      // check if the user has already entered this url
+      if (checkUrlInDatabase(url)) {
+        ("You have already entered this url", false)
+      } else {
+
+        // check if the url source contains the supported datasources
+        if (!checkUrlForSupportedHospitalityUrl(url)) {
+          ("This url is not supported", false)
+        } else {
+          ("Good url", true)
+        }
+
+      }
+
+    }
+
+  }
+
+  def checkIfUrlIsvalid(url: String): Boolean = {
     try {
-      // check if the url source contains the Hotel name
-      val validUrl = Source.fromURL(url)
-      true
+      if (url.startsWith("http://")) {
+        Source.fromURL(url)
+        true
+      } else {
+        Source.fromURL("http://" + url)
+        true
+      }
     } catch {
       case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
         false
     }
 
   }
+
+  def checkUrlInDatabase(url: String): Boolean = {
+    try {
+      getConnection withSession {
+        implicit session =>
+          val newUrl = if (url.startsWith("http://")) {
+            url
+          } else {
+            "http://" + url
+          }
+
+          val credId = Q.queryNA[Int]( s""" select i.id from ENG_CUST_HOTEL_CREDENTIALS i,eng_hotels h
+        where i.fk_hotel_id=h.hotel_id
+          and I.FK_CUST_ID=10
+          and h.hotel_url = '$newUrl' """).list()
+          logger.error("---------->    credId credId credId " + credId.size)
+
+          if (credId.size > 0) {
+            true
+          } else {
+            false
+          }
+      }
+
+    } catch {
+      case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
+        false
+    }
+
+  }
+
+  def checkUrlForSupportedHospitalityUrl(url: String): Boolean = {
+    try {
+      getConnection withSession {
+        implicit session =>
+          val credId = Q.queryNA[String]( s"""  select ds_name from vieras_datasources where fk_g_id=9  """)
+          val hospitalityUrls = credId.list()
+
+          val isSupported = hospitalityUrls.map(ds_name => url.contains(ds_name))
+          logger.error("---------->  isSupported   isSupported " + isSupported)
+          if (isSupported.contains("true")) {
+            true
+          } else {
+            logger.error("---------->  not supported   isSupported " )
+            false
+          }
+      }
+
+    } catch {
+      case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
+        false
+    }
+
+  }
+
 
   def getHospitalitySites() = {
     try {
@@ -565,7 +653,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
   }
 
   object SocialAccountsQueriesDao extends DatabaseAccessSupport {
-    def deleteSocialAccount(profileId: Int, credId: Int, datasource: String){
+    def deleteSocialAccount(profileId: Int, credId: Int, datasource: String) {
       try {
         getConnection withSession {
           implicit session =>

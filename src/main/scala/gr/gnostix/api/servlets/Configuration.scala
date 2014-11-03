@@ -265,15 +265,15 @@ with FutureSupport {
       }
       case "hotel" => {
         val hotel = parsedBody.extract[SocialCredentialsHotel]
-        val validUrl = SocialAccountsHotelDao.checkHotelurl(hotel.hotelUrl)
+        val validUrl = SocialAccountsHotelDao.checkHotelUrl(hotel.hotelUrl)
         logger.info(s"---->   validUrl $validUrl ")
-        if (validUrl) {
+        if (validUrl._2) {
           // save hotel in db
           val credId = SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
           logger.info(s"---->   hotelId $credId ")
           Map("status" -> 200, "message" -> "all good", "payload" -> Map("credId" -> credId))
         } else {
-          Map("status" -> 402, "message" -> "bad url")
+          Map("status" -> 402, "message" -> validUrl._1)
         }
 
       }
