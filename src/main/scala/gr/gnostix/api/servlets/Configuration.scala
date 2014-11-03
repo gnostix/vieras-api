@@ -174,7 +174,7 @@ with FutureSupport {
 
 
   //get supported hospitality sites
-  get("/profile/:profileId/socialchannel/hospitality/all") {
+  get("/profile/:profileId/socialchannel/hospitality/supported/all") {
     val validUrl = SocialAccountsHotelDao.getHospitalitySites
     logger.info(s"---->   get supported hospitality sites ")
     Map("status" -> 200, "message" -> "all good", "payload" -> validUrl)
@@ -182,7 +182,7 @@ with FutureSupport {
   }
 
   // get customer hotel sites
-  get("/profile/:profileId/socialchannel/hospitality/hotel/urls") {
+  get("/profile/:profileId/socialchannel/hospitality/hotel/all") {
     val custId = params("profileId").toInt
     val hotelUrls = SocialAccountsHotelDao.getHotelUrls(custId)
     logger.info(s"---->   get customer hotel sites ")
@@ -270,9 +270,9 @@ with FutureSupport {
         logger.info(s"---->   validUrl $validUrl ")
         if (validUrl) {
           // save hotel in db
-          val hotelId = SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
-          logger.info(s"---->   hotelId $hotelId ")
-          Map("status" -> 200, "message" -> "all good", "hotelId" -> hotelId)
+          val credId = SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
+          logger.info(s"---->   hotelId $credId ")
+          Map("status" -> 200, "message" -> "all good", "payload" -> Map("credId" -> credId))
         } else {
           Map("status" -> 402, "message" -> "bad url")
         }
@@ -282,14 +282,14 @@ with FutureSupport {
 
   }
 
-  delete("/profile/:profileId/socialchannel/:datasource/:hotelId") {
+  delete("/profile/:profileId/socialchannel/:datasource/:credId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
-      case "hotel" => SocialAccountsHotelDao.deleteHotelUrl(params("profileId").toInt, params("hotelId").toInt)
-      case "twitter" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
-      case "facebook" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
-      case "youtube" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
-      case "ganalytics" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("queryId").toInt)
+      case "hotel" => SocialAccountsHotelDao.deleteHotelUrl(params("profileId").toInt, params("credId").toInt)
+      case "twitter" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
+      case "facebook" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
+      case "youtube" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
+      case "ganalytics" => SocialAccountsQueriesDao.deleteSocialCredentials(params("profileId").toInt, params("credId").toInt)
     }
     Map("status" -> 200, "message" -> "all good")
   }
