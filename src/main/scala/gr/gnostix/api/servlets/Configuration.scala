@@ -177,7 +177,7 @@ with FutureSupport {
   get("/profile/:profileId/datasources/hospitality/all") {
     val validUrl = SocialAccountsHotelDao.getHospitalitySites
     logger.info(s"---->   get supported hospitality sites ")
-    Map("status" -> 200, "message" -> "all good", "urls" -> validUrl)
+    Map("status" -> 200, "message" -> "all good", "payload" -> validUrl)
 
   }
 
