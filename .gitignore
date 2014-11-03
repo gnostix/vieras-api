@@ -52,6 +52,9 @@ jrebel.lic
 .settings
 .classpath
 .project
+headers
+deploy-jetty.rb
+.history
 
 .ensime*
 *.sublime-*
