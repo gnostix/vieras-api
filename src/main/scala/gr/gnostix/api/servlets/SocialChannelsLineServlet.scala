@@ -34,7 +34,7 @@ with FutureSupport {
 
   // mount point /api/user/socialchannels/line/*
 
-  // get all data for facebook for  one account datatype = (all, post, comment)
+  // get all data for facebook for one profile datatype = (post or comment)
   get("/profile/:profileId/facebook/:dataType/:fromDate/:toDate") {
     logger.info(s"----> get all data for facebook for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/line/* ${params("dataType")} ")
@@ -64,6 +64,7 @@ with FutureSupport {
     }
   }
 
+  // get all data for facebook for one account datatype = (post or comment)
   get("/profile/:profileId/facebook/:dataType/:engId/:fromDate/:toDate") {
     logger.info(s"----> get all data for facebook for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/line/* ${params("dataType")} ")
@@ -79,7 +80,7 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val engId = params("engId").toInt
 
-      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, params("dataType"),Some(engId))
+      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, params("dataType"), Some(engId))
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -94,9 +95,9 @@ with FutureSupport {
     }
   }
 
- // get all data for facebook for  all accounts datatype = (all, post, comment)
+  // get all data for facebook for  all accounts datatype = (all, post, comment)
   get("/profile/:profileId/facebook/:fromDate/:toDate/all") {
-    logger.info(s"---->   /api/user/socialchannels/line/* ${params("dataType")} ")
+    logger.info(s"---->   /api/user/socialchannels/line/facebook/* ${params("profileId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -112,19 +113,17 @@ with FutureSupport {
       val post = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "post", None)
       val comment = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "comment", None)
 
-      val rawData =
+      val theData =
         new AsyncResult() {
           override val is =
             for {
               a1 <- post
               a2 <- comment
             } yield f1(List(a1.get, a2.get))
-          is.onComplete {
-            case Success(rawData) => Map("status" -> 200, "message" -> "Coulio Bro!!!", "payload" -> rawData)
-            case Failure(_) => ErrorDataResponse(404, "Error on data")
-          }
         }
+      //return the data
 
+      theData
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
@@ -143,13 +142,61 @@ with FutureSupport {
     }.map {
       case (x, y) => new DataLineGraph(y, x)
     }
+    logger.info(s"-----> kkkkkkkkk ${k}")
+    Map("status" -> 200, "message" -> "Coulio Bro!!!", "payload" -> k.toList)
 
   }
 
+  // get SUM data for facebook for  all accounts datatype = (all, post, comment)
+  get("/profile/:profileId/facebook/:fromDate/:toDate/total/all") {
+    logger.info(s"---->   /api/user/socialchannels/line/facebook/* ${params("profileId")} ")
+
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+
+      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", None)
+      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", None)
+
+      val theData =
+        new AsyncResult() {
+          override val is =
+            for {
+              a1 <- post
+              a2 <- comment
+            //  } yield (a1.get, a2.get)
+            } yield f2(List(a1.get, a2.get))
+        }
+
+      //return the data
+      theData
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+  def f2(a: List[SocialDataSum]) = {
+    val theSum = a.groupBy(_.datasource).map {
+      case (x, y) => (x, y.map(x => x.data).sum)
+    }
+
+    Map("status" -> 200, "message" -> "Coulio Bro!!!", "payload" -> theSum)
+  }
 
   // get all data for facebook for  one account datatype = (all, post, comment)
-  get("/profile/:profileId/facebook/:engId/:fromDate/:toDate/all") {
-    logger.info(s"---->   /api/user/socialchannels/line/* ${params("dataType")} ")
+  get("/profile/:profileId/facebook/:engId/:fromDate/:toDate/total/all") {
+    logger.info(s"---->   /api/user/socialchannels/line/* ${params("engId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -162,22 +209,20 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val engId = params("engId").toInt
 
-      val post = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "post", Some(engId))
-      val comment = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "comment", Some(engId))
+      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", Some(engId))
+      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", Some(engId))
 
-      val rawData =
+      val theData =
         new AsyncResult() {
           override val is =
             for {
               a1 <- post
               a2 <- comment
-            } yield f1(List(a1.get, a2.get))
-          is.onComplete {
-            case Success(rawData) => Map("status" -> 200, "message" -> "Coulio Bro!!!", "payload" -> rawData)
-            case Failure(_) => ErrorDataResponse(404, "Error on data")
-          }
+            } yield f2(List(a1.get, a2.get))
         }
 
+      //return the data
+      theData
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
