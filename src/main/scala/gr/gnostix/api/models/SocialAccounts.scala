@@ -606,10 +606,10 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
 
           val isSupported = hospitalityUrls.map(ds_name => url.contains(ds_name))
           logger.error("---------->  isSupported   isSupported " + isSupported)
-          if (isSupported.contains("true")) {
+          if (isSupported.contains(true)) {
             true
           } else {
-            logger.error("---------->  not supported   isSupported " )
+            logger.error("---------->  not supported   isSupported ")
             false
           }
       }
