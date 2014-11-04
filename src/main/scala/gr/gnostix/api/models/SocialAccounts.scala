@@ -370,6 +370,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
     }
   }
 
+  // this needs refactor
   def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int) = {
     val prom = Promise[SocialAccounts]()
 
@@ -604,7 +605,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
           val credId = Q.queryNA[String]( s"""  select ds_name from vieras_datasources where fk_g_id=9  """)
           val hospitalityUrls = credId.list()
 
-          val isSupported = hospitalityUrls.map(ds_name => url.contains(ds_name))
+          val isSupported = hospitalityUrls.map(ds_name => url.toLowerCase.contains(ds_name.toLowerCase))
           logger.error("---------->  isSupported   isSupported " + isSupported)
           if (isSupported.contains(true)) {
             true
