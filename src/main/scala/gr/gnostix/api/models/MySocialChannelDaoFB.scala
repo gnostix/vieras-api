@@ -16,15 +16,20 @@ import scala.slick.jdbc.GetResult
  */
 object MySocialChannelDaoFB extends DatabaseAccessSupport {
   implicit val getSentimentLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
+  implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getLineCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Option[SocialData] = {
+  def getLineCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Option[Payload] = {
     val sql = buildQuery(fromDate, toDate, profileId, dataType, engId)
 
     //bring the actual data
-    val data = getData(fromDate, toDate, dataType, profileId, sql)
+    val data = dataType match {
+      case "post" | "comment" => getData(fromDate, toDate, dataType, profileId, sql)
+      case "totalpost" | "totalcomment" => getDataTotal(fromDate, toDate, dataType, profileId, sql)
+    }
+    //val data = getData(fromDate, toDate, dataType, profileId, sql)
     data match {
       case Some(data) => Some(data)
       case None => None
@@ -42,22 +47,50 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     prom.future
   }
 
+  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialDataSum]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, dataType, engId)
+    //bring the actual data
+    val prom = Promise[Option[SocialDataSum]]()
+
+    Future {
+      prom.success(getDataTotal(fromDate, toDate, dataType, profileId, mySqlDynamic))
+    }
+    prom.future
+  }
+
   private def getData(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int, sql: String): Option[SocialData] = {
 
     var myData = List[DataLineGraph]()
-
     getConnection withSession {
       implicit session =>
         logger.info("get my social channel fb ------------->" + sql)
         val records = Q.queryNA[DataLineGraph](sql)
         myData = records.list()
     }
+
     val lineData = SocialData("facebook", myData)
 
     lineData match {
       case SocialData(_, _) => Option(lineData)
     }
   }
+
+  private def getDataTotal(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int, sql: String): Option[SocialDataSum] = {
+
+    var myDataTotal = 0
+     getConnection withSession {
+      implicit session =>
+        logger.info("get my social channel fb ------------->" + sql)
+        val records = Q.queryNA[Int](sql)
+        myDataTotal = records.first()
+    }
+
+    val sumData = SocialDataSum("facebook", myDataTotal)
+
+    Option(sumData)
+
+  }
+
 
   def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): String = {
 
@@ -66,20 +99,32 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val sqlEngAccount = engId match {
-      case Some(x) => " $engId )"
+      case Some(x) => x + " )"
       case None => "select s.id from eng_cust_social_credentials s where s.fk_cust_id in (" +
         " select customer_id from customers where customer_id = " + profileId + ") and s.fk_datasource_id = 1)"
     }
-
+    logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
     dataType match {
       case "post" => getSqlPosts(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
+      case "totalpost" => getSqlPostsTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
       case "comment" => getSqlComments(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
+      case "totalcomment" => getSqlCommentsTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
     }
 
+  }
+
+  def getSqlPostsTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+    val sql = s"""select count(*) from eng_fb_wall
+                      where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
+                        where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
+                        and fk_cust_social_engagement_id in ( $sqlEngAccount )
+                        and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')"""
+    sql
   }
 
   def getSqlPosts(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
@@ -109,8 +154,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       val sql = s"""select count(*),trunc(msg_date,'ww') from eng_fb_wall
                       where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
                         where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
-                        and fk_cust_social_engagement_id in ( select s.id from eng_cust_social_credentials s where s.fk_cust_id in (
-                            select customer_id from customers where customer_id =$profileId) and s.fk_datasource_id = 1))
+                        and fk_cust_social_engagement_id in (  $sqlEngAccount )
                         and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                         and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(msg_date,'ww')
@@ -120,8 +164,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       val sql = s"""select count(*),trunc(msg_date,'month') from eng_fb_wall
                       where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
                         where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
-                        and fk_cust_social_engagement_id in ( select s.id from eng_cust_social_credentials s where s.fk_cust_id in (
-                            select customer_id from customers where customer_id =$profileId) and s.fk_datasource_id = 1))
+                        and fk_cust_social_engagement_id in (  $sqlEngAccount )
                         and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                         and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(msg_date,'month')
@@ -130,55 +173,52 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     }
   }
 
+  def getSqlCommentsTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+    val sql = s"""select count(*) from ENG_FB_WALL_COMMENTS
+                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
+                        where fk_cust_social_engagement_id in ( $sqlEngAccount )
+                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')"""
+    logger.info("------------>" + sql)
+    sql
+  }
   def getSqlComments(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
 
     if (numDays == 0) {
       val sql = s"""select count(*),trunc(comment_date,'HH') from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q where fk_cust_social_engagement_id in (
-                       select s.id from eng_cust_social_credentials s
-                          where s.fk_cust_id in (
-                             select customer_id from customers where customer_id = $profileId) and s.fk_datasource_id = 1)
-                              and q.is_active = 1)
-                        and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
+                        where fk_cust_social_engagement_id in ( $sqlEngAccount )
+                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(comment_date,'HH')
                     order by trunc(comment_date,'HH')asc"""
       logger.info("------------>" + sql)
       sql
     } else if (numDays >= 1 && numDays <= 30) {
       val sql = s"""select count(*),trunc(comment_date,'DD') from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q where fk_cust_social_engagement_id in (
-                       select s.id from eng_cust_social_credentials s
-                          where s.fk_cust_id in (
-                             select customer_id from customers where customer_id = 451) and s.fk_datasource_id = 1)
-                              and q.is_active = 1)
-                        and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
+                        where fk_cust_social_engagement_id in ( $sqlEngAccount )
+                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(comment_date,'DD')
                     order by trunc(comment_date,'DD')asc"""
 
       sql
     } else if (numDays > 30 && numDays < 90) {
       val sql = s"""select count(*),trunc(comment_date,'ww') from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q where fk_cust_social_engagement_id in (
-                       select s.id from eng_cust_social_credentials s
-                          where s.fk_cust_id in (
-                             select customer_id from customers where customer_id = $profileId) and s.fk_datasource_id = 1)
-                              and q.is_active = 1)
-                        and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
+                        where fk_cust_social_engagement_id in ( $sqlEngAccount )
+                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(comment_date,'ww')
                     order by trunc(comment_date,'ww')asc"""
       sql
     } else {
       val sql = s"""select count(*),trunc(comment_date,'month') from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q where fk_cust_social_engagement_id in (
-                       select s.id from eng_cust_social_credentials s
-                          where s.fk_cust_id in (
-                             select customer_id from customers where customer_id = $profileId) and s.fk_datasource_id = 1)
-                              and q.is_active = 1)
-                        and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
+                        where fk_cust_social_engagement_id in ( $sqlEngAccount )
+                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(comment_date,'month')
                     order by trunc(comment_date,'month')asc"""
       sql

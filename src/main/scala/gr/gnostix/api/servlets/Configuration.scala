@@ -225,13 +225,14 @@ with FutureSupport {
 
   }
 
-  //i need to refactor these
+
   get("/profile/:profileId/socialchannel/:datasource/all") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
     params("datasource") match {
       case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
       case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
       case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
+        // the next route needs refactor !!!!!!!!!!!
       case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
       case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
     }
