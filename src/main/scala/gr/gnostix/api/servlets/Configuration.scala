@@ -50,7 +50,11 @@ with FutureSupport {
 
   get("/profiles/all") {
     logger.info("---->   return all profiles with id and name     ")
+    try {
     ProfileDao.getAllProfiles(user.userId)
+    } catch {
+      case e: Exception => "Something went wrong" + e.printStackTrace()
+    }
   }
 
   get("/profile/:id") {
