@@ -48,7 +48,6 @@ public class FbExtendedToken {
             pagenames.add(new FacebookPage(p.getName(), p.getId()));
             System.out.println("------------> " + p.getName());
             System.out.println("------------> " + p.getUsername());
-            System.out.println("------------> " + p.toString());
 
         }
         return pagenames;

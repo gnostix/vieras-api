@@ -36,7 +36,7 @@ case class SocialCredentialsTw(token: String, tokenSecret: String, handle: Strin
 
 case class SocialCredentialsSimple(credentialsId: Int, accountName: String)
 
-case class SocialCredentialsFb(token: String, fanpage: String, fanpageId: String,validated: java.util.Date, expireSec: Int)
+case class SocialCredentialsFb(token: String, fanpage: String, fanpageId: String, expires: java.util.Date)
 
 case class SocialCredentialsYt(channelname: String, channelId: String)
 
@@ -203,8 +203,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
       //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
       //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
-      logger.info("---------->  addAccount facebook expireSec " + cred.expireSec)
-      logger.info("---------->  addAccount facebook validated " + cred.validated)
+      logger.info("---------->  addAccount facebook expireSec " + cred.expires)
       val date = new java.util.Date();
       val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
@@ -214,8 +213,8 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
       callableStatement.setString(3, cred.token)
       callableStatement.setString(4, "")
       callableStatement.setString(5, cred.fanpage)
-      callableStatement.setInt(6, cred.expireSec)
-      callableStatement.setDate(7, new java.sql.Date(cred.validated.getTime))
+      callableStatement.setInt(6, 909176) // expires in 10 days (we need this untill we go to the new db vieras)
+      callableStatement.setDate(7, new java.sql.Date(cred.expires.getTime))
       callableStatement.setString(8, "")
       callableStatement.setString(9, "")
       callableStatement.setString(10, "")
