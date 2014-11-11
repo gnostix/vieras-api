@@ -224,7 +224,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
       callableStatement.setString(3, cred.token)
       callableStatement.setString(4, "")
       callableStatement.setString(5, cred.fanpage)
-      callableStatement.setInt(6, 409176) // expires in 10 days (we need this untill we go to the new db vieras)
+      callableStatement.setInt(6, 409176) // expires in 10 days (we need this until we go to the new db Vieras)
       callableStatement.setDate(7, new java.sql.Date(tokenExpires.getTime))
       callableStatement.setString(8, "")
       callableStatement.setString(9, "")

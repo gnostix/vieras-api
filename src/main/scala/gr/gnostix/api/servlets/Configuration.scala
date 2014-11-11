@@ -152,7 +152,7 @@ with FutureSupport {
       DataResponse(200, "All good", data)
     } catch {
       case e: Exception => "Something went wrong" + e.printStackTrace()
-        Map("status" -> 200, "message" -> "Something wend wrong")
+        Map("status" -> 400, "message" -> "Something wend wrong")
     }
   }
 
@@ -161,7 +161,12 @@ with FutureSupport {
   // 1. Step - Give the user the url for accepting the gnostix app
   get("/profile/:id/tw/auth") {
     logger.info("---->   Twitter AUTH!!!!    ")
-    Map("status" -> 200, "message" -> "all good", "url" -> TwOauth.getUrlAuth)
+    val urlAuth = TwOauth.getUrlAuth
+
+    urlAuth match {
+      case null => Map("status" -> 400, "message" -> "Something wend wrong")
+      case x => Map("status" -> 200, "message" -> "all good", "payload" -> Map("url" -> urlAuth))
+    }
   }
 
   // 2. Step - Get the authorization of Twitter and save the account
@@ -266,7 +271,7 @@ with FutureSupport {
           case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
           case None => Map("status" -> 400, "message" -> "Error")
         }
-       }
+      }
       case "youtube" => {
         val account = parsedBody.extract[List[SocialCredentialsYt]]
         logger.info(s"---->   add a new account ${account.size}    ")
