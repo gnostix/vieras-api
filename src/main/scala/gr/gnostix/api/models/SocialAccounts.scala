@@ -2,6 +2,7 @@ package gr.gnostix.api.models
 
 
 import java.sql.{Date, CallableStatement}
+import java.util.Calendar
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
 
@@ -206,7 +207,12 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
       logger.info("---------->  addAccount facebook expireSec " + cred.expires)
       // sometime facebook doesn't provide expires date for token
       val tokenExpires = cred.expires match {
-        case null => new java.util.Date()
+        case null => {
+          val c: Calendar = Calendar.getInstance()
+          c.add(Calendar.DAY_OF_YEAR, 5)
+          val newdate = c.getTime
+          newdate
+        }
         case _ => cred.expires
       }
 
