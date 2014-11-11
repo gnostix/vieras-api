@@ -204,7 +204,12 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
       //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       logger.info("---------->  addAccount facebook expireSec " + cred.expires)
-      val date = new java.util.Date();
+      // sometime facebook doesn't provide expires date for token
+      val tokenExpires = cred.expires match {
+        case null => new java.util.Date()
+        case _ => cred.expires
+      }
+
       val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
@@ -213,8 +218,8 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
       callableStatement.setString(3, cred.token)
       callableStatement.setString(4, "")
       callableStatement.setString(5, cred.fanpage)
-      callableStatement.setInt(6, 909176) // expires in 10 days (we need this untill we go to the new db vieras)
-      callableStatement.setDate(7, new java.sql.Date(cred.expires.getTime))
+      callableStatement.setInt(6, 409176) // expires in 10 days (we need this untill we go to the new db vieras)
+      callableStatement.setDate(7, new java.sql.Date(tokenExpires.getTime))
       callableStatement.setString(8, "")
       callableStatement.setString(9, "")
       callableStatement.setString(10, "")
