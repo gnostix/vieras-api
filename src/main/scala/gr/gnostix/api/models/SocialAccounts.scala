@@ -36,7 +36,7 @@ case class SocialCredentialsTw(token: String, tokenSecret: String, handle: Strin
 
 case class SocialCredentialsSimple(credentialsId: Int, accountName: String)
 
-case class SocialCredentialsFb(token: String, fanpage: String, validated: java.util.Date, expireSec: Int)
+case class SocialCredentialsFb(token: String, fanpage: String, fanpageId: String,validated: java.util.Date, expireSec: Int)
 
 case class SocialCredentialsYt(channelname: String, channelId: String)
 
@@ -102,10 +102,10 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
       //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
       //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
       //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
-      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, CREDENTIAL_ID OUT NUMBER
+      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
-      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -120,12 +120,13 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
       callableStatement.setString(10, "")
       callableStatement.setString(11, "")
       callableStatement.setString(12, "")
+      callableStatement.setString(13, "")
 
-      callableStatement.registerOutParameter(13, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val credId: Int = callableStatement.getInt(13)
+      val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
       connection.commit()
       connection.close()
@@ -200,10 +201,12 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
       //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
       //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
       //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
-      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, CREDENTIAL_ID OUT NUMBER
+      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
+      logger.info("---------->  addAccount facebook expireSec " + cred.expireSec)
+      logger.info("---------->  addAccount facebook validated " + cred.validated)
       val date = new java.util.Date();
-      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -218,12 +221,13 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
       callableStatement.setString(10, "")
       callableStatement.setString(11, "")
       callableStatement.setString(12, "")
+      callableStatement.setString(13, cred.fanpageId)
 
-      callableStatement.registerOutParameter(13, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val credId: Int = callableStatement.getInt(13)
+      val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
       connection.commit()
       connection.close()
@@ -301,10 +305,10 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
       //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
       //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
       //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
-      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, CREDENTIAL_ID OUT NUMBER
+      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
-      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -319,12 +323,13 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
       callableStatement.setString(10, cred.channelId)
       callableStatement.setString(11, "")
       callableStatement.setString(12, "")
+      callableStatement.setString(13, "")
 
-      callableStatement.registerOutParameter(13, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val credId: Int = callableStatement.getInt(13)
+      val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
       connection.commit()
       connection.close()
@@ -399,7 +404,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
       //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
       //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
       //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
-      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2, CREDENTIAL_ID OUT NUMBER
+      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
       val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
@@ -417,12 +422,13 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
       callableStatement.setString(10, "")
       callableStatement.setString(11, cred.gaAuthKey)
       callableStatement.setString(12, cred.gaName)
+      callableStatement.setString(13, "")
 
-      callableStatement.registerOutParameter(13, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val credId: Int = callableStatement.getInt(13)
+      val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
       connection.commit()
       connection.close()
@@ -654,7 +660,8 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
   }
 
   object SocialAccountsQueriesDao extends DatabaseAccessSupport {
-    def deleteSocialAccount(profileId: Int, credId: Int, datasource: String) {
+
+    def deleteSocialAccount(profileId: Int, credId: Int, datasource: String) = Option[Int] {
       try {
         getConnection withSession {
           implicit session =>
@@ -663,12 +670,20 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
               case "twitter" | "facebook" | "youtube" | "ganalytics" =>
                 (Q.u + s"""{call PRC_DELETE_SOCIAL_CREDENTIAL($profileId, $credId)}""").execute()
             }
+
         }
+        val status: Int = 200
+        status
 
       } catch {
-        case e: Exception => logger.error("---------->  delete social account error " + e.printStackTrace())
+        case e: Exception => {
+          logger.error("---------->  delete social account error " + e.printStackTrace())
+          val status: Int = 400
+          status
+        }
       }
     }
+
   }
 
 }

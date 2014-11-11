@@ -51,7 +51,7 @@ with FutureSupport {
   get("/profiles/all") {
     logger.info("---->   return all profiles with id and name     ")
     try {
-    ProfileDao.getAllProfiles(user.userId)
+      ProfileDao.getAllProfiles(user.userId)
     } catch {
       case e: Exception => "Something went wrong" + e.printStackTrace()
     }
@@ -141,14 +141,19 @@ with FutureSupport {
 
   // facebook auth
   post("/profile/:id/fb/pages") {
-    val fbToken = parsedBody.extract[FacebookToken]
-    val profileId = params("id").toInt
+    try {
+      val fbToken = parsedBody.extract[FacebookToken]
+      val profileId = params("id").toInt
 
-    logger.info("---->   GET FB TOKEN !!!!    ")
-    val token = FbExtendedToken.getExtendedToken(fbToken.token)
-    val pages = FbExtendedToken.getUserPages(token.getAccessToken)
-    val data = FacebookPageAuth(token.getAccessToken, token.getExpires, pages.toList)
-    DataResponse(200, "All good", data)
+      logger.info("---->   GET FB TOKEN !!!!    ")
+      val token = FbExtendedToken.getExtendedToken(fbToken.token)
+      val pages = FbExtendedToken.getUserPages(token.getAccessToken)
+      val data = FacebookPageAuth(token.getAccessToken, token.getExpires, pages.toList)
+      DataResponse(200, "All good", data)
+    } catch {
+      case e: Exception => "Something went wrong" + e.printStackTrace()
+        Map("status" -> 200, "message" -> "Something wend wrong")
+    }
   }
 
 
@@ -156,7 +161,7 @@ with FutureSupport {
   // 1. Step - Give the user the url for accepting the gnostix app
   get("/profile/:id/tw/auth") {
     logger.info("---->   Twitter AUTH!!!!    ")
-     Map("status" -> 200, "message" -> "all good", "url" -> TwOauth.getUrlAuth)
+    Map("status" -> 200, "message" -> "all good", "url" -> TwOauth.getUrlAuth)
   }
 
   // 2. Step - Get the authorization of Twitter and save the account
@@ -236,7 +241,7 @@ with FutureSupport {
       case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
       case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
       case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
-        // the next route needs refactor !!!!!!!!!!!
+      // the next route needs refactor !!!!!!!!!!!
       case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
       case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
     }
@@ -254,10 +259,14 @@ with FutureSupport {
       }
       case "facebook" => {
         logger.info(s"---->   add a new facebook  account ")
-        val account = parsedBody.extract[List[SocialCredentialsFb]]
-        logger.info(s"---->   add a new account ${account.size}    ")
-        account.foreach(SocialAccountsFacebookDao.addAccount(params("profileId").toInt, _))
-      }
+        val account = parsedBody.extract[SocialCredentialsFb]
+        logger.info(s"---->   add a new account ${account}    ")
+        val data = SocialAccountsFacebookDao.addAccount(params("profileId").toInt, account)
+        data match {
+          case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
+          case None => Map("status" -> 400, "message" -> "Error")
+        }
+       }
       case "youtube" => {
         val account = parsedBody.extract[List[SocialCredentialsYt]]
         logger.info(s"---->   add a new account ${account.size}    ")
@@ -288,14 +297,20 @@ with FutureSupport {
 
   delete("/profile/:profileId/socialchannel/:datasource/:credId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+    var status: Int = 100
     params("datasource") match {
-      case "hotel" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
-      case "twitter" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
-      case "facebook" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
-      case "youtube" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
-      case "ganalytics" => SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource"))
+      case "hotel" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
+      case "twitter" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
+      case "facebook" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
+      case "youtube" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
+      case "ganalytics" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
     }
-    Map("status" -> 200, "message" -> "all good")
+    status match {
+      case 200 => Map("status" -> 200, "message" -> "all good")
+      case 400 => Map("status" -> 400, "message" -> "something went wrong")
+      case _ => Map("status" -> 500, "message" -> "Server error! Something went very wrong")
+    }
+
   }
 
 

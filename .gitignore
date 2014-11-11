@@ -73,3 +73,6 @@ deploy-jetty.rb
 
 # webapp files
 webapp/
+
+# Alex files
+src/main/scala/gr/gnostix/api/tmp/*
