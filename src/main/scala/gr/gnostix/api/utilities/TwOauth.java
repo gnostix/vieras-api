@@ -13,18 +13,16 @@ public class TwOauth {
 
     private static final String TwitterConsumerKey = "lJ43ewh5JHU5wehbfOgDrw";
     private static final String TwitterConsumerSecret = "i9FRRM5JUjLm3amoYyPjCc4dVx50U21eSaUghYGaJI0";
-    private static RequestToken requestToken;
-    private static Twitter twitter;
+    private RequestToken requestToken = null;
+    private static Twitter twitter = null;
 
-    public static String getUrlAuth() {
+    public String getUrlAuth(RequestToken requestToken) {
         String url = null;
+
         try {
-            if (getTwitter() == null || TwOauth.requestToken == null) {
-                TwOauth.requestToken = getTwitter().getOAuthRequestToken();
-                url = TwOauth.requestToken.getAuthorizationURL();
-            } else {
-                url = TwOauth.requestToken.getAuthorizationURL();
-            }
+            url = requestToken.getAuthorizationURL();
+
+            System.out.println("------------> getUrlAuth requestToken " + requestToken);
             System.out.println("------------> " + url);
         } catch (Exception e) {
             e.printStackTrace();
@@ -32,17 +30,17 @@ public class TwOauth {
         return url;
     }
 
-    public static AccessToken getUserToken(String pin, int profileId)  {
+    public AccessToken getUserToken(String pin, int profileId, RequestToken requestToken) {
         AccessToken accessToken = null;
         SocialCredentialsSimple twAccount = null;
 
         try {
-            System.out.println("------------> " + TwOauth.requestToken);
-            accessToken = getTwitter().getOAuthAccessToken(TwOauth.requestToken, pin);
-            System.out.println("------------> " + accessToken.getToken() + " " + accessToken.getScreenName() + " "
+            //requestToken = twitter.getOAuthRequestToken();
+            System.out.println("------------> getUserToken " + requestToken);
+            accessToken = twitter.getOAuthAccessToken(requestToken, pin);
+            System.out.println("------------> getUserToken " + accessToken.getToken() + " " + accessToken.getScreenName() + " "
                     + accessToken.getTokenSecret());
-            // save the user account
-            //SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(), accessToken.getScreenName());
+
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -50,16 +48,35 @@ public class TwOauth {
         return accessToken;
     }
 
-    private static void setTwitter() {
-        TwOauth.twitter = TwitterFactory.getSingleton();
-        twitter.setOAuthConsumer(TwitterConsumerKey, TwitterConsumerSecret);
+    public RequestToken getRequestToken() {
+        try {
+            // RequestToken requestToken = null;
+            TwOauth.twitter = getTwitter();
+            requestToken = TwOauth.twitter.getOAuthRequestToken();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return requestToken;
     }
 
-    private static Twitter getTwitter() {
-        if (TwOauth.twitter == null) {
-            TwOauth.setTwitter();
+    public Twitter getTwitter() {
+        try {
+            if (TwOauth.twitter != null) {
+                System.out.println("------------> getTwitter OLD " + TwOauth.twitter);
+                return TwOauth.twitter;
+            }
+            TwOauth.twitter = TwitterFactory.getSingleton();
+            //twitter = new TwitterFactory().getInstance();
+            if (TwOauth.twitter.getConfiguration().getOAuthConsumerKey() == null)
+                TwOauth.twitter.setOAuthConsumer(TwitterConsumerKey, TwitterConsumerSecret);
+
+            System.out.println("------------> getTwitter TwitterFactory().getInstance " + TwOauth.twitter);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return TwOauth.twitter;
     }
+
 
 }

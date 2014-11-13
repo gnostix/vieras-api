@@ -8,7 +8,8 @@ import gr.gnostix.api.utilities.{FbExtendedToken, TwOauth}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
-import twitter4j.auth.AccessToken
+import twitter4j.Twitter
+import twitter4j.auth.{RequestToken, AccessToken}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
@@ -31,7 +32,7 @@ with FutureSupport {
 
   before() {
     contentType = formats("json")
-    //requireLogin()
+    requireLogin()
   }
 
 
@@ -161,7 +162,18 @@ with FutureSupport {
   // 1. Step - Give the user the url for accepting the gnostix app
   get("/profile/:id/tw/auth") {
     logger.info("---->   Twitter AUTH!!!!    ")
-    val urlAuth = TwOauth.getUrlAuth
+    var requestToken: RequestToken = session.getAttribute("twitter_token").asInstanceOf[RequestToken]
+    var urlAuth: String = "";
+    val twAuth: TwOauth = new TwOauth()
+
+    if (requestToken == null) {
+      requestToken = twAuth.getRequestToken
+      session.setAttribute("twitter_token", requestToken)
+      urlAuth = twAuth.getUrlAuth(requestToken)
+
+    } else {
+      urlAuth = twAuth.getUrlAuth(requestToken)
+    }
 
     urlAuth match {
       case null => Map("status" -> 400, "message" -> "Something wend wrong")
@@ -172,10 +184,11 @@ with FutureSupport {
   // 2. Step - Get the authorization of Twitter and save the account
   post("/profile/:id/tw/auth/:pin") {
     logger.info("---->   Twitter PIN !!!!    ")
+    val requestToken: RequestToken = session.getAttribute("twitter_token").asInstanceOf[RequestToken]
 
     val profileId = params("id").toInt
     // add twitter account and then return the twitter handle
-    val accessToken: AccessToken = TwOauth.getUserToken(params("pin"), profileId)
+    val accessToken: AccessToken = new TwOauth().getUserToken(params("pin"), profileId, requestToken)
     val account = SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(),
       accessToken.getScreenName())
     account match {
@@ -183,6 +196,7 @@ with FutureSupport {
       case None => Map("status" -> 402, "message" -> "error on adding account")
     }
   }
+
 
 
   //get supported hospitality sites
