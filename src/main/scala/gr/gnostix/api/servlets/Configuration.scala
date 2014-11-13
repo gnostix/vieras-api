@@ -170,7 +170,7 @@ with FutureSupport {
   }
 
   // 2. Step - Get the authorization of Twitter and save the account
-  get("/profile/:id/tw/auth/:pin") {
+  post("/profile/:id/tw/auth/:pin") {
     logger.info("---->   Twitter PIN !!!!    ")
 
     val profileId = params("id").toInt
@@ -179,7 +179,7 @@ with FutureSupport {
     val account = SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(),
       accessToken.getScreenName())
     account match {
-      case Some(data) => Map("status" -> 200, "message" -> "all good", "twitter_account" -> data)
+      case Some(data) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
       case None => Map("status" -> 402, "message" -> "error on adding account")
     }
   }
