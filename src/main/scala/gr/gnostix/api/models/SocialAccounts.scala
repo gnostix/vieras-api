@@ -39,7 +39,7 @@ case class SocialCredentialsSimple(credentialsId: Int, accountName: String)
 
 case class SocialCredentialsFb(token: String, fanpage: String, fanpageId: String, expires: java.util.Date)
 
-case class SocialCredentialsYt(channelname: String, channelId: String)
+case class SocialCredentialsYt(channelname: String, channelId: String, token: String)
 
 case class SocialCredentialsGa(gaAuthKey: String, gaName: String)
 
@@ -323,7 +323,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
       callableStatement.setString(2, "YOUTUBE")
-      callableStatement.setString(3, "")
+      callableStatement.setString(3, cred.token)
       callableStatement.setString(4, "")
       callableStatement.setString(5, "")
       callableStatement.setInt(6, 0)

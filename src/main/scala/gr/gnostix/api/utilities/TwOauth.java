@@ -11,26 +11,17 @@ import twitter4j.auth.RequestToken;
  */
 public class TwOauth {
 
+    public TwOauth() {
+        setTwitter();
+        setRequestToken();
+    }
+
     private static final String TwitterConsumerKey = "lJ43ewh5JHU5wehbfOgDrw";
     private static final String TwitterConsumerSecret = "i9FRRM5JUjLm3amoYyPjCc4dVx50U21eSaUghYGaJI0";
     private RequestToken requestToken = null;
-    private static Twitter twitter = null;
+    private Twitter twitter = null;
 
-    public String getUrlAuth(RequestToken requestToken) {
-        String url = null;
-
-        try {
-            url = requestToken.getAuthorizationURL();
-
-            System.out.println("------------> getUrlAuth requestToken " + requestToken);
-            System.out.println("------------> " + url);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return url;
-    }
-
-    public AccessToken getUserToken(String pin, int profileId, RequestToken requestToken) {
+    public AccessToken getUserToken(String pin, int profileId) {
         AccessToken accessToken = null;
         SocialCredentialsSimple twAccount = null;
 
@@ -48,34 +39,33 @@ public class TwOauth {
         return accessToken;
     }
 
-    public RequestToken getRequestToken() {
+    public void setRequestToken() {
         try {
-            // RequestToken requestToken = null;
-            TwOauth.twitter = getTwitter();
-            requestToken = TwOauth.twitter.getOAuthRequestToken();
+            requestToken = twitter.getOAuthRequestToken();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return requestToken;
+    }
+
+    public RequestToken getRequestToken() {
+        return this.requestToken;
+    }
+
+    public void setTwitter() {
+        try {
+            //twitter = TwitterFactory.getSingleton();
+            twitter = new TwitterFactory().getInstance();
+            twitter.setOAuthConsumer(TwitterConsumerKey, TwitterConsumerSecret);
+
+            System.out.println("------------> getTwitter TwitterFactory().getInstance " + twitter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public Twitter getTwitter() {
-        try {
-            if (TwOauth.twitter != null) {
-                System.out.println("------------> getTwitter OLD " + TwOauth.twitter);
-                return TwOauth.twitter;
-            }
-            TwOauth.twitter = TwitterFactory.getSingleton();
-            //twitter = new TwitterFactory().getInstance();
-            if (TwOauth.twitter.getConfiguration().getOAuthConsumerKey() == null)
-                TwOauth.twitter.setOAuthConsumer(TwitterConsumerKey, TwitterConsumerSecret);
-
-            System.out.println("------------> getTwitter TwitterFactory().getInstance " + TwOauth.twitter);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return TwOauth.twitter;
+        return this.twitter;
     }
 
 

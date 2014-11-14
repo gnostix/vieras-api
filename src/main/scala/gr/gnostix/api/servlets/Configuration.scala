@@ -153,7 +153,7 @@ with FutureSupport {
       DataResponse(200, "All good", data)
     } catch {
       case e: Exception => "Something went wrong" + e.printStackTrace()
-        Map("status" -> 400, "message" -> "Something wend wrong")
+        Map("status" -> 400, "message" -> "Something went wrong")
     }
   }
 
@@ -162,21 +162,17 @@ with FutureSupport {
   // 1. Step - Give the user the url for accepting the gnostix app
   get("/profile/:id/tw/auth") {
     logger.info("---->   Twitter AUTH!!!!    ")
-    var requestToken: RequestToken = session.getAttribute("twitter_token").asInstanceOf[RequestToken]
+    var twAuth: TwOauth = session.getAttribute("twitter_auth").asInstanceOf[TwOauth]
     var urlAuth: String = "";
-    val twAuth: TwOauth = new TwOauth()
 
-    if (requestToken == null) {
-      requestToken = twAuth.getRequestToken
-      session.setAttribute("twitter_token", requestToken)
-      urlAuth = twAuth.getUrlAuth(requestToken)
-
-    } else {
-      urlAuth = twAuth.getUrlAuth(requestToken)
+    if (twAuth == null) {
+      twAuth = new TwOauth()
+      session.setAttribute("twitter_auth", twAuth)
     }
 
+    urlAuth = twAuth.getRequestToken.getAuthorizationURL
     urlAuth match {
-      case null => Map("status" -> 400, "message" -> "Something wend wrong")
+      case null => Map("status" -> 400, "message" -> "Something went wrong")
       case x => Map("status" -> 200, "message" -> "all good", "payload" -> Map("url" -> urlAuth))
     }
   }
@@ -184,13 +180,17 @@ with FutureSupport {
   // 2. Step - Get the authorization of Twitter and save the account
   post("/profile/:id/tw/auth/:pin") {
     logger.info("---->   Twitter PIN !!!!    ")
-    val requestToken: RequestToken = session.getAttribute("twitter_token").asInstanceOf[RequestToken]
+    var twAuth: TwOauth = session.getAttribute("twitter_auth").asInstanceOf[TwOauth]
 
     val profileId = params("id").toInt
+
     // add twitter account and then return the twitter handle
-    val accessToken: AccessToken = new TwOauth().getUserToken(params("pin"), profileId, requestToken)
+    val accessToken: AccessToken = twAuth.getUserToken(params("pin"), profileId)
     val account = SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(),
       accessToken.getScreenName())
+
+    // reset token so user can get more accounts
+    session.setAttribute("twitter_auth", null)
     account match {
       case Some(data) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
       case None => Map("status" -> 402, "message" -> "error on adding account")
@@ -287,9 +287,9 @@ with FutureSupport {
         }
       }
       case "youtube" => {
-        val account = parsedBody.extract[List[SocialCredentialsYt]]
-        logger.info(s"---->   add a new account ${account.size}    ")
-        account.foreach(SocialAccountsYoutubeDao.addAccount(params("profileId").toInt, _))
+        val account = parsedBody.extract[SocialCredentialsYt]
+        logger.info(s"---->   add a new account ${account}    ")
+        SocialAccountsYoutubeDao.addAccount(params("profileId").toInt, account)
       }
       case "ganalytics" => {
         val account = parsedBody.extract[List[SocialCredentialsGa]]
