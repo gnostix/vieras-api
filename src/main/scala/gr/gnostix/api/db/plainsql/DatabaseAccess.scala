@@ -12,10 +12,8 @@ object DatabaseAccess {
     val ds = new ComboPooledDataSource
     ds.setDriverClass("oracle.jdbc.driver.OracleDriver")
     ds.setJdbcUrl("jdbc:oracle:thin:@db.gnstx.gr:1521:ora")
-/*    ds.setUser("DUSR_BACKUP")
-    ds.setPassword("sandripappa1977")*/
-    ds.setUser("dusr")
-    ds.setPassword("gnostix1971")
+    ds.setUser("vieras")
+    ds.setPassword("vieras11031977")
     ds.setMinPoolSize(1)
     ds.setAcquireIncrement(1)
     ds.setMaxPoolSize(5)

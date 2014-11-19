@@ -8,7 +8,6 @@ import gr.gnostix.api.utilities.{FbExtendedToken, TwOauth}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
-import twitter4j.Twitter
 import twitter4j.auth.{RequestToken, AccessToken}
 
 import scala.collection.JavaConversions._
@@ -303,8 +302,15 @@ with FutureSupport {
         if (validUrl._2) {
           // save hotel in db
           val credId = SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
-          logger.info(s"---->   hotelId $credId ")
-          Map("status" -> 200, "message" -> "all good", "payload" -> Map("credId" -> credId))
+
+          credId match {
+            case Some(x) => {
+              logger.info(s"---->   hotelId $x ")
+              Map("status" -> 200, "message" -> "all good", "payload" -> Map("credId" -> x))
+            }
+            case None => Map("status" -> 402, "message" -> "Something went wrong")
+          }
+
         } else {
           Map("status" -> 402, "message" -> validUrl._1)
         }

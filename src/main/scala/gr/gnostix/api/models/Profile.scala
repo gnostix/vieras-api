@@ -26,11 +26,10 @@ object ProfileDao extends DatabaseAccessSupport {
   def findById(profileId: Int, userId: Int) = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[Profile]( s"""select c.customer_id, c.customer_firstname,
-          c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language
-          from customers c, user_customer_map m, users u
-          where c.customer_id = m.customer_id and u.user_id = m.user_id
-            and u.user_id = $userId and c.customer_id = $profileId""")
+        val records = Q.queryNA[Profile]( s""" select c.profile_id, c.profile_firstname,
+                     c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language
+                              from profiles c
+                            where c.profile_id = $profileId  and c.fk_user_id = $userId """)
         records.list()
 
     }
@@ -39,10 +38,10 @@ object ProfileDao extends DatabaseAccessSupport {
   def getAllProfiles(userId: Int) = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[Profile]( s"""select c.customer_id, c.customer_firstname,
-          c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language
-          from customers c, user_customer_map m, users u
-          where c.customer_id = m.customer_id and u.user_id = m.user_id and u.user_id = $userId """)
+        val records = Q.queryNA[Profile]( s"""select c.profile_id, c.profile_firstname,
+                       c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language
+                                from profiles c
+                              where  c.fk_user_id = $userId """)
         records.list
     }
   }

@@ -49,6 +49,9 @@ class ScalatraBootstrap extends LifeCycle {
     // social channels routes
     context.mount(new SocialChannelsLineServlet(executor), "/api/user/socialchannels/line/*")
 
+    // hospitality services
+    context.mount(new HospitalityServicesServlet(executor), "/api/user/account/hospitality/services/*")
+
   }
 
   //
@@ -65,4 +68,6 @@ class ScalatraBootstrap extends LifeCycle {
     system.shutdown()
   }
 }
+
+
 
