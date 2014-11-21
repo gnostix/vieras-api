@@ -13,7 +13,7 @@ import gr.gnostix.api.models._
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success}
 
-trait RestSocialChannelsLineDataRoutes extends GnostixAPIStack
+trait RestSocialChannelsFbLineDataRoutes extends GnostixAPIStack
 with JacksonJsonSupport
 with AuthenticationSupport
 with CorsSupport
@@ -235,4 +235,4 @@ with FutureSupport {
 
 }
 
-case class SocialChannelsLineServlet(executor: ExecutionContext) extends GnostixAPIStack with RestSocialChannelsLineDataRoutes
+case class SocialChannelsFacebookLineServlet(executor: ExecutionContext) extends GnostixAPIStack with RestSocialChannelsFbLineDataRoutes

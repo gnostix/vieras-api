@@ -23,10 +23,10 @@ object KeywordDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Keyword]( s"""
-           select k.K_ID, k.KEY_INCLUDE, k.KEY_EXCLUDE, k.FK_SD_ID, k.CREATION_DATE, k.FK_LANG_ID, k.UPDATED_TIME
+           select k.K_ID, k.KEY_INCLUDE, k.KEY_EXCLUDE, k.FK_TOPIC_ID, k.CREATION_DATE, k.FK_LANG_ID, k.UPDATED_TIME
              from keywords k
-             where k.k_id = ${keywordId} and k.fk_sd_id = ${topicId} and k.fk_sd_id in
-                 (select sd_id from search_domains s,profiles c
+             where k.k_id = ${keywordId} and k.fk_TOPIC_id = ${topicId} and k.fk_TOPIC_id in
+                 (select topic_id from topics s,profiles c
                    where  s.fk_profile_id = ${profileId} and s.fk_profile_id = s.FK_profile_ID
                     and c.fk_user_id = ${userId})""")
         records.list
@@ -37,10 +37,10 @@ object KeywordDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Keyword]( s"""
-            select k.K_ID, k.KEY_INCLUDE, k.KEY_EXCLUDE, k.FK_SD_ID, k.CREATION_DATE, k.FK_LANG_ID, k.UPDATED_TIME
+            select k.K_ID, k.KEY_INCLUDE, k.KEY_EXCLUDE, k.FK_TOPIC_ID, k.CREATION_DATE, k.FK_LANG_ID, k.UPDATED_TIME
              from keywords k
-             where k.fk_sd_id = ${topicId} and k.fk_sd_id in
-                 (select sd_id from search_domains s,profiles c
+             where k.fk_TOPIC_id = ${topicId} and k.fk_TOPIC_id in
+                 (select TOPIC_id from TOPICS s,profiles c
                    where  s.fk_profile_id = ${profileId} and s.fk_profile_id = s.FK_profile_ID
                     and c.fk_user_id = ${userId})""")
         records.list
@@ -51,7 +51,7 @@ object KeywordDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         try {
-          (Q.u + s"""insert into keywords (K_ID, KEY_INCLUDE, KEY_EXCLUDE, FK_SD_ID, CREATION_DATE, FK_LANG_ID, UPDATED_TIME)
+          (Q.u + s"""insert into keywords (K_ID, KEY_INCLUDE, KEY_EXCLUDE, FK_TOPIC_ID, CREATION_DATE, FK_LANG_ID, UPDATED_TIME)
           values (SEQ_KEYWORDS_ID.nextval, '${keyword.keyInclude}', '${keyword.keyExclude}', ${keyword.topicId} , sysdate,
                     ${keyword.langId}, sysdate)""").execute()
         } catch {

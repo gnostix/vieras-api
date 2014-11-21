@@ -10,13 +10,13 @@ object SqlUtils {
 
 
   def getDataDefaultObj(profileId: Int): String = {
-    val mySqlDyn = s"""fk_k_id in (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId}))"""
+    val mySqlDyn = s"""fk_k_id in (select k_id from KEYWORDS where fk_TOPIC_id in (select sd_id from TOPICS where fk_profile_id=${profileId}))"""
     mySqlDyn
   }
 
   def getDataByKeywordsObj(profileId: Int, keywords: List[Int]): String = {
     val mySqlDyn = keywords match {
-      case List() => s"""fk_k_id in (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId}))"""
+      case List() => s"""fk_k_id in (select k_id from KEYWORDS where fk_TOPIC_id in (select TOPIC_id from topics where fk_profile_id=${profileId}))"""
       case List(x) => s""" fk_k_id = ${keywords.head}"""
       case x :: xs => s"""fk_k_id in ( ${keywords.mkString(",")} )"""
     }
@@ -25,9 +25,9 @@ object SqlUtils {
 
   def getDataByTopicsObj(profileId: Int, topics: List[Int]): String = {
     val mySqlDyn = topics match {
-      case List() => s""" fk_k_id in (select k_id from KEYWORDS where fk_sd_id in (select sd_id from SEARCH_DOMAINS where fk_customer_id=${profileId})) """
-      case List(x) => s""" fk_k_id in (select k_id from KEYWORDS where fk_sd_id = ${topics.head} ) """
-      case x :: xs => s""" fk_k_id in (select k_id from KEYWORDS where fk_sd_id in ( ${topics.mkString(",")} )) """
+      case List() => s""" fk_k_id in (select k_id from KEYWORDS where fk_TOPIC_id in (select TOPIC_id from TOPICS where fk_profile_id=${profileId})) """
+      case List(x) => s""" fk_k_id in (select k_id from KEYWORDS where fk_TOPIC_id = ${topics.head} ) """
+      case x :: xs => s""" fk_k_id in (select k_id from KEYWORDS where fk_TOPIC_id in ( ${topics.mkString(",")} )) """
     }
     mySqlDyn
   }
