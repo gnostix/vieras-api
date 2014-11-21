@@ -30,12 +30,12 @@
       //requireLogin()
     }
 
-    // mount point /api/user/socialchannels/line/*
+    // mount point /api/user/socialchannels/twitter/line/*
 
     // get all data for twitter for one profile datatype = (post or comment)
-    get("/profile/:profileId/twitter/:dataType/:fromDate/:toDate") {
+    get("/profile/:profileId/:dataType/:fromDate/:toDate") {
       logger.info(s"----> get all data for twitter for  one account datatype = (post, comment)" +
-        s"  /api/user/socialchannels/line/* ${params("dataType")} ")
+        s"  /api/user/socialchannels/twitter/line/* ${params("dataType")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
           DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -47,7 +47,7 @@
 
         val profileId = params("profileId").toInt
 
-        val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, params("dataType"), None)
+        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, params("dataType"), None)
         rawData match {
           case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
           case None => ErrorDataResponse(404, "Error on data")
@@ -65,7 +65,7 @@
     // get all data for twitter for one account datatype = (post or comment)
     get("/profile/:profileId/twitter/:dataType/:engId/:fromDate/:toDate") {
       logger.info(s"----> get all data for twitter for  one account datatype = (post, comment)" +
-        s"  /api/user/socialchannels/line/* ${params("dataType")} ")
+        s"  /api/user/socialchannels/twitter/line/*  ${params("dataType")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
           DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -78,7 +78,7 @@
         val profileId = params("profileId").toInt
         val engId = params("engId").toInt
 
-        val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, params("dataType"), Some(engId))
+        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, params("dataType"), Some(engId))
         rawData match {
           case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
           case None => ErrorDataResponse(404, "Error on data")
@@ -95,7 +95,7 @@
 
     // get all data for twitter for  all accounts datatype = (all, post, comment)
     get("/profile/:profileId/twitter/:fromDate/:toDate/all") {
-      logger.info(s"---->   /api/user/socialchannels/line/twitter/* ${params("profileId")} ")
+      logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("profileId")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
           DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -108,15 +108,15 @@
         val profileId = params("profileId").toInt
 
 
-        val post = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "post", None)
-        val comment = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "comment", None)
+        val mention = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "post", None)
+        val retweet = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "comment", None)
 
         val theData =
           new AsyncResult() {
             override val is =
               for {
-                a1 <- post
-                a2 <- comment
+                a1 <- mention
+                a2 <- retweet
               } yield f1(List(a1.get, a2.get))
           }
         //return the data
@@ -147,7 +147,7 @@
 
     // get SUM data for twitter for  all accounts datatype = (all, post, comment)
     get("/profile/:profileId/twitter/:fromDate/:toDate/total/all") {
-      logger.info(s"---->   /api/user/socialchannels/line/twitter/* ${params("profileId")} ")
+      logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("profileId")} ")
 
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -160,15 +160,15 @@
 
         val profileId = params("profileId").toInt
 
-        val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", None)
-        val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", None)
+        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", None)
+        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", None)
 
         val theData =
           new AsyncResult() {
             override val is =
               for {
-                a1 <- post
-                a2 <- comment
+                a1 <- mention
+                a2 <- retweet
               //  } yield (a1.get, a2.get)
               } yield f2(List(a1.get, a2.get))
           }
@@ -194,7 +194,7 @@
 
     // get all data for twitter for  one account datatype = (all, post, comment)
     get("/profile/:profileId/twitter/:engId/:fromDate/:toDate/total/all") {
-      logger.info(s"---->   /api/user/socialchannels/line/* ${params("engId")} ")
+      logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("engId")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
           DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -207,15 +207,15 @@
         val profileId = params("profileId").toInt
         val engId = params("engId").toInt
 
-        val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", Some(engId))
-        val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", Some(engId))
+        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", Some(engId))
+        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", Some(engId))
 
         val theData =
           new AsyncResult() {
             override val is =
               for {
-                a1 <- post
-                a2 <- comment
+                a1 <- mention
+                a2 <- retweet
               } yield f2(List(a1.get, a2.get))
           }
 

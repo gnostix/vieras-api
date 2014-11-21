@@ -32,12 +32,12 @@ with FutureSupport {
     //requireLogin()
   }
 
-  // mount point /api/user/socialchannels/line/*
+  // mount point /api/user/socialchannels/facebook/line/*
 
   // get all data for facebook for one profile datatype = (post or comment)
-  get("/profile/:profileId/facebook/:dataType/:fromDate/:toDate") {
+  get("/profile/:profileId/:dataType/:fromDate/:toDate") {
     logger.info(s"----> get all data for facebook for  one account datatype = (post, comment)" +
-      s"  /api/user/socialchannels/line/* ${params("dataType")} ")
+      s"  /api/user/socialchannels/facebook/line/* ${params("dataType")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -64,10 +64,10 @@ with FutureSupport {
     }
   }
 
-  // get all data for facebook for one account datatype = (post or comment)
-  get("/profile/:profileId/facebook/:dataType/:engId/:fromDate/:toDate") {
+  // get all data for facebook for one channel account datatype = (post or comment)
+  get("/profile/:profileId/:dataType/:engId/:fromDate/:toDate") {
     logger.info(s"----> get all data for facebook for  one account datatype = (post, comment)" +
-      s"  /api/user/socialchannels/line/* ${params("dataType")} ")
+      s"  /api/user/socialchannels/facebook/line/* ${params("dataType")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -96,8 +96,8 @@ with FutureSupport {
   }
 
   // get all data for facebook for  all accounts datatype = (all, post, comment)
-  get("/profile/:profileId/facebook/:fromDate/:toDate/all") {
-    logger.info(s"---->   /api/user/socialchannels/line/facebook/* ${params("profileId")} ")
+  get("/profile/:profileId/:fromDate/:toDate/all") {
+    logger.info(s"---->   /api/user/socialchannels/facebook/line/* ${params("profileId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -149,7 +149,7 @@ with FutureSupport {
 
   // get SUM data for facebook for  all accounts datatype = (all, post, comment)
   get("/profile/:profileId/facebook/:fromDate/:toDate/total/all") {
-    logger.info(s"---->   /api/user/socialchannels/line/facebook/* ${params("profileId")} ")
+    logger.info(s"---->   /api/user/socialchannels/facebook/line/* ${params("profileId")} ")
 
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -196,7 +196,7 @@ with FutureSupport {
 
   // get all data for facebook for  one account datatype = (all, post, comment)
   get("/profile/:profileId/facebook/:engId/:fromDate/:toDate/total/all") {
-    logger.info(s"---->   /api/user/socialchannels/line/* ${params("engId")} ")
+    logger.info(s"---->   /api/user/socialchannels/facebook/line/* ${params("engId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
