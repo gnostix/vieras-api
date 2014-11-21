@@ -86,12 +86,12 @@
         var myDataTotal = 0
         getConnection withSession {
           implicit session =>
-            logger.info("get my social channel fb ------------->" + sql)
+            logger.info("get my social channel tw ------------->" + sql)
             val records = Q.queryNA[Int](sql)
             myDataTotal = records.first()
         }
 
-        val sumData = SocialDataSum("facebook", myDataTotal)
+        val sumData = SocialDataSum("twitter", myDataTotal)
 
         Option(sumData)
       } catch {
@@ -118,10 +118,10 @@
       val toDateStr: String = fmt.print(toDate)
 
       dataType match {
-        case "post" => getSqlPosts(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
-        case "totalpost" => getSqlPostsTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
-        case "comment" => getSqlComments(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
-        case "totalcomment" => getSqlCommentsTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
+        case "mention" => getSqlMention(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
+        case "totalmention" => getSqlPostsTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
+        case "retweet" => getSqlRetweet(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
+        case "totalretweet" => getSqlRetweetTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
       }
 
     }
@@ -136,7 +136,7 @@
       sql
     }
 
-    def getSqlPosts(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+    def getSqlMention(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
       if (numDays == 0) {
         val sql = s"""select count(*),trunc(msg_date,'HH') from eng_fb_wall
                       where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
@@ -182,7 +182,7 @@
       }
     }
 
-    def getSqlCommentsTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+    def getSqlRetweetTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
       val sql = s"""select count(*) from ENG_FB_WALL_COMMENTS
                       where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
                         where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
@@ -192,7 +192,7 @@
       sql
     }
 
-    def getSqlComments(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+    def getSqlRetweet(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
 
       if (numDays == 0) {
         val sql = s"""select count(*),trunc(comment_date,'HH') from ENG_FB_WALL_COMMENTS

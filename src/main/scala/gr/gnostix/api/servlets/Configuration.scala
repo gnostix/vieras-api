@@ -288,12 +288,20 @@ with FutureSupport {
       case "youtube" => {
         val account = parsedBody.extract[SocialCredentialsYt]
         logger.info(s"---->   add a new account ${account}    ")
-        SocialAccountsYoutubeDao.addAccount(params("profileId").toInt, account)
+        val data = SocialAccountsYoutubeDao.addAccount(params("profileId").toInt, account)
+        data match {
+          case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
+          case None => Map("status" -> 400, "message" -> "Error")
+        }
       }
       case "ganalytics" => {
-        val account = parsedBody.extract[List[SocialCredentialsGa]]
-        logger.info(s"---->   add a new account ${account.size}    ")
-        account.foreach(SocialAccountsGAnalyticsDao.addAccount(params("profileId").toInt, _))
+        val account = parsedBody.extract[SocialCredentialsGa]
+        logger.info(s"---->   add a new account ${account}    ")
+        val data = SocialAccountsGAnalyticsDao.addAccount(params("profileId").toInt, account)
+        data match {
+          case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
+          case None => Map("status" -> 400, "message" -> "Error")
+        }
       }
       case "hotel" => {
         val hotel = parsedBody.extract[SocialCredentialsHotel]
