@@ -42,24 +42,65 @@ with FutureSupport {
   get("/profiles/usage") {
     logger.info("---->   return all profiles/usage with userlevel id     ")
     try {
-      ProfilesUsage.findByUserlevel(user.userLevel) //user level....!!!
+      val usage = ProfilesUsage.findByUserlevel(user.userLevel) //user level....!!!
+
+      ApiMessages.generalSuccess("usage", usage)
     } catch {
-      case e: Exception => "Something went wrong"
+      case e: Exception => {
+        logger.info("----> Something went wrong" + e.printStackTrace())
+        ApiMessages.generalError
+      }
     }
   }
+
+
 
   get("/profiles/all") {
     logger.info("---->   return all profiles with id and name     ")
     try {
-      ProfileDao.getAllProfiles(user.userId)
+      val profiles = ProfileDao.getAllProfiles(user.userId)
+      ApiMessages.generalSuccess("profiles", profiles)
     } catch {
       case e: Exception => "Something went wrong" + e.printStackTrace()
+        ApiMessages.generalError
     }
   }
 
   get("/profile/:id") {
     logger.info(s"---->   return profile with id ${params("id")}     ")
     ProfileDao.findById(params("id").toInt, user.userId)
+  }
+
+  // create a new profile
+  post("/profile/:name") {
+    logger.info(s"---->   return profile with id ${params("name")}     ")
+    val profileId = ProfileDao.createProfile(user.userId, params("name"))
+
+    val response = profileId match {
+      case Some(x) => ApiMessages.generalSuccess("profileId", profileId)
+      case None => ApiMessages.generalError
+    }
+
+    response
+  }
+
+  // update the profile name
+  put("/profile/:id/:name") {
+
+    val profileId = params("id").toInt
+    val profileName = params("name")
+    val result = ProfileDao.updateProfileName(user.userId, profileId, profileName)
+
+    val response = result match {
+      case Some(x) => Map("status" -> 200, "message" -> "All good", "payload" -> "")
+      case None => ApiMessages.generalError
+    }
+
+    response
+  }
+
+  delete("/profiles/:id") {
+    // not implemented
   }
 
 

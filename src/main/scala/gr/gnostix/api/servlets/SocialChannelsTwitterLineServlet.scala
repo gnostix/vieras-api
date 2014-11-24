@@ -63,7 +63,7 @@
     }
 
     // get all data for twitter for one account datatype = (post or comment)
-    get("/profile/:profileId/twitter/:dataType/:engId/:fromDate/:toDate") {
+    get("/profile/:profileId/twitter/:dataType/:credId/:fromDate/:toDate") {
       logger.info(s"----> get all data for twitter for  one account datatype = (post, comment)" +
         s"  /api/user/socialchannels/twitter/line/*  ${params("dataType")} ")
       try {
@@ -76,9 +76,9 @@
         logger.info(s"---->   parsed date ---> ${toDate}    ")
 
         val profileId = params("profileId").toInt
-        val engId = params("engId").toInt
+        val credId = params("credId").toInt
 
-        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, params("dataType"), Some(engId))
+        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, params("dataType"), Some(credId))
         rawData match {
           case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
           case None => ErrorDataResponse(404, "Error on data")

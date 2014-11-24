@@ -95,6 +95,7 @@ trait ServicesApiRoutes
       val hotelValue = HospitalityServicesDao.getByName(executor, "Value", profileId, fromDate, toDate)
       val hotelCleanliness = HospitalityServicesDao.getByName(executor, "Cleanliness", profileId, fromDate, toDate)
       val hotelLocation = HospitalityServicesDao.getByName(executor, "Location", profileId, fromDate, toDate)
+      val hotelSleep = HospitalityServicesDao.getByName(executor, "Sleep", profileId, fromDate, toDate)
 
       new AsyncResult {
         val is =
@@ -104,9 +105,10 @@ trait ServicesApiRoutes
             data3 <- hotelValue
             data4 <- hotelCleanliness
             data5 <- hotelLocation
+            data6 <- hotelSleep
 
           } yield f3(List(data1.get, data2.get, data3.get,
-            data4.get, data5.get))
+            data4.get, data5.get, data6.get))
       }
     } catch {
       case e: NumberFormatException => ErrorDataResponse(404, "wrong profile number")

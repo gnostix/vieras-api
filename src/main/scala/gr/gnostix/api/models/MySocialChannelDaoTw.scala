@@ -64,7 +64,7 @@
         var myData = List[DataLineGraph]()
         getConnection withSession {
           implicit session =>
-            logger.info("get my social channel tw ------------->" + sql)
+            logger.info("get my social channel twitter ------------->" + sql)
             val records = Q.queryNA[DataLineGraph](sql)
             myData = records.list()
         }
@@ -86,7 +86,7 @@
         var myDataTotal = 0
         getConnection withSession {
           implicit session =>
-            logger.info("get my social channel tw ------------->" + sql)
+            logger.info("get my social channel twitter -------------> " + sql)
             val records = Q.queryNA[Int](sql)
             myDataTotal = records.first()
         }
