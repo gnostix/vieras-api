@@ -54,6 +54,9 @@ class ScalatraBootstrap extends LifeCycle {
     // hospitality services
     context.mount(new HospitalityServicesServlet(executor), "/api/user/account/hospitality/services/*")
 
+    // dashboard sum data
+    context.mount(new DashboardSumDataServlet(executor), "/api/user/account/dashboard/services/*")
+
   }
 
   //

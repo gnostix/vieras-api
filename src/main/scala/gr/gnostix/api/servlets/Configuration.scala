@@ -282,8 +282,8 @@ with FutureSupport {
     val sent = ArrayBuffer[SocialAccounts]()
     for (a <- socialAccounts) {
       a match {
-        case s: SocialAccounts => sent.+=(s)
-        case _ => logger.info(s"-----> None => do nothing..}")
+        case Some(s: SocialAccounts) => sent.+=(s)
+        case None => logger.info(s"-----> None => do nothing..}")
       }
     }
     Map("status" -> 200, "message" -> "all good", "payload" -> sent)

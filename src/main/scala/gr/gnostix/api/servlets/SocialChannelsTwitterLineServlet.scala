@@ -34,7 +34,7 @@
 
     // get all data for twitter for one profile datatype = (post or comment)
     get("/profile/:profileId/:dataType/:fromDate/:toDate") {
-      logger.info(s"----> get all data for twitter for  one account datatype = (post, comment)" +
+      logger.info(s"----> get all data for twitter for  one account datatype = (mention , retweet)" +
         s"  /api/user/socialchannels/twitter/line/* ${params("dataType")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -64,7 +64,7 @@
 
     // get all data for twitter for one account datatype = (post or comment)
     get("/profile/:profileId/twitter/:dataType/:credId/:fromDate/:toDate") {
-      logger.info(s"----> get all data for twitter for  one account datatype = (post, comment)" +
+      logger.info(s"----> get all data for twitter for  one account datatype = (mention , retweet) " +
         s"  /api/user/socialchannels/twitter/line/*  ${params("dataType")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -108,8 +108,8 @@
         val profileId = params("profileId").toInt
 
 
-        val mention = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "post", None)
-        val retweet = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "comment", None)
+        val mention = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "mention", None)
+        val retweet = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "retweet", None)
 
         val theData =
           new AsyncResult() {
@@ -160,8 +160,8 @@
 
         val profileId = params("profileId").toInt
 
-        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", None)
-        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", None)
+        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalmention", None)
+        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalretweet", None)
 
         val theData =
           new AsyncResult() {
@@ -207,8 +207,8 @@
         val profileId = params("profileId").toInt
         val engId = params("engId").toInt
 
-        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", Some(engId))
-        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", Some(engId))
+        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalmention", Some(engId))
+        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalretweet", Some(engId))
 
         val theData =
           new AsyncResult() {

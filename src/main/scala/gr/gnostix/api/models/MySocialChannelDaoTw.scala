@@ -26,8 +26,8 @@
 
       //bring the actual data
       val data = dataType match {
-        case "mention" | "retweet" => getData(fromDate, toDate, dataType, profileId, sql)
-        case "totalmention" | "totalretweet" => getDataTotal(fromDate, toDate, dataType, profileId, sql)
+        case "mention" | "retweet" => getData(fromDate, toDate, sql)
+        case "totalmention" | "totalretweet" => getDataTotal(fromDate, toDate, sql)
       }
       //val data = getData(fromDate, toDate, dataType, profileId, sql)
       data match {
@@ -42,7 +42,7 @@
       val prom = Promise[Option[SocialData]]()
 
       Future {
-        prom.success(getData(fromDate, toDate, dataType, profileId, mySqlDynamic))
+        prom.success(getData(fromDate, toDate, mySqlDynamic))
       }
       prom.future
     }
@@ -53,12 +53,12 @@
       val prom = Promise[Option[SocialDataSum]]()
 
       Future {
-        prom.success(getDataTotal(fromDate, toDate, dataType, profileId, mySqlDynamic))
+        prom.success(getDataTotal(fromDate, toDate, mySqlDynamic))
       }
       prom.future
     }
 
-    private def getData(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int, sql: String): Option[SocialData] = {
+    private def getData(fromDate: DateTime, toDate: DateTime,  sql: String): Option[SocialData] = {
 
       try {
         var myData = List[DataLineGraph]()
@@ -80,7 +80,7 @@
 
     }
 
-    private def getDataTotal(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int, sql: String): Option[SocialDataSum] = {
+    private def getDataTotal(fromDate: DateTime, toDate: DateTime,  sql: String): Option[SocialDataSum] = {
 
       try {
         var myDataTotal = 0
