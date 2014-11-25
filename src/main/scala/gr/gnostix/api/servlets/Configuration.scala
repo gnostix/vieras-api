@@ -11,6 +11,7 @@ import org.scalatra.json._
 import twitter4j.auth.{RequestToken, AccessToken}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.ExecutionContext
 
 
@@ -276,8 +277,16 @@ with FutureSupport {
     }
   }
 
-  def f1(socialAccounts: List[SocialAccounts]) = {
-    DataResponseAccounts(200, "Coulio Bro!!!", socialAccounts)
+  def f1( socialAccounts: List[Option[SocialAccounts]] ) = {
+    logger.info(s"---->   socialAccounts ?? ${socialAccounts.isEmpty} ")
+    val sent = ArrayBuffer[SocialAccounts]()
+    for (a <- socialAccounts) {
+      a match {
+        case s: SocialAccounts => sent.+=(s)
+        case _ => logger.info(s"-----> None => do nothing..}")
+      }
+    }
+    Map("status" -> 200, "message" -> "all good", "payload" -> sent)
   }
 
   //i need to refactor these
@@ -296,7 +305,7 @@ with FutureSupport {
 
   get("/profile/:profileId/socialchannel/:datasource/all") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
-    params("datasource") match {
+    val data = params("datasource") match {
       case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
       case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
       case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
@@ -304,6 +313,7 @@ with FutureSupport {
       case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
       case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
     }
+    ApiMessages.generalSuccessOneParam(data)
   }
 
   // add social and hospitality accounts

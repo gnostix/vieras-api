@@ -9,4 +9,6 @@ object ApiMessages {
 
   def generalSuccess(objName: String, data: Any) =  Map("status" -> 200, "message" -> "All good", "payload" -> Map(objName -> data))
 
+  def generalSuccessOneParam(data: Any) =  Map("status" -> 200, "message" -> "All good", "payload" -> data)
+
 }

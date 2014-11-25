@@ -75,15 +75,16 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
     }
   }
 
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int) = {
-    val prom = Promise[SocialAccounts]()
+  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int): Future[Option[SocialAccounts]] = {
+    val prom = Promise[Option[SocialAccounts]]()
 
     Future {
       prom.success(
         getConnection withSession {
           implicit session =>
-            val records = Q.queryNA[SocialAccountsTwitter](
-              s"""select FK_PROFILE_SOCIAL_ENG_ID, HANDLE,max(FOLLOWERS) ,
+            try {
+              val records = Q.queryNA[SocialAccountsTwitter](
+                s"""select FK_PROFILE_SOCIAL_ENG_ID, HANDLE,max(FOLLOWERS) ,
                 max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from eng_tw_stats,eng_engagement_data_queries i
                   where fk_eng_engagement_data_quer_id in (
                     select q.id from eng_engagement_data_queries q
@@ -91,9 +92,20 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
                         and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 2)) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID,handle """)
-            val accounts = records.list()
-            SocialAccounts("twitter", accounts)
+              val accounts = records.list()
+              if (accounts.isEmpty) {
+                logger.info("-------------> the accounts is empty")
+                None
+              } else {
+                Some(SocialAccounts("twitter", accounts))
+              }
 
+            } catch {
+              case e: Exception => {
+                e.printStackTrace()
+                None
+              }
+            }
         })
     }
     prom.future
@@ -175,8 +187,8 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
     }
   }
 
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int) = {
-    val prom = Promise[SocialAccounts]()
+  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int): Future[Option[SocialAccounts]] = {
+    val prom = Promise[Option[SocialAccounts]]()
 
     Future {
       prom.success(
@@ -193,8 +205,12 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 1)) and fk_eng_engagement_data_quer_id=i.id
               group by FK_PROFILE_SOCIAL_ENG_ID  """)
             val accounts = records.list()
-            SocialAccounts("facebook", accounts)
 
+            if (accounts.isEmpty){
+              None
+            } else {
+              Some(SocialAccounts("facebook", accounts))
+            }
         })
     }
     prom.future
@@ -288,8 +304,8 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
     }
   }
 
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int) = {
-    val prom = Promise[SocialAccounts]()
+  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int): Future[Option[SocialAccounts]] = {
+    val prom = Promise[Option[SocialAccounts]]()
 
     Future {
       prom.success(
@@ -305,8 +321,12 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 9)) and fk_eng_engagement_data_quer_id=i.id
               group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id """)
             val accounts = records.list()
-            SocialAccounts("youtube", accounts)
 
+            if(accounts.isEmpty){
+              None
+            } else {
+              Some(SocialAccounts("youtube", accounts))
+            }
         })
     }
     prom.future
@@ -390,8 +410,8 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
   }
 
   // this needs refactor
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int) = {
-    val prom = Promise[SocialAccounts]()
+  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int): Future[Option[SocialAccounts]] = {
+    val prom = Promise[Option[SocialAccounts]]()
 
     Future {
       prom.success(
@@ -407,8 +427,12 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 15)) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID, profile_name """)
             val accounts = records.list()
-            SocialAccounts("ganalytics", accounts)
 
+            if(accounts.isEmpty){
+              None
+            } else {
+              Some(SocialAccounts("ganalytics", accounts))
+            }
         })
     }
     prom.future
@@ -490,8 +514,8 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     }
   }
 
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int) = {
-    val prom = Promise[SocialAccounts]()
+  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int): Future[Option[SocialAccounts]] = {
+    val prom = Promise[Option[SocialAccounts]]()
 
     Future {
       prom.success(
@@ -505,8 +529,12 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
                       and c.FK_PROFILE_id = ${profileId}
                    order by h.TOTAL_RATING desc  """)
             val accounts = records.list()
-            SocialAccounts("hotel", accounts)
 
+            if(accounts.isEmpty){
+              None
+            } else {
+              Some(SocialAccounts("hotel", accounts))
+            }
         })
     }
     prom.future
