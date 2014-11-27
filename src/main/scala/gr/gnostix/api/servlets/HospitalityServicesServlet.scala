@@ -57,7 +57,7 @@ trait ServicesApiRoutes
         val is =
           for {
             data <- rawData
-          } yield f2(data)
+          } yield f2(data, params("service"))
       }
     } catch {
       case e: NumberFormatException => "wrong profile number"
@@ -68,9 +68,9 @@ trait ServicesApiRoutes
     }
   }
 
-  def f2(data: Option[HospitalityServicesSentiment]) = {
+  def f2(data: Option[HospitalityServicesSentiment], service: String) = {
     data match {
-      case Some(x: HospitalityServicesSentiment) => Map("status" -> 200, "message" -> "all good", "payload" -> x)
+      case Some(x: HospitalityServicesSentiment) => ApiMessages.generalSuccess(service, x)
       case None => ErrorDataResponse(404, "Error on data")
     }
   }
@@ -127,7 +127,8 @@ trait ServicesApiRoutes
         case _ => logger.info(s"-----> None => do nothing..}")
       }
     }
-    Map("status" -> 200, "message" -> "all good", "payload" -> sent)
+    ApiMessages.generalSuccess("services", sent)
+    //Map("status" -> 200, "message" -> "all good", "payload" -> sent)
     //ErrorDataResponse(404, "Error on data")
   }
 

@@ -29,13 +29,13 @@ with FutureSupport {
 
   before() {
     contentType = formats("json")
-    //requireLogin()
+    requireLogin()
   }
 
 
   //mount point /api/user/account/dashboard/services/*
 
-  get("/profile/:profileId/:fromDate/:toDate") {
+  get("/profile/:profileId/social/messages/:fromDate/:toDate") {
     logger.info(s"---->   sentiment /sentiment/comments/ TOTAL from all sources in two groups (social media and hospitality)  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -48,20 +48,22 @@ with FutureSupport {
 
       val profileId = params("profileId").toInt
 
-      val mention = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "mention", None)
-      val retweet = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "retweet", None)
-      val post = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "post", None)
-      val comment = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "comment", None)
+      val mentions = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "mention", None)
+      val retweets = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "retweet", None)
+      val posts = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "post", None)
+      val comments = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "comment", None)
+      //val reviews = MySocialChannelHotelDao.getDataCountsFuture(executor, fromDate, toDate, profileId, "line", None)
 
 
       val theData =
         new AsyncResult() {
           override val is =
             for {
-              a1 <- mention
-              a2 <- retweet
-              a3 <- post
-              a4 <- comment
+              a1 <- mentions
+              a2 <- retweets
+              a3 <- posts
+              a4 <- comments
+              //a5 <- reviews
             } yield f1(List(a1.get, a2.get, a3.get, a4.get))
         }
 

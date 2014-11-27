@@ -57,6 +57,9 @@ class ScalatraBootstrap extends LifeCycle {
     // dashboard sum data
     context.mount(new DashboardSumDataServlet(executor), "/api/user/account/dashboard/services/*")
 
+    // GeoLocation services
+    context.mount(new GeoServicesServlet(executor), "/api/user/account/geolocation/services/*")
+
   }
 
   //

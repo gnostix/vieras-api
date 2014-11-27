@@ -26,7 +26,7 @@ with CorsSupport {
 
   before() {
     contentType = formats("json")
-    //requireLogin()
+    requireLogin()
   }
 
   // mount point /api/user/socialchannels/hotel/line/*
@@ -81,7 +81,7 @@ with CorsSupport {
       // "total" for the total sum of messages for a period
       val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, "total", None)
       rawData match {
-        case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
+        case Some(data) => DataResponse(200, "Coulio Bro!!!", data)
         case None => ErrorDataResponse(404, "Error on data")
       }
 
