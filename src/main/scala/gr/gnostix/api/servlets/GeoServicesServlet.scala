@@ -2,14 +2,15 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.{ApiMessages, FutureSentimentDao, ErrorDataResponse, DataResponse}
+import gr.gnostix.api.models._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{CorsSupport, ScalatraServlet}
+import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
+import scala.util.{Failure, Success}
 
 /**
  * Created by rebel on 27/11/14.
@@ -18,7 +19,9 @@ import scala.concurrent.ExecutionContext
 trait GeoServicesRoutes extends ScalatraServlet
 with JacksonJsonSupport
 with AuthenticationSupport
-with CorsSupport {
+with CorsSupport
+with MethodOverride
+with FutureSupport {
 
 
   options("/*") {
@@ -51,19 +54,105 @@ with CorsSupport {
 
       val profileId = params("profileId").toInt
 
-      // "line" for line data per day , week ect..
-      val rawData = Some("koko") //MyS  (fromDate, toDate, profileId, "line", None)
-
-      rawData match {
-        case Some(data) =>  ApiMessages.generalSuccess("koko", data)
-        case _ => ErrorDataResponse(404, "Error on data")
+      val rawData = GeoLocationDao.getDataByProfileId(executor, fromDate, toDate, profileId)
+      new AsyncResult {
+        val is =
+          for {
+            data <- rawData
+          } yield f2(data)
       }
 
+
     } catch {
-      case e: NumberFormatException => "wrong profile number"
+      case e: NumberFormatException => {
+        ErrorDataResponse(404, "Error on data")
+      }
       case e: Exception => {
         logger.info(s"-----> ${e.printStackTrace()}")
-        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+        ErrorDataResponse(404, "Error on data")
+      }
+    }
+  }
+
+  // get all data for hotel for one profile
+  get("/profile/:profileId/datasource/:datasourceId/:fromDate/:toDate") {
+    logger.info(s"----> get all data for hotel for  one profile " +
+      s"  /api/user/account/geolocation/services/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val datasourceId = params("datasourceId").toInt
+
+      val rawData = GeoLocationDao.getDataByDatasourceId(executor, fromDate, toDate, profileId, datasourceId)
+      new AsyncResult {
+        val is =
+          for {
+            data <- rawData
+          } yield f2(data)
+      }
+
+
+    } catch {
+      case e: NumberFormatException => {
+        ErrorDataResponse(404, "Error on data")
+      }
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        ErrorDataResponse(404, "Error on data")
+      }
+    }
+  }
+
+  // get all data for hotel for one profile
+  get("/profile/:profileId/account/:credId/:fromDate/:toDate") {
+    logger.info(s"----> get all data for hotel for  one profile " +
+      s"  /api/user/account/geolocation/services/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val credId = params("credId").toInt
+
+      val rawData = GeoLocationDao.getDataByCredentialsId(executor, fromDate, toDate, profileId, credId)
+      new AsyncResult {
+        val is =
+          for {
+            data <- rawData
+          } yield f2(data)
+      }
+
+
+    } catch {
+      case e: NumberFormatException => {
+        ErrorDataResponse(404, "Error on data")
+      }
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        ErrorDataResponse(404, "Error on data")
+      }
+    }
+  }
+
+
+  def f2(data: Option[List[CountriesLine]]) = {
+    data match {
+      case Some(dt: List[CountriesLine]) => ApiMessages.generalSuccess("countries", dt)
+      case None => {
+        logger.info(s"-----> f2 Option(None) ")
+        ApiMessages.generalSuccess("countries", "")
       }
     }
   }
