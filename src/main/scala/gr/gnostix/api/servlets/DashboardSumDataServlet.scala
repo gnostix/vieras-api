@@ -73,8 +73,9 @@ with FutureSupport {
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
+        logger.info(s"-----> Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss ")
         logger.info(s"-----> ${e.printStackTrace()}")
-        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+        ApiMessages.generalError
       }
     }
   }
@@ -88,7 +89,8 @@ with FutureSupport {
       case (x, y) => new DataLineGraph(y, x)
     }
     logger.info(s"-----> kkkkkkkkk ${k}")
-    Map("status" -> 200, "message" -> "Coulio Bro!!!", "payload" -> k.toList)
+    ApiMessages.generalSuccess("data", k.toList)
+    //Map("status" -> 200, "message" -> "Coulio Bro!!!", "payload" -> k.toList)
 
   }
 
