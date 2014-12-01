@@ -171,7 +171,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsFacebook](
-          s""" select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) , max(friend),
+          s""" select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) ,
                 max(talking_about_count),max(talking_about_sixdays),  max(checkins),max(reach), max(fanpage)
                   from eng_fb_stats ,eng_engagement_data_queries i
                    where fk_eng_engagement_data_quer_id in (
@@ -195,7 +195,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsFacebook](
-              s"""select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) , max(friend),
+              s"""select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) ,
                 max(talking_about_count),max(talking_about_sixdays),  max(checkins),max(reach), max(fanpage)
                   from eng_fb_stats ,eng_engagement_data_queries i
                    where fk_eng_engagement_data_quer_id in (
