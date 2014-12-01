@@ -141,7 +141,13 @@
         case (x, y) => new DataLineGraph(y, x)
       }
       logger.info(s"-----> kkkkkkkkk ${k}")
-      Map("status" -> 200, "message" -> "Coulio Bro!!!", "payload" -> k.toList)
+
+      val theData = k.toList
+      if(theData.size > 0)
+        ApiMessages.generalSuccess("data", theData.sortBy(_.msgDate.getTime) )
+      else
+        ApiMessages.generalSuccess("data", theData )
+
 
     }
 
