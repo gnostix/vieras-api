@@ -1,8 +1,10 @@
-import gr.gnostix.api.models.{DataLineGraph, SocialDataSum}
+import gr.gnostix.api.models.{SentimentLine, DataLineGraph, SocialDataSum}
 
 val k1 = List(("positive", 23), ("negative", 56), ("neutral", 89))
 val k2 = List(("positive", 123), ("negative", 156), ("neutral", 189))
 val k3 = List(("positive", 3), ("negative", 6), ("neutral", 9))
+
+(k1 ++ k2 ++ k3).groupBy(_._1)
 
 (k1 ++ k2 ++ k3).groupBy(_._1).map {
   case (key, value) => (key, value.map(_._2).sum)
@@ -22,13 +24,14 @@ val j = (z ++ s)
 
 j.sortWith(_._2 > _._2)
 
+val t1 = List(("positive",23),
+  ("negative", 56), ("neutral", 89))
+val t2 = List(("positive",253),
+  ("negative", 536), ("neutral", 289))
 
-/*
 
-val a = List(SocialDataSum("facebook", 139), SocialDataSum("facebook", 285))
-a.groupBy(_.datasource).map{
-  case (x, y) => (x, y.map(x => x.data).sum)
-}
-*/
+val d = t1 :+ t2
+
+val grp = d
 
 

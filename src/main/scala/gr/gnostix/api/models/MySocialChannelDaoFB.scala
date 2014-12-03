@@ -17,6 +17,7 @@ import scala.slick.jdbc.GetResult
 object MySocialChannelDaoFB extends DatabaseAccessSupport {
   implicit val getFbLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
+  implicit val getFbDemographics = GetResult(r => FacebookDemographics(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -56,6 +57,60 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       prom.success(getDataTotal(fromDate, toDate, dataType, profileId, mySqlDynamic))
     }
     prom.future
+  }
+
+  def getDemographics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryDemographics(fromDate, toDate, profileId, engId)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getDataDemographics(mySqlDynamic))
+    }
+    prom.future
+  }
+
+  case class FemaleFB(female: Int)
+
+  case class MaleFB(male: Int)
+
+  case class DemographicsDataFB(female: Int, male: Int, age: List[Int], rawData: List[FacebookDemographics])
+
+
+  private def getDataDemographics(sql: String): Option[ApiData] = {
+
+    try {
+      var myData = List[FacebookDemographics]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my social channel fb ------------->" + sql)
+          val records = Q.queryNA[FacebookDemographics](sql)
+          myData = records.list()
+      }
+
+      if (myData.size > 0) {
+        val maleData = myData.toList.head
+        val male = maleData.age17 + maleData.age24 + maleData.age34 + maleData.age44 +
+            maleData.age54 + maleData.age64 + maleData.age65Plus
+
+        val femaleData = myData.toList.tail.head // the head of the rest items..
+        val female = femaleData.age17 + femaleData.age24 + femaleData.age34 + femaleData.age44 +
+          femaleData.age54 + femaleData.age64 + femaleData.age65Plus
+
+        val age = List(maleData.age17 + femaleData.age17, maleData.age24 + femaleData.age24,maleData.age34 + femaleData.age34,
+                        maleData.age44 + femaleData.age44,maleData.age54 + femaleData.age54,maleData.age64 + femaleData.age64,
+                        maleData.age65Plus + femaleData.age65Plus)
+
+
+        Some(ApiData("demographics", DemographicsDataFB(female, male, age, myData)))
+      } else {
+        Some(ApiData("nodata", None))
+      }
+
+    } catch {
+      case e: Exception => None
+    }
+
   }
 
   private def getData(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int, sql: String): Option[SocialData] = {
@@ -234,5 +289,48 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       sql
     }
   }
+
+  def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+    val sqlEngAccount = engId match {
+      case Some(x) =>
+        s"""
+         select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
+            (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${engId}  and  fk_profile_id=${profileId}))
+              and item_date is not null
+              and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('2014/12/04', 'YYYY/MM/DD HH24:MI:SS')
+          order by item_date desc)   where   rownum<=1
+          union all
+          select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
+              FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${engId}  and  fk_profile_id=${profileId}))
+             and item_date is not null
+             and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          order by item_date desc)   where   rownum<=1
+         """
+      case None =>
+        s"""
+        select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
+          (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS
+                    where fk_profile_id=${profileId} and fk_datasource_id=1))
+           and item_date is not null
+            and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          order by item_date desc)   where   rownum<=1
+         union all
+           select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
+             FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
+             and item_date is not null
+             and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           order by item_date desc)   where   rownum<=1
+         """
+    }
+
+    sqlEngAccount
+  }
+
 
 }

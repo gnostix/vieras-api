@@ -60,6 +60,9 @@ class ScalatraBootstrap extends LifeCycle {
     // GeoLocation services
     context.mount(new GeoServicesServlet(executor), "/api/user/account/geolocation/services/*")
 
+    // dashboard social pages
+    context.mount(new FacebookDashboardServlet(executor), "/api/user/socialchannels/dashboard/facebook/*")
+
   }
 
   //

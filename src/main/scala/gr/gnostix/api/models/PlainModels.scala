@@ -11,6 +11,7 @@ abstract class DataGraph
 
 case class DataLineGraph(msgNum: Int, msgDate: Timestamp) extends DataGraph
 case class SocialData(datasource: String, data: List[DataGraph]) extends Payload
+case class ApiData(dataName: String, data: Any) extends Payload
 case class SocialDataSum(datasource: String, data: Int) extends Payload
 case class SocialAccounts(datasource: String, data: List[DataGraph]) extends Payload
 case class MsgNum(msgNum: Int) extends Payload
@@ -85,6 +86,9 @@ object SocialDatasources {
 case class FacebookPage(pageName: String, pageId: String)
 case class FacebookPageAuth(token: String, expires: Date, fanpages: List[FacebookPage]) extends Payload
 case class FacebookToken(token: String)
+case class FacebookDemographics(queryId: Int, age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int, gender: String, created: Timestamp)
+case class Female(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
+case class Male(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
 
 // hotels
 case class HotelAddUrl(dsId: Int, hotelUrl: String)

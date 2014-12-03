@@ -22,7 +22,7 @@ case class SocialAccountsTwitter(credId: Int, handle: String, followers: Int,
                                  following: Int, listed: Int, statusNum: Int) extends DataGraph
 
 case class SocialAccountsFacebook(credId: Int, fanPageFans: Int, talkingAboutCount: Int,
-                                  talkingAboutSixDays: Int, checkins: Int, reach: Int, fanPage: String) extends DataGraph
+                                  talkingAboutSixDays: Int, checkins: Int, reach: Int, views: Int, engaged: Int, fanPage: String) extends DataGraph
 
 case class SocialAccountsYoutube(credId: Int, subscribers: Int, views: Int, totalViews: Int, channelName: String) extends DataGraph
 
@@ -165,14 +165,14 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getSocialAccountsFacebookResult = GetResult(r => SocialAccountsFacebook(r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   def findById(profileId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsFacebook](
-          s""" select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) ,
-                max(talking_about_count),max(talking_about_sixdays),  max(checkins), max(reach), max(fanpage)
+          s""" select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) , max(talking_about_count),max(talking_about_sixdays),
+                 max(checkins), max(reach), max(views), max(engaged), max(fanpage)
                   from eng_fb_stats ,eng_engagement_data_queries i
                    where fk_eng_engagement_data_quer_id in (
                    select q.id from
@@ -195,8 +195,8 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsFacebook](
-              s"""select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) ,
-                max(talking_about_count),max(talking_about_sixdays),  max(checkins),max(reach), max(fanpage)
+              s"""select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans), max(talking_about_count),max(talking_about_sixdays),
+                    max(checkins),max(reach), max(views), max(engaged),  max(fanpage)
                   from eng_fb_stats ,eng_engagement_data_queries i
                    where fk_eng_engagement_data_quer_id in (
                    select q.id from

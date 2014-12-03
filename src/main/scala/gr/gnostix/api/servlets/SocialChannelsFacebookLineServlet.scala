@@ -154,7 +154,7 @@ with FutureSupport {
   }
 
   // get SUM data for facebook for  all accounts datatype = (all, post, comment)
-  get("/profile/:profileId/facebook/:fromDate/:toDate/total/all") {
+  get("/profile/:profileId/:fromDate/:toDate/total/all") {
     logger.info(s"---->   /api/user/socialchannels/facebook/line/* ${params("profileId")} ")
 
     try {
@@ -201,7 +201,7 @@ with FutureSupport {
   }
 
   // get all data for facebook for  one account datatype = (all, post, comment)
-  get("/profile/:profileId/facebook/:engId/:fromDate/:toDate/total/all") {
+  get("/profile/:profileId/:engId/:fromDate/:toDate/total/all") {
     logger.info(s"---->   /api/user/socialchannels/facebook/line/* ${params("engId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
