@@ -27,7 +27,7 @@
 
     before() {
       contentType = formats("json")
-      //requireLogin()
+      requireLogin()
     }
 
     // mount point /api/user/socialchannels/twitter/line/*

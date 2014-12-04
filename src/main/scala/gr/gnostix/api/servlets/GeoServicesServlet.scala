@@ -34,7 +34,7 @@ with FutureSupport {
 
   before() {
     contentType = formats("json")
-    //requireLogin()
+    requireLogin()
   }
 
   //     /api/user/account/geolocation/services/*
