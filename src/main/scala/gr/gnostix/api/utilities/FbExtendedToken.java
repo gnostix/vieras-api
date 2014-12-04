@@ -43,7 +43,7 @@ public class FbExtendedToken {
         Connection<Page> connection = client.fetchConnection("/me/accounts", Page.class);
         System.out.println("------------> GET PAGES " + connection.getData().size());
 
-        List<FacebookPage> pagenames = new ArrayList<>();
+        List<FacebookPage> pagenames = new ArrayList<FacebookPage>();
         for (Page p : connection.getData()) {
             pagenames.add(new FacebookPage(p.getName(), p.getId()));
             System.out.println("------------> " + p.getName());
