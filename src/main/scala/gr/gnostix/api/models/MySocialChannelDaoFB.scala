@@ -18,6 +18,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   implicit val getFbLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getFbDemographics = GetResult(r => FacebookDemographics(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getFbStats = GetResult(r => FacebookStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -59,6 +60,19 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     prom.future
   }
 
+
+  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, engId)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getStats(mySqlDynamic))
+    }
+    prom.future
+  }
+
+
   def getDemographics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
     val mySqlDynamic = buildQueryDemographics(fromDate, toDate, profileId, engId)
     //bring the actual data
@@ -70,11 +84,6 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     prom.future
   }
 
-  case class FemaleFB(female: Int)
-
-  case class MaleFB(male: Int)
-
-  case class DemographicsDataFB(female: Int, male: Int, age: List[Int], rawData: List[FacebookDemographics])
 
 
   private def getDataDemographics(sql: String): Option[ApiData] = {
@@ -108,7 +117,38 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       }
 
     } catch {
-      case e: Exception => None
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+
+  }
+
+  private def getStats(sql: String): Option[ApiData] = {
+
+    try {
+      var myData = List[FacebookStats]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my social channel fb ------------->" + sql)
+          val records = Q.queryNA[FacebookStats](sql)
+          myData = records.list()
+      }
+
+      if (myData.size > 0) {
+        logger.info(" -------------> nodata stats " )
+        Some(ApiData("stats", myData))
+      } else {
+        logger.info(" -------------> nodata ")
+        Some(ApiData("nodata", None))
+      }
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
     }
 
   }
@@ -130,7 +170,10 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
         case SocialData(_, _) => Option(lineData)
       }
     } catch {
-      case e: Exception => None
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
     }
 
   }
@@ -150,7 +193,10 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
 
       Option(sumData)
     } catch {
-      case e: Exception => None
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
     }
 
   }
@@ -326,6 +372,76 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
              and item_date is not null
              and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
            order by item_date desc)   where   rownum<=1
+         """
+    }
+
+    sqlEngAccount
+  }
+
+  def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+
+    val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
+    logger.info("------------->" + numDays + "-----------")
+    val grouBydate = numDays match {
+      case 0 => "HH"
+      case x if 0 until 30 contains x => "DD"
+      case x if 31 until 90 contains x => "ww"
+      case x if x > 90 => "month"
+    }
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+    val sqlEngAccount = engId match {
+      case Some(x) =>
+        s"""
+          SELECT NVL(FB_SW.QID, FB_COMM.QID) QID, NVL(FB_SW.MDATE, FB_COMM.MDATE) MDATE, PAGE_LIKES, POSTS, POST_LIKES, POST_SHARES, COMMENTS, COMM_LIKES, TALKING_ABOUT_COUNT, REACH, VIEWS, ENGAGED
+          FROM ((SELECT NVL(FB_STATS.QID, FB_WALL.QID) QID, NVL(FB_STATS.MDATE, FB_WALL.MDATE) MDATE,  PAGE_LIKES,  POSTS, POST_LIKES, POST_SHARES,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
+           FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(FFSL_DATE, '${grouBydate}') AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
+           FROM ENG_FB_STATS
+              WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                              (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${engId} and fk_profile_id=${profileId} and fk_datasource_id=1))
+                 AND FFSL_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED, trunc(FFSL_DATE, '${grouBydate}')) FB_STATS
+               FULL OUTER JOIN
+                (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(MSG_DATE, '${grouBydate}') AS MDATE,   COUNT(*) POSTS, SUM(LIKES) POST_LIKES, SUM(SHARES) POST_SHARES
+                 FROM ENG_FB_WALL   WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                 (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  id = ${engId} and  fk_profile_id=${profileId} and fk_datasource_id=1))
+                       AND MSG_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(MSG_DATE, '${grouBydate}')) FB_WALL
+                  ON FB_STATS.MDATE = FB_WALL.MDATE) FB_SW  FULL OUTER JOIN (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(COMMENT_DATE, '${grouBydate}') AS MDATE,  COUNT(*) COMMENTS,   SUM(LIKES) COMM_LIKES
+                   FROM ENG_FB_WALL_COMMENTS
+                     WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  id = ${engId} and fk_profile_id=${profileId} and fk_datasource_id=1))
+                           AND COMMENT_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(COMMENT_DATE, '${grouBydate}')) FB_COMM ON FB_SW.MDATE = FB_COMM.MDATE)
+        ORDER BY MDATE
+         """
+      case None =>
+        s"""
+          SELECT NVL(FB_SW.QID, FB_COMM.QID) QID, NVL(FB_SW.MDATE, FB_COMM.MDATE) MDATE, PAGE_LIKES, POSTS, POST_LIKES, POST_SHARES, COMMENTS, COMM_LIKES, TALKING_ABOUT_COUNT, REACH, VIEWS, ENGAGED
+          FROM ((SELECT NVL(FB_STATS.QID, FB_WALL.QID) QID, NVL(FB_STATS.MDATE, FB_WALL.MDATE) MDATE,  PAGE_LIKES,  POSTS, POST_LIKES, POST_SHARES,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
+           FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(FFSL_DATE, '${grouBydate}') AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
+           FROM ENG_FB_STATS
+              WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                              (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  fk_profile_id=${profileId} and fk_datasource_id=1))
+                 AND FFSL_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED, trunc(FFSL_DATE, '${grouBydate}')) FB_STATS
+               FULL OUTER JOIN
+                (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(MSG_DATE, '${grouBydate}') AS MDATE,   COUNT(*) POSTS, SUM(LIKES) POST_LIKES, SUM(SHARES) POST_SHARES
+                 FROM ENG_FB_WALL   WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                 (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
+                       AND MSG_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(MSG_DATE, '${grouBydate}')) FB_WALL
+                  ON FB_STATS.MDATE = FB_WALL.MDATE) FB_SW  FULL OUTER JOIN (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(COMMENT_DATE, '${grouBydate}') AS MDATE,  COUNT(*) COMMENTS,   SUM(LIKES) COMM_LIKES
+                   FROM ENG_FB_WALL_COMMENTS
+                     WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
+                           AND COMMENT_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(COMMENT_DATE, '${grouBydate}')) FB_COMM ON FB_SW.MDATE = FB_COMM.MDATE)
+        ORDER BY MDATE
          """
     }
 

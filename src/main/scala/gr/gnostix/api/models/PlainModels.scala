@@ -61,6 +61,7 @@ case class DataTwitterGraph(twId: Int, msgDate: Timestamp, twitterHandle: String
                             sentiment: String) extends DataGraph
 
 case class DataFacebookGraph(fbId: Int, msgDate: Timestamp)extends DataGraph // to be continued
+case class DemographicsDataFB(female: Int, male: Int, age: List[Int], rawData: List[FacebookDemographics])
 
 
 
@@ -87,6 +88,7 @@ case class FacebookPage(pageName: String, pageId: String)
 case class FacebookPageAuth(token: String, expires: Date, fanpages: List[FacebookPage]) extends Payload
 case class FacebookToken(token: String)
 case class FacebookDemographics(queryId: Int, age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int, gender: String, created: Timestamp)
+case class FacebookStats(queryId: Int, created: Timestamp, pageLikes: Int, post: Int, postLikes: Int, postShares: Int, comments: Int, commentLikes: Int, talkingAbout: Int, reach: Int, views: Int, engaged: Int)
 case class Female(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
 case class Male(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
 
