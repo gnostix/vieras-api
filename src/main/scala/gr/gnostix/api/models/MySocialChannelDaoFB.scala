@@ -255,19 +255,21 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
                         and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
                         and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                         and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                        and trunc(msg_date,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(msg_date,'HH')
                     order by trunc(msg_date,'HH')asc"""
       logger.info("------------>" + sql)
       sql
     } else if (numDays >= 1 && numDays <= 30) {
-      val sql = s"""select count(*),trunc(msg_date) from eng_fb_wall
+      val sql = s"""select count(*),trunc(msg_date,'DD') from eng_fb_wall
                       where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
                         where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
                         and FK_PROFILE_SOCIAL_ENG_ID in (  $sqlEngAccount )
                         and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                         and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(msg_date)
-                    order by trunc(msg_date)asc"""
+                        and trunc(msg_date,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    group by trunc(msg_date,'DD')
+                    order by trunc(msg_date,'DD')asc"""
 
       sql
     } else if (numDays > 30 && numDays < 90) {
@@ -277,6 +279,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
                         and FK_PROFILE_SOCIAL_ENG_ID in (  $sqlEngAccount )
                         and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                         and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                        and trunc(msg_date,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(msg_date,'ww')
                     order by trunc(msg_date,'ww')asc"""
       sql
@@ -287,6 +290,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
                         and FK_PROFILE_SOCIAL_ENG_ID in (  $sqlEngAccount )
                         and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                         and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                        and trunc(msg_date,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(msg_date,'month')
                     order by trunc(msg_date,'month')asc"""
       sql
@@ -311,6 +315,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
                         where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
                           and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and trunc(comment_date,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(comment_date,'HH')
                     order by trunc(comment_date,'HH')asc"""
       logger.info("------------>" + sql)
@@ -321,6 +326,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
                         where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
                           and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and trunc(comment_date,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(comment_date,'DD')
                     order by trunc(comment_date,'DD')asc"""
 
@@ -331,6 +337,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
                         where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
                           and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and trunc(comment_date,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(comment_date,'ww')
                     order by trunc(comment_date,'ww')asc"""
       sql
@@ -340,6 +347,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
                         where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
                           and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and trunc(comment_date,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(comment_date,'month')
                     order by trunc(comment_date,'month')asc"""
       sql

@@ -147,6 +147,7 @@
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and trunc(created_at,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(created_at,'HH')
                     order by trunc(created_at,'HH')asc
                      """
@@ -159,6 +160,7 @@
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and trunc(created_at,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(created_at, 'DD')
                     order by trunc(created_at, 'DD')asc"""
 
@@ -170,6 +172,7 @@
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and trunc(created_at,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(created_at,'ww')
                     order by trunc(created_at,'ww')asc"""
         sql
@@ -180,6 +183,7 @@
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and trunc(created_at,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(created_at,'month')
                     order by trunc(created_at,'month')asc"""
         sql
@@ -210,6 +214,7 @@
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and trunc(created_at,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(created_at,'HH')
                     order by trunc(created_at,'HH')asc
                      """
@@ -223,6 +228,7 @@
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and trunc(created_at,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(created_at,'DD')
                     order by trunc(created_at,'DD')asc
                     """
@@ -236,6 +242,7 @@
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and trunc(created_at,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(created_at,'ww')
                     order by trunc(created_at,'ww')asc
                     """
@@ -248,6 +255,7 @@
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and trunc(created_at,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     group by trunc(created_at,'month')
                     order by trunc(created_at,'month')asc
                     """
