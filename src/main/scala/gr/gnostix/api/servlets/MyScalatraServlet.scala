@@ -34,7 +34,7 @@ with CorsSupport {
       AllDataResponse(200,"all good",List(user))
     } else {
       logger.info("-----------------------> /login: NOT successful")
-      halt(401, "Unauth")
+      halt(401)
     }
   }
 
