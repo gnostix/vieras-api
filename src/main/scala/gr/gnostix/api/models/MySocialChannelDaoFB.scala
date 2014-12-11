@@ -84,6 +84,16 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     prom.future
   }
 
+  def getComments(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryDemographics(fromDate, toDate, profileId, engId)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getDataDemographics(mySqlDynamic))
+    }
+    prom.future
+  }
 
 
   private def getDataDemographics(sql: String): Option[ApiData] = {
@@ -337,6 +347,49 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   }
 
   def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+    val sqlEngAccount = engId match {
+      case Some(x) =>
+        s"""
+         select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
+            (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${engId}  and  fk_profile_id=${profileId}))
+              and item_date is not null
+              and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('2014/12/04', 'YYYY/MM/DD HH24:MI:SS')
+          order by item_date desc)   where   rownum<=1
+          union all
+          select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
+              FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${engId}  and  fk_profile_id=${profileId}))
+             and item_date is not null
+             and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          order by item_date desc)   where   rownum<=1
+         """
+      case None =>
+        s"""
+        select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
+          (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS
+                    where fk_profile_id=${profileId} and fk_datasource_id=1))
+           and item_date is not null
+            and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          order by item_date desc)   where   rownum<=1
+         union all
+           select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
+             FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
+             and item_date is not null
+             and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           order by item_date desc)   where   rownum<=1
+         """
+    }
+
+    sqlEngAccount
+  }
+
+
+  def buildQueryComments(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)

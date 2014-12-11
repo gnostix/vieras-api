@@ -187,6 +187,74 @@ with FutureSupport {
   }
 
 
+  // get all data for facebook for one profile datatype = (post or comment)
+  get("/profile/:profileId/data/:fromDate/:toDate") {
+    logger.info(s"----> get stats  one account " +
+      s"  /api/user/socialchannels/dashboard/facebook/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+
+      val rawData = MySocialChannelDaoFB.getDemographics(executor, fromDate, toDate, profileId, None)
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawData
+          } yield f2(a1)
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+
+
+  get("/profile/:profileId/:credId/data/:fromDate/:toDate") {
+    logger.info(s"----> get stats  one account " +
+      s"  /api/user/socialchannels/dashboard/facebook/* ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val credId = params("credId").toInt
+
+      val rawData = MySocialChannelDaoFB.getDemographics(executor, fromDate, toDate, profileId, Some(credId))
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawData
+          } yield f2(a1)
+      }
+
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
 
 
 
