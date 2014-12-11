@@ -31,7 +31,7 @@ trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User]{
   protected def requireLogin() =  {
     if(!isAuthenticated) {
       //logger.info("------------------> trait:requiredLogin: was redirected")
-      halt(401, "Unauth")
+      halt(401)
       //redirect("/login")
     }
   }
