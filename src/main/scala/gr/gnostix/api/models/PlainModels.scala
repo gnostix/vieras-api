@@ -89,8 +89,11 @@ case class FacebookPageAuth(token: String, expires: Date, fanpages: List[Faceboo
 case class FacebookToken(token: String)
 case class FacebookDemographics(queryId: Int, age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int, gender: String, created: Timestamp)
 case class FacebookStats(queryId: Int, created: Timestamp, pageLikes: Int, post: Int, postLikes: Int, postShares: Int, comments: Int, commentLikes: Int, talkingAbout: Int, reach: Int, views: Int, engaged: Int)
+case class FacebookStatsTop(reach: Int, views: Int, engaged: Int, talkingAbout: Int, newLikes: Int, shares:Int)
+case class FacebookStatsApi(facebookStatsTotals: FacebookStatsTop, facebookStatsData: List[FacebookStats])
 case class Female(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
 case class Male(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
+case class FacebookComment(id: Int, message: String, created: Timestamp  , userName: String, userId: Long, likes: Int, postId: Long, engQueryId: Int, commentId: Long)
 
 // hotels
 case class HotelAddUrl(dsId: Int, hotelUrl: String)

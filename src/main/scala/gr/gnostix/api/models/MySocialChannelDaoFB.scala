@@ -19,6 +19,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getFbDemographics = GetResult(r => FacebookDemographics(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getFbStats = GetResult(r => FacebookStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getFbComment = GetResult(r => FacebookComment(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -85,14 +86,45 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   }
 
   def getComments(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryDemographics(fromDate, toDate, profileId, engId)
+
+    val mySqlDynamic = buildQueryComments(fromDate, toDate, profileId, engId)
+
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
     Future {
-      prom.success(getDataDemographics(mySqlDynamic))
+      prom.success(getCommentMessages(mySqlDynamic))
     }
     prom.future
+  }
+
+
+  private def getCommentMessages(sql: String): Option[ApiData] = {
+
+    try {
+      var myData = List[FacebookComment]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my social channel fb ------------->" + sql)
+          val records = Q.queryNA[FacebookComment](sql)
+          myData = records.list()
+      }
+
+      if (myData.size > 0) {
+        logger.info(" -------------> nodata fb comments " )
+        Some(ApiData("facebook_comments", myData))
+      } else {
+        logger.info(" -------------> nodata ")
+        Some(ApiData("nodata", None))
+      }
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+
   }
 
 
@@ -147,8 +179,16 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       }
 
       if (myData.size > 0) {
+        val reach = myData.map(_.reach).sum
+        val views = myData.map(_.talkingAbout).sum
+        val engaged = myData.map(_.engaged).sum
+        val talkingAbout = myData.map(_.talkingAbout).sum
+        val newLikes = myData.last.pageLikes - myData.head.pageLikes
+        val shares = myData.map(_.postShares).sum
+
+
         logger.info(" -------------> nodata stats " )
-        Some(ApiData("stats", myData))
+        Some(ApiData("stats", FacebookStatsApi(FacebookStatsTop(reach, views, engaged, talkingAbout, newLikes, shares), myData)))
       } else {
         logger.info(" -------------> nodata ")
         Some(ApiData("nodata", None))
@@ -398,6 +438,40 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
 
 
   def buildQueryComments(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+    val sqlEngAccount = engId match {
+      case Some(x) =>
+        s"""
+         select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
+           from ENG_FB_WALL_COMMENTS
+            where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1  and id = ${engId}   ))
+              and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
+          order by comment_date asc
+         """
+      case None =>
+        s"""
+        select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
+           from ENG_FB_WALL_COMMENTS
+            where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
+              and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
+          order by comment_date asc
+         """
+    }
+
+    sqlEngAccount
+  }
+
+
+  def buildQueryPosts(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)

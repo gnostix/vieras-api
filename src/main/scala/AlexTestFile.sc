@@ -91,3 +91,19 @@ List.concat(k1,k2,k3)
 val allSocialData = List(t1,t2)
 val mydata = allSocialData.map(_.data).flatten//.map(List.concat(_)))
 
+object Koko{
+  def apply(name: String, lastname: String) = new Koko(name.concat("koko"), "kokokoko")
+}
+case class Koko(name: String, lastname: String) {
+
+
+  private var _fullName = ""
+
+  def fullName = _fullName
+  def fullName(fn: String) = _fullName = fn
+
+}
+
+case class Al(a: String, b: String, c: String)
+val o = Koko("alex", "pappas")
+o.fullName
