@@ -94,6 +94,7 @@ case class FacebookStatsApi(facebookStatsTotals: FacebookStatsTop, facebookStats
 case class Female(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
 case class Male(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
 case class FacebookComment(id: Int, message: String, created: Timestamp  , userName: String, userId: Long, likes: Int, postId: Long, engQueryId: Int, commentId: Long)
+case class FacebookPost(id: Int, message: String, created: Timestamp  , userName: String, userId: Long, likes: Int, comments: Int, engQueryId: Int, postId: Long, postLink: String, shares: Int)
 
 // hotels
 case class HotelAddUrl(dsId: Int, hotelUrl: String)

@@ -20,6 +20,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   implicit val getFbDemographics = GetResult(r => FacebookDemographics(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getFbStats = GetResult(r => FacebookStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getFbComment = GetResult(r => FacebookComment(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getFbPost = GetResult(r => FacebookPost(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -85,19 +86,52 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     prom.future
   }
 
-  def getComments(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+  // get raw data
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
 
-    val mySqlDynamic = buildQueryComments(fromDate, toDate, profileId, engId)
-
-    //bring the actual data
     val prom = Promise[Option[ApiData]]()
+    val mySqlDynamic = dataType match {
+      case "comment" => buildQueryComments(fromDate, toDate, profileId, engId)
+      case "post" => buildQueryPosts(fromDate, toDate, profileId, engId)
+    }
 
     Future {
-      prom.success(getCommentMessages(mySqlDynamic))
+      dataType match {
+        case "comment" => prom.success(getCommentMessages(mySqlDynamic))
+        case "post" => prom.success(getPostMessages(mySqlDynamic))
+      }
     }
+
     prom.future
   }
 
+  private def getPostMessages(sql: String): Option[ApiData] = {
+
+    try {
+      var myData = List[FacebookPost]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my social channel fb ------------->" + sql)
+          val records = Q.queryNA[FacebookPost](sql)
+          myData = records.list()
+      }
+
+      if (myData.size > 0) {
+        logger.info(" -------------> nodata fb post ")
+        Some(ApiData("facebook_posts", myData))
+      } else {
+        logger.info(" -------------> nodata ")
+        Some(ApiData("nodata", None))
+      }
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+
+  }
 
   private def getCommentMessages(sql: String): Option[ApiData] = {
 
@@ -111,7 +145,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       }
 
       if (myData.size > 0) {
-        logger.info(" -------------> nodata fb comments " )
+        logger.info(" -------------> nodata fb comments ")
         Some(ApiData("facebook_comments", myData))
       } else {
         logger.info(" -------------> nodata ")
@@ -142,15 +176,15 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       if (myData.size > 0) {
         val maleData = myData.toList.head
         val male = maleData.age17 + maleData.age24 + maleData.age34 + maleData.age44 +
-            maleData.age54 + maleData.age64 + maleData.age65Plus
+          maleData.age54 + maleData.age64 + maleData.age65Plus
 
         val femaleData = myData.toList.tail.head // the head of the rest items..
         val female = femaleData.age17 + femaleData.age24 + femaleData.age34 + femaleData.age44 +
-          femaleData.age54 + femaleData.age64 + femaleData.age65Plus
+            femaleData.age54 + femaleData.age64 + femaleData.age65Plus
 
-        val age = List(maleData.age17 + femaleData.age17, maleData.age24 + femaleData.age24,maleData.age34 + femaleData.age34,
-                        maleData.age44 + femaleData.age44,maleData.age54 + femaleData.age54,maleData.age64 + femaleData.age64,
-                        maleData.age65Plus + femaleData.age65Plus)
+        val age = List(maleData.age17 + femaleData.age17, maleData.age24 + femaleData.age24, maleData.age34 + femaleData.age34,
+          maleData.age44 + femaleData.age44, maleData.age54 + femaleData.age54, maleData.age64 + femaleData.age64,
+          maleData.age65Plus + femaleData.age65Plus)
 
 
         Some(ApiData("demographics", DemographicsDataFB(female, male, age, myData)))
@@ -187,7 +221,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
         val shares = myData.map(_.postShares).sum
 
 
-        logger.info(" -------------> nodata stats " )
+        logger.info(" -------------> nodata stats ")
         Some(ApiData("stats", FacebookStatsApi(FacebookStatsTop(reach, views, engaged, talkingAbout, newLikes, shares), myData)))
       } else {
         logger.info(" -------------> nodata ")
@@ -405,13 +439,13 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
       case Some(x) =>
         s"""
          select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
-            (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${engId}  and  fk_profile_id=${profileId}))
+            (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${x}  and  fk_profile_id=${profileId}))
               and item_date is not null
               and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('2014/12/04', 'YYYY/MM/DD HH24:MI:SS')
           order by item_date desc)   where   rownum<=1
           union all
           select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
-              FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${engId}  and  fk_profile_id=${profileId}))
+              FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${x}  and  fk_profile_id=${profileId}))
              and item_date is not null
              and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
           order by item_date desc)   where   rownum<=1
@@ -450,7 +484,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
          select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
            from ENG_FB_WALL_COMMENTS
             where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1  and id = ${engId}   ))
+                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1  and id = ${x}   ))
               and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
           group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
           order by comment_date asc
@@ -481,32 +515,23 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     val sqlEngAccount = engId match {
       case Some(x) =>
         s"""
-         select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
-            (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${engId}  and  fk_profile_id=${profileId}))
-              and item_date is not null
-              and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('2014/12/04', 'YYYY/MM/DD HH24:MI:SS')
-          order by item_date desc)   where   rownum<=1
-          union all
-          select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
-              FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${engId}  and  fk_profile_id=${profileId}))
-             and item_date is not null
-             and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          order by item_date desc)   where   rownum<=1
+          select id,message,msg_date, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
+           from eng_fb_wall
+            where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1 and id = ${x} ))
+              and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('29-12-2014 00:00:00', 'DD-MM-YYYY HH24:MI:SS')
+          group by id,message,msg_date, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
+          order by msg_date asc
          """
       case None =>
         s"""
-        select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
-          (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS
-                    where fk_profile_id=${profileId} and fk_datasource_id=1))
-           and item_date is not null
-            and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          order by item_date desc)   where   rownum<=1
-         union all
-           select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
-             FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
-             and item_date is not null
-             and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           order by item_date desc)   where   rownum<=1
+          select id,message,msg_date, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
+           from eng_fb_wall
+            where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
+                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
+              and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          group by id,message,msg_date, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
+          order by msg_date asc
          """
     }
 
@@ -537,19 +562,19 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
            FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(FFSL_DATE, '${grouBydate}') AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
            FROM ENG_FB_STATS
               WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                              (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${engId} and fk_profile_id=${profileId} and fk_datasource_id=1))
+                              (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${x} and fk_profile_id=${profileId} and fk_datasource_id=1))
                  AND FFSL_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
            GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED, trunc(FFSL_DATE, '${grouBydate}')) FB_STATS
                FULL OUTER JOIN
                 (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(MSG_DATE, '${grouBydate}') AS MDATE,   COUNT(*) POSTS, SUM(LIKES) POST_LIKES, SUM(SHARES) POST_SHARES
                  FROM ENG_FB_WALL   WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                 (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  id = ${engId} and  fk_profile_id=${profileId} and fk_datasource_id=1))
+                 (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  id = ${x} and  fk_profile_id=${profileId} and fk_datasource_id=1))
                        AND MSG_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
            GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(MSG_DATE, '${grouBydate}')) FB_WALL
                   ON FB_STATS.MDATE = FB_WALL.MDATE) FB_SW  FULL OUTER JOIN (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(COMMENT_DATE, '${grouBydate}') AS MDATE,  COUNT(*) COMMENTS,   SUM(LIKES) COMM_LIKES
                    FROM ENG_FB_WALL_COMMENTS
                      WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  id = ${engId} and fk_profile_id=${profileId} and fk_datasource_id=1))
+                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  id = ${x} and fk_profile_id=${profileId} and fk_datasource_id=1))
                            AND COMMENT_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
         GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(COMMENT_DATE, '${grouBydate}')) FB_COMM ON FB_SW.MDATE = FB_COMM.MDATE)
         ORDER BY MDATE
