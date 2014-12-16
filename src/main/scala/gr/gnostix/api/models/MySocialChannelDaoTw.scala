@@ -281,55 +281,22 @@
         case "favorite" => "TW_FAVORITES"
       }
 
-      if (numDays == 0) {
+      val grouBydate = DateUtils.sqlGrouByDate(numDays)
+
         val sql = s"""
-      select count(*),trunc(created_at,'HH') from ENG_TW_MENT_AND_FAV
+      select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_MENT_AND_FAV
         where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
           where q.is_active = 1 and q.attr = '${twType}'
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'HH')
-                    order by trunc(created_at,'HH')asc
+                     and trunc(created_at,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    group by trunc(created_at,'${grouBydate}')
+                    order by trunc(created_at,'${grouBydate}')asc
                      """
         logger.info("------------>" + sql)
         sql
-      } else if (numDays >= 1 && numDays <= 30) {
-        val sql = s"""select count(*),trunc(created_at, 'DD') from ENG_TW_MENT_AND_FAV
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = '${twType}'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at, 'DD')
-                    order by trunc(created_at, 'DD')asc"""
 
-        sql
-      } else if (numDays > 30 && numDays < 90) {
-        val sql = s"""select count(*),trunc(created_at,'ww') from ENG_TW_MENT_AND_FAV
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = '${twType}'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'ww')
-                    order by trunc(created_at,'ww')asc"""
-        sql
-      } else {
-        val sql = s"""select count(*),trunc(created_at,'month') from ENG_TW_MENT_AND_FAV
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = '${twType}'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'month')
-                    order by trunc(created_at,'month')asc"""
-        sql
-      }
     }
 
     def getSqlRetweetTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
@@ -347,62 +314,21 @@
     }
 
     def getSqlRetweet(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-
-      if (numDays == 0) {
+      val grouBydate = DateUtils.sqlGrouByDate(numDays)
         val sql = s"""
-       select count(*),trunc(created_at,'HH') from ENG_TW_RETWEETS
+       select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_RETWEETS
         where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
           where q.is_active = 1 and q.attr = 'TW_RETWEETS'
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'HH')
-                    order by trunc(created_at,'HH')asc
+                     and trunc(created_at,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    group by trunc(created_at,'${grouBydate}')
+                    order by trunc(created_at,'${grouBydate}')asc
                      """
         logger.info("------------>" + sql)
         sql
-      } else if (numDays >= 1 && numDays <= 30) {
-        val sql = s"""
-              select count(*),trunc(created_at,'DD') from ENG_TW_RETWEETS
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = 'TW_RETWEETS'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'DD')
-                    order by trunc(created_at,'DD')asc
-                    """
 
-        sql
-      } else if (numDays > 30 && numDays < 90) {
-        val sql = s"""
-              select count(*),trunc(created_at,'ww') from ENG_TW_RETWEETS
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = 'TW_RETWEETS'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'ww')
-                    order by trunc(created_at,'ww')asc
-                    """
-        sql
-      } else {
-        val sql = s"""
-              select count(*),trunc(created_at,'month') from ENG_TW_RETWEETS
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = 'TW_RETWEETS'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'month')
-                    order by trunc(created_at,'month')asc
-                    """
-        sql
-      }
     }
 
 

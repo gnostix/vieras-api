@@ -86,11 +86,11 @@ val t2 = new SocialData("facebook",List(new SentimentLine("positive",253),
 }.toList
 
 
+/*
 println("koko")
 List.concat(k1,k2,k3)
 val allSocialData = List(t1,t2)
 val mydata = allSocialData.map(_.data).flatten//.map(List.concat(_)))
-
 object Koko{
   def apply(name: String, lastname: String) = new Koko(name.concat("koko"), "kokokoko")
 }
@@ -103,7 +103,18 @@ case class Koko(name: String, lastname: String) {
   def fullName(fn: String) = _fullName = fn
 
 }
-
 case class Al(a: String, b: String, c: String)
 val o = Koko("alex", "pappas")
 o.fullName
+*/
+
+
+val grouBydate = 91 match {
+  case 0 => "HH"
+  case x if 0 until 31 contains x.toInt => "DD"
+  case x if 31 until 91 contains x => "ww"
+  case x if x >= 91 => "month"
+}
+grouBydate
+
+println(1 until 5)

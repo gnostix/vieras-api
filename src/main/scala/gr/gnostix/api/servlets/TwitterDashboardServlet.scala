@@ -6,8 +6,8 @@ import gr.gnostix.api.models._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{AsyncResult, FutureSupport, CorsSupport}
 import org.scalatra.json.JacksonJsonSupport
+import org.scalatra.{AsyncResult, CorsSupport, FutureSupport}
 
 import scala.concurrent.ExecutionContext
 
@@ -142,7 +142,7 @@ with FutureSupport {
 
   // -------------------- DATA --------------------------
 
-  // get all data for twitter for one profile datatype = (post or comment)
+  // get all data for twitter for one profile datatype = (mention, favorite or retweet)
   get("/profile/:profileId/message/:dataType/:fromDate/:toDate") {
     logger.info(s"----> get text data for twitter for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/dashboard/twitter/* ${params("dataType")} ")
@@ -158,10 +158,8 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val dataType = params("dataType").toString
 
-      val data = params("dataType") match {
-        case "comment" => MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, dataType, None)
-        case "post" => MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, dataType, None)
-      }
+      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, dataType, None)
+
 
       new AsyncResult() {
         override val is =
@@ -181,7 +179,7 @@ with FutureSupport {
 
 
 
-  // get all data for twitter for one channel account datatype = (post or comment)
+  // get all data for twitter for one channel account datatype = (mention, favorite or retweet)
   get("/profile/:profileId/message/:dataType/:engId/:fromDate/:toDate") {
     logger.info(s"----> get all data for twitter for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/dashboard/twitter/* ${params("dataType")} ")
@@ -198,10 +196,8 @@ with FutureSupport {
       val engId = params("engId").toInt
       val dataType = params("dataType").toString
 
-      val data = params("dataType") match {
-        case "comment" => MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, dataType, Some(engId))
-        case "post" => MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, dataType, Some(engId))
-      }
+      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, dataType, Some(engId))
+
 
       new AsyncResult() {
         override val is =
@@ -221,7 +217,7 @@ with FutureSupport {
 
 
 
-  // get all data for twitter for  all accounts datatype = (all, post, comment)
+  // get all data for twitter for  all accounts datatype = (mention, favorite or retweet)
   get("/profile/:profileId/message/:fromDate/:toDate/all") {
     logger.info(s"---->  /api/user/socialchannels/dashboard/twitter/* ${params("profileId")} ")
     try {
@@ -235,16 +231,18 @@ with FutureSupport {
 
       val profileId = params("profileId").toInt
 
-      val post = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "post", None)
-      val comment = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "comment", None)
+      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "mention", None)
+      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "favorite", None)
+      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "retweet", None)
 
       val theData =
         new AsyncResult() {
           override val is =
             for {
-              a1 <- post
-              a2 <- comment
-            } yield f3(Some(List(a1.get, a2.get)))
+              a1 <- mention
+              a2 <- favorite
+              a3 <- retweet
+            } yield f3(Some(List(a1.get, a2.get, a3.get)))
         }
 
       theData
@@ -257,7 +255,7 @@ with FutureSupport {
     }
   }
 
-  // get all data for twitter for  one accounts datatype = (all, post, comment)
+  // get all data for twitter for  one accounts datatype = (mention, favorite or retweet)
   get("/profile/:profileId/message/:credId/:fromDate/:toDate/all") {
     logger.info(s"----> " +
       s"/api/user/socialchannels/dashboard/twitter/profile/:profileId/message/:credId/:fromDate/:toDate/all ${params("profileId")} ")
@@ -273,16 +271,18 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val engId = params("credId").toInt
 
-      val post = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "post", Some(engId))
-      val comment = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "comment", Some(engId))
+      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "mention", Some(engId))
+      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "favorite", Some(engId))
+      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "retweet", Some(engId))
 
       val theData =
         new AsyncResult() {
           override val is =
             for {
-              a1 <- post
-              a2 <- comment
-            } yield f3(Some(List(a1.get, a2.get)))
+              a1 <- mention
+              a2 <- favorite
+              a3 <- retweet
+            } yield f3(Some(List(a1.get, a2.get, a3.get)))
         }
 
       theData

@@ -322,53 +322,20 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   }
 
   def getSqlPosts(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    if (numDays == 0) {
-      val sql = s"""select count(*),trunc(msg_date,'HH') from eng_fb_wall
+    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+
+      val sql = s"""select count(*),trunc(msg_date,'${grouBydate}') from eng_fb_wall
                       where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
                         where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
                         and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
                         and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                         and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and trunc(msg_date,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(msg_date,'HH')
-                    order by trunc(msg_date,'HH')asc"""
+                        and trunc(msg_date,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    group by trunc(msg_date,'${grouBydate}')
+                    order by trunc(msg_date,'${grouBydate}')asc"""
       logger.info("------------>" + sql)
       sql
-    } else if (numDays >= 1 && numDays <= 30) {
-      val sql = s"""select count(*),trunc(msg_date,'DD') from eng_fb_wall
-                      where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
-                        where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
-                        and FK_PROFILE_SOCIAL_ENG_ID in (  $sqlEngAccount )
-                        and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and trunc(msg_date,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(msg_date,'DD')
-                    order by trunc(msg_date,'DD')asc"""
 
-      sql
-    } else if (numDays > 30 && numDays < 90) {
-      val sql = s"""select count(*),trunc(msg_date,'ww') from eng_fb_wall
-                      where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
-                        where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
-                        and FK_PROFILE_SOCIAL_ENG_ID in (  $sqlEngAccount )
-                        and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and trunc(msg_date,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(msg_date,'ww')
-                    order by trunc(msg_date,'ww')asc"""
-      sql
-    } else {
-      val sql = s"""select count(*),trunc(msg_date,'month') from eng_fb_wall
-                      where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
-                        where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
-                        and FK_PROFILE_SOCIAL_ENG_ID in (  $sqlEngAccount )
-                        and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and trunc(msg_date,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(msg_date,'month')
-                    order by trunc(msg_date,'month')asc"""
-      sql
-    }
   }
 
   def getSqlCommentsTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
@@ -382,50 +349,19 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   }
 
   def getSqlComments(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+    val grouBydate = DateUtils.sqlGrouByDate(numDays)
 
-    if (numDays == 0) {
-      val sql = s"""select count(*),trunc(comment_date,'HH') from ENG_FB_WALL_COMMENTS
+      val sql = s"""select count(*),trunc(comment_date,'${grouBydate}') from ENG_FB_WALL_COMMENTS
                       where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
                         where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
                           and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                           and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and trunc(comment_date,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(comment_date,'HH')
-                    order by trunc(comment_date,'HH')asc"""
+                          and trunc(comment_date,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    group by trunc(comment_date,'${grouBydate}')
+                    order by trunc(comment_date,'${grouBydate}')asc"""
       logger.info("------------>" + sql)
       sql
-    } else if (numDays >= 1 && numDays <= 30) {
-      val sql = s"""select count(*),trunc(comment_date,'DD') from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-                        where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and trunc(comment_date,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(comment_date,'DD')
-                    order by trunc(comment_date,'DD')asc"""
 
-      sql
-    } else if (numDays > 30 && numDays < 90) {
-      val sql = s"""select count(*),trunc(comment_date,'ww') from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-                        where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and trunc(comment_date,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(comment_date,'ww')
-                    order by trunc(comment_date,'ww')asc"""
-      sql
-    } else {
-      val sql = s"""select count(*),trunc(comment_date,'month') from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-                        where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and trunc(comment_date,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(comment_date,'month')
-                    order by trunc(comment_date,'month')asc"""
-      sql
-    }
   }
 
   def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
@@ -542,12 +478,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
-    val grouBydate = numDays match {
-      case 0 => "HH"
-      case x if 0 until 30 contains x => "DD"
-      case x if 31 until 90 contains x => "ww"
-      case x if x > 90 => "month"
-    }
+    val grouBydate = DateUtils.sqlGrouByDate(numDays)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)

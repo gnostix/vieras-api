@@ -148,49 +148,19 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
   }
 
   private def getSqlHotelDataLine(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    if (numDays == 0) {
+    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+
       val sql = s"""
-      select count(*),trunc(REVIEW_DATE,'HH') from ENG_HOTEL_REVIEWS
+      select count(*),trunc(REVIEW_DATE,'${grouBydate}') from ENG_HOTEL_REVIEWS
           where FK_HOTEL_ID IN ( $sqlEngAccount  )
             and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and trunc(REVIEW_DATE,'HH') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        group by trunc(REVIEW_DATE,'HH')
-        order by trunc(REVIEW_DATE,'HH')asc
+            and trunc(REVIEW_DATE,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        group by trunc(REVIEW_DATE,'${grouBydate}')
+        order by trunc(REVIEW_DATE,'${grouBydate}')asc
                      """
       logger.info("------------>" + sql)
       sql
-    } else if (numDays >= 1 && numDays <= 30) {
-      val sql = s"""
-        select count(*),trunc(REVIEW_DATE,'DD') from ENG_HOTEL_REVIEWS
-          where FK_HOTEL_ID IN ( $sqlEngAccount  )
-            and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and trunc(REVIEW_DATE,'DD') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        group by trunc(REVIEW_DATE,'DD')
-        order by trunc(REVIEW_DATE,'DD')asc
-                    """
 
-      sql
-    } else if (numDays > 30 && numDays < 90) {
-      val sql = s"""
-        select count(*),trunc(REVIEW_DATE,'ww') from ENG_HOTEL_REVIEWS
-          where FK_HOTEL_ID IN ( $sqlEngAccount  )
-            and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and trunc(REVIEW_DATE,'ww') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        group by trunc(REVIEW_DATE,'ww')
-        order by trunc(REVIEW_DATE,'ww')asc
-                    """
-      sql
-    } else {
-      val sql = s"""
-        select count(*),trunc(REVIEW_DATE,'month') from ENG_HOTEL_REVIEWS
-          where FK_HOTEL_ID IN ( $sqlEngAccount  )
-            and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and trunc(REVIEW_DATE,'month') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        group by trunc(REVIEW_DATE,'month')
-        order by trunc(REVIEW_DATE,'month')asc
-                    """
-      sql
-    }
   }
 
 

@@ -24,7 +24,7 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
     * Determine whether the strategy should be run for the current request.
     */
   override def isValid(implicit request: HttpServletRequest) = {
-    logger.info("---------->  UserPasswordStrategy: determining isValid: " + (username != "" && password != "").toString())
+    // logger.info("---------->  UserPasswordStrategy: determining isValid: " + (username != "" && password != "").toString())
     username != "" && password != ""
   }
 
@@ -65,10 +65,10 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
   }
 
   def checkUserPassword(username: String, password: String, userDbPassword: String): Boolean = {
-    logger.info (s"---------> UserPasswordStrategy checkUserPassword :  $username $password")
+    //logger.info (s"---------> UserPasswordStrategy checkUserPassword :  $username $password")
     //logger.info (s"---------> UserPasswordStrategy userDbPassword : $userDbPassword")
     //logger.info (s"---------> UserPasswordStrategy Password :  ${md5Hash (username + password)}")
-    if (md5Hash (username + password) == userDbPassword.toLowerCase) true else false
+    if (md5Hash(username + password) == userDbPassword.toLowerCase) true else false
   }
 
   // create a md5 hash from a string
