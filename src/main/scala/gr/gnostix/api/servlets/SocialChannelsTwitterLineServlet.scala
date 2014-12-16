@@ -63,7 +63,7 @@
     }
 
     // get all data for twitter for one account datatype = (post or comment)
-    get("/profile/:profileId/twitter/:dataType/:credId/:fromDate/:toDate") {
+    get("/profile/:profileId/:dataType/:credId/:fromDate/:toDate") {
       logger.info(s"----> get all data for twitter for  one account datatype = (mention , retweet) " +
         s"  /api/user/socialchannels/twitter/line/*  ${params("dataType")} ")
       try {
@@ -94,7 +94,7 @@
     }
 
     // get all data for twitter for  all accounts datatype = (all, post, comment)
-    get("/profile/:profileId/twitter/:fromDate/:toDate/all") {
+    get("/profile/:profileId/:fromDate/:toDate/all") {
       logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("profileId")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -152,7 +152,7 @@
     }
 
     // get SUM data for twitter for  all accounts datatype = (all, post, comment)
-    get("/profile/:profileId/twitter/:fromDate/:toDate/total/all") {
+    get("/profile/:profileId/:fromDate/:toDate/total/all") {
       logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("profileId")} ")
 
       try {
@@ -199,7 +199,7 @@
     }
 
     // get all data for twitter for  one account datatype = (all, post, comment)
-    get("/profile/:profileId/twitter/:engId/:fromDate/:toDate/total/all") {
+    get("/profile/:profileId/:engId/:fromDate/:toDate/total/all") {
       logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("engId")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),

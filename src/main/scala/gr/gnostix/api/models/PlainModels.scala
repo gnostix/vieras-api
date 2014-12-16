@@ -96,5 +96,10 @@ case class Male(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age6
 case class FacebookComment(id: Int, message: String, created: Timestamp  , userName: String, userId: Long, likes: Int, postId: Long, engQueryId: Int, commentId: Long)
 case class FacebookPost(id: Int, message: String, created: Timestamp  , userName: String, userId: Long, likes: Int, comments: Int, engQueryId: Int, postId: Long, postLink: String, shares: Int)
 
+// twitter page
+case class TwitterMentionFav(id: Int, created: Timestamp, actionUserHandler: String, actionUserId: Long, actionUserFollowers: Int, actionUserListed: Int, text: String, queryId: Int, favorites: Int, statusId: Long)
+case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: Long, retweetedCount: Int, text: String, queryId: Int)
+case class TwitterStats(id: Int, followers: Int, following: Int, listed: Int, queryId: Int, created: Timestamp, statusNumber: Int, handle: String, favorites: Int)
+
 // hotels
 case class HotelAddUrl(dsId: Int, hotelUrl: String)
