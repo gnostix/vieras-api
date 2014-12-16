@@ -192,12 +192,12 @@ with FutureSupport {
     dashboardData match {
       case Some(dt) => {
 
-        val existData = dt.map(_.dataName).filterNot(m => m == "nodata")
-        logger.info(s"----> existData " + existData)
+        val existData = dt.filter(_.dataName != "nodata")
 
-        val hasData = existData.length match {
-          case x if (x > 0) => ApiMessages.generalSuccessOneParam(dt)
-          case x if (x == 0) => ApiMessages.generalSuccessNoData
+        logger.info(s"----> existData " + existData)
+        val hasData = existData.size match {
+          case x if( x > 0 ) => ApiMessages.generalSuccessOneParam(existData)
+          case x if( x == 0) => ApiMessages.generalSuccessNoData
         }
 
         hasData

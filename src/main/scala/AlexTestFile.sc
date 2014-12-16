@@ -109,12 +109,3 @@ o.fullName
 */
 
 
-val grouBydate = 91 match {
-  case 0 => "HH"
-  case x if 0 until 31 contains x.toInt => "DD"
-  case x if 31 until 91 contains x => "ww"
-  case x if x >= 91 => "month"
-}
-grouBydate
-
-println(1 until 5)
