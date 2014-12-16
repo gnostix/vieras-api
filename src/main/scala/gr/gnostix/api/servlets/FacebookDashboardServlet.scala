@@ -194,9 +194,13 @@ with FutureSupport {
 
         val existData = dt.filter(_.dataName != "nodata")
 
+        val koko = existData.map{
+          case (x) => (x.dataName -> x.data)
+        }.toMap
+
         logger.info(s"----> existData " + existData)
         val hasData = existData.size match {
-          case x if( x > 0 ) => ApiMessages.generalSuccessOneParam(existData)
+          case x if( x > 0 ) => ApiMessages.generalSuccessOneParam(koko)
           case x if( x == 0) => ApiMessages.generalSuccessNoData
         }
 
