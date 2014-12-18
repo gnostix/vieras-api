@@ -127,9 +127,8 @@ trait ServicesApiRoutes
         case _ => logger.info(s"-----> None => do nothing..}")
       }
     }
+
     ApiMessages.generalSuccess("services", sent)
-    //Map("status" -> 200, "message" -> "all good", "payload" -> sent)
-    //ErrorDataResponse(404, "Error on data")
   }
 
 }

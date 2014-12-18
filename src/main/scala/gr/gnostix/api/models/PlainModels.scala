@@ -99,7 +99,7 @@ case class FacebookPost(id: Int, message: String, created: Timestamp  , userName
 // twitter page
 case class TwitterMentionFav(id: Int, created: Timestamp, actionUserHandler: String, actionUserId: Long, actionUserFollowers: Int, actionUserListed: Int, text: String, queryId: Int, favorites: Int, statusId: Long)
 case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: Long, retweetedCount: Int, text: String, queryId: Int)
-case class TwitterStats(id: Int, followers: Int, following: Int, listed: Int, queryId: Int, created: Timestamp, statusNumber: Int, handle: String, favorites: Int)
+case class TwitterStats(totalTweets: Int, totalFollowers: Int, totalFollowing: Int, totalFavorites: Int, totalListed: Int, handle: String, created: Timestamp)
 
 // hotels
 case class HotelAddUrl(dsId: Int, hotelUrl: String)

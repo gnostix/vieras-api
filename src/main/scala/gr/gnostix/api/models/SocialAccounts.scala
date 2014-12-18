@@ -30,7 +30,7 @@ case class SocialAccountsGAnalytics(credId: Int, profileName: String, visits: In
   extends DataGraph
 
 case class SocialAccountsHotel(credId: Int, hotelId: Int, totalRating: Double, hotelName: String, hotelAddress: String,
-                               hotelStars: Int, totalReviews: Int, hotelUrl: String) extends DataGraph
+                               hotelStars: Int, totalReviews: Int, hotelUrl: String, vierasTotalrating: Int) extends DataGraph
 
 // social credentials
 case class SocialCredentialsTw(token: String, tokenSecret: String, handle: String)
@@ -492,7 +492,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getSocialAccountsHotelResult = GetResult(r => SocialAccountsHotel(r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getHotelUrsResult = GetResult(r => UserHotelUrls(r.<<, r.<<, r.<<))
   implicit val getHospitalitylUrsResult = GetResult(r => SupportedHospitalitySites(r.<<, r.<<))
 
@@ -502,7 +502,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
       implicit session =>
         val records = Q.queryNA[SocialAccountsHotel](
           s"""select c.id, h.HOTEL_ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
-                     h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL
+                     h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL, h.VIERAS_TOTAL_RATING
                    from eng_hotels h, ENG_PROFILE_HOTEL_CREDENTIALS c
                      where h.hotel_id = c.fk_hotel_id
                       and c.FK_PROFILE_id = ${profileId}
@@ -523,7 +523,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
           implicit session =>
             val records = Q.queryNA[SocialAccountsHotel](
               s""" select c.id, h.HOTEL_ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
-                     h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL
+                     h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL, h.VIERAS_TOTAL_RATING
                    from eng_hotels h, ENG_PROFILE_HOTEL_CREDENTIALS c
                      where h.hotel_id = c.fk_hotel_id
                       and c.FK_PROFILE_id = ${profileId}

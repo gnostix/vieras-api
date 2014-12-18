@@ -14,20 +14,21 @@ case class Profile(profileId: Int,
                    totalCounts: Int,
                    enabled: Int,
                    totalKeywords: Int,
-                   language: String)
+                   language: String,
+                    vierasTotalRating: Double)
 
 object ProfileDao extends DatabaseAccessSupport {
 
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getProfileResult = GetResult(r => Profile(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   def findById(profileId: Int, userId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Profile]( s""" select c.profile_id, c.profile_firstname,
-                     c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language
+                     c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
                               from profiles c
                             where c.profile_id = $profileId  and c.fk_user_id = $userId """)
         records.list()
@@ -39,7 +40,7 @@ object ProfileDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[Profile]( s"""select c.profile_id, c.profile_name,
-                       c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language
+                       c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
                                 from profiles c
                               where  c.fk_user_id = $userId """)
         records.list
@@ -62,6 +63,7 @@ object ProfileDao extends DatabaseAccessSupport {
         }
     }
   }
+
 
   def createProfile(userId: Int, profileName: String): Option[Int] = {
     getConnection withSession {

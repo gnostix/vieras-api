@@ -190,9 +190,9 @@
       }
     }
 
-    def f2(a: List[SocialDataSum]) = {
-      val theSum = a.groupBy(_.datasource).map {
-        case (x, y) => (x, y.map(x => x.data).sum)
+    def f2(a: List[ApiData]) = {
+      val theSum = a.groupBy(_.dataName).map {
+        case (x, y) => (x, y.map(x => x.data.asInstanceOf[Int]).sum)
       }
 
       Map("status" -> 200, "message" -> "Coulio Bro!!!", "payload" -> theSum)

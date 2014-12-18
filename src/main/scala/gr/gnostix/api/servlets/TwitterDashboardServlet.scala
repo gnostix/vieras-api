@@ -48,13 +48,16 @@ with FutureSupport {
 
       val profileId = params("profileId").toInt
 
-      val rawData = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, profileId, None)
-
+      val rawDataStats = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, profileId, None)
+      val totalMentions = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalmention", None)
+      val totalRetweets = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalretweet", None)
       new AsyncResult() {
         override val is =
           for {
-            a1 <- rawData
-          } yield f2(a1)
+            a1 <- rawDataStats
+            a2 <- totalMentions
+            a3 <- totalRetweets
+          } yield f3(Some(List(a1.get, a2.get, a3.get)))
       }
 
     } catch {
