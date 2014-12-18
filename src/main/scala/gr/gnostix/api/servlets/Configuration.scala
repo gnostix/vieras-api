@@ -41,7 +41,7 @@ with FutureSupport {
 
   // profiles data
   get("/profiles/usage") {
-    logger.info("---->   return all profiles/usage with userlevel id     ")
+    logger.info("---->   return all profiles/usage   ")
     try {
       val usage = ProfilesUsage.findByUserlevel(user.userLevel) //user level....!!!
 

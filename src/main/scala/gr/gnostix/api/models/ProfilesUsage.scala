@@ -14,7 +14,7 @@ case class ProfilesUsage(id: Int, userLevel: Int, maxCounts: Int, description: S
 object ProfilesUsage extends DatabaseAccessSupport{
 
   implicit val getProfilesUsageResult = GetResult(r => ProfilesUsage(r.<<, r.<<, r.<<, r.<<,
-     r.<<, r.<<, r.<<, r.<<, r.<<, r.<< ))
+     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   def findByUserlevel(userLevel: Int) = {
     getConnection withSession {
