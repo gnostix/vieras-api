@@ -382,14 +382,15 @@ with FutureSupport {
   }
 
   delete("/profile/:profileId/socialchannel/:datasource/:credId") {
-    logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+    logger.info(s"---->   delete social channel for this datasource ${params("datasource")} ")
     var status: Int = 100
+    val credId = params("credId").toInt
     params("datasource") match {
-      case "hotel" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
-      case "twitter" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
-      case "facebook" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
-      case "youtube" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
-      case "ganalytics" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, params("credId").toInt, params("datasource")).get
+      case "hotel" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
+      case "twitter" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
+      case "facebook" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
+      case "youtube" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
+      case "ganalytics" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
     }
     status match {
       case 200 => Map("status" -> 200, "message" -> "all good")

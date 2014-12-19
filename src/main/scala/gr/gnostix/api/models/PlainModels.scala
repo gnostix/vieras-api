@@ -101,5 +101,9 @@ case class TwitterMentionFav(id: Int, created: Timestamp, actionUserHandler: Str
 case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: Long, retweetedCount: Int, text: String, queryId: Int)
 case class TwitterStats(totalTweets: Int, totalFollowers: Int, totalFollowing: Int, totalFavorites: Int, totalListed: Int, handle: String, created: Timestamp)
 
+// Youtube page
+case class YoutubeStats(subscribers: Int, totalViews: Int, created: Timestamp)
+case class YoutubeVideoStats(likes: Int, dislikes: Int, favorites: Int, videoViews: Int)
+
 // hotels
 case class HotelAddUrl(dsId: Int, hotelUrl: String)

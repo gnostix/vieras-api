@@ -109,3 +109,10 @@ o.fullName
 */
 
 
+val a = List(1,2,3)
+a.foldRight(0)((a,b) => {
+  println(a +" " + b)
+  (b -a)
+})
+
+a.foldLeft(0)((a,b) => (a - b))
