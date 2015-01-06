@@ -11,18 +11,12 @@ import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 
 import scala.slick.jdbc.GetResult
 
-/**
- * Created by rebel on 21/10/14.
- */
+
 object MySocialChannelDaoYt extends DatabaseAccessSupport {
-  implicit val getTwLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
-  implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
-  implicit val getMentionsFavs = GetResult(r => TwitterMentionFav(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
-  implicit val getTwitterRetweets = GetResult(r => TwitterRetweets(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
-
-
+  implicit val getYtLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getYoutubeStats = GetResult(r => YoutubeStats(r.<<, r.<<, r.<<))
   implicit val getYoutubeVideoStats = GetResult(r => YoutubeVideoStats(r.<<, r.<<, r.<<, r.<<))
+  implicit val getYoutubeVideoData = GetResult(r => YoutubeVideoData(r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -50,120 +44,35 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
   }
 
 
-
-
-  def getLineCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Option[Payload] = {
-    val sql = buildQuery(fromDate, toDate, profileId, dataType, engId)
-
-/*    //bring the actual data
-    val data = dataType match {
-      case "mention" | "retweet" | "favorite" => getData(fromDate, toDate, dataType, sql)
-      case "totalmention" | "totalfavorite" | "totalretweet" => "" //getDataTotal(fromDate, toDate, dataType, sql)
-    }
-    //val data = getData(fromDate, toDate, dataType, profileId, sql)
-    data match {
-      case Some(data) => Some(data)
-      case None => None
-    }*/
-
-    None
-  }
-
-
-
-
-
-  def getLineAllData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialData]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, dataType, engId)
+  def getLineCounts(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[Payload]] = {
+    val sql = buildQueryLine(fromDate, toDate, profileId, engId)
     //bring the actual data
-    val prom = Promise[Option[SocialData]]()
+    val prom = Promise[Option[ApiData]]()
 
     Future {
-      prom.success(getData(fromDate, toDate, dataType, mySqlDynamic))
+      prom.success(getVideoStats(sql))
     }
     prom.future
-  }
 
+  }
 
 
 
   // get raw data
-  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryData(fromDate, toDate, profileId, engId)
 
     val prom = Promise[Option[ApiData]]()
-    val mySqlDynamic = dataType match {
-      case "retweet" => ""   //buildQueryTotalLikes(fromDate, toDate, profileId, engId)
-    }
 
     Future {
-      dataType match {
-        case "mention" | "favorite" => prom.success(getMentionFavMessages(mySqlDynamic, dataType))
-        case "retweet" => prom.success(getRetweetMessages(mySqlDynamic))
-      }
+      prom.success(getVideoData(mySqlDynamic))
     }
 
     prom.future
   }
 
-  private def getMentionFavMessages(sql: String, dataType: String): Option[ApiData] = {
 
-    val dataTypeTw = dataType match {
-      case "mention" => "twitter_mentions"
-      case "favorite" => "twitter_favorites"
-    }
-    try {
-      var myData = List[TwitterMentionFav]()
-      getConnection withSession {
-        implicit session =>
-          logger.info("get my social channel tw ------------->" + sql)
-          val records = Q.queryNA[TwitterMentionFav](sql)
-          myData = records.list()
-      }
 
-      if (myData.size > 0) {
-        logger.info(" -------------> nodata tw  " + dataTypeTw)
-        Some(ApiData(dataTypeTw, myData))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
-
-    } catch {
-      case e: Exception => {
-        e.printStackTrace()
-        None
-      }
-    }
-
-  }
-
-  private def getRetweetMessages(sql: String): Option[ApiData] = {
-
-    try {
-      var myData = List[TwitterRetweets]()
-      getConnection withSession {
-        implicit session =>
-          logger.info("get my social channel tw ------------->" + sql)
-          val records = Q.queryNA[TwitterRetweets](sql)
-          myData = records.list()
-      }
-
-      if (myData.size > 0) {
-        logger.info(" -------------> nodata tw retweets ")
-        Some(ApiData("twitter_retweets", myData))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
-
-    } catch {
-      case e: Exception => {
-        e.printStackTrace()
-        None
-      }
-    }
-
-  }
 
   private def getStats(sql: String): Option[ApiData] = {
 
@@ -219,30 +128,35 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
   }
 
-  private def getData(fromDate: DateTime, toDate: DateTime, dataType: String, sql: String): Option[SocialData] = {
+  private def getVideoData(sql: String): Option[ApiData] = {
 
     try {
-      var myData = List[DataLineGraph]()
+      var myData = List[YoutubeVideoData]()
       getConnection withSession {
         implicit session =>
-          logger.info("get my social channel twitter ------------->" + sql)
-          val records = Q.queryNA[DataLineGraph](sql)
+          logger.info("get my social video yt ------------->" + sql)
+          val records = Q.queryNA[YoutubeVideoData](sql)
           myData = records.list()
       }
 
-      val lineData = SocialData(dataType, myData)
-
-      lineData match {
-        case SocialData(_, _) => Option(lineData)
+      if (myData.size > 0) {
+        logger.info(" -------------> we have video stats ")
+        Some(ApiData("video_data", myData))
+      } else {
+        logger.info(" -------------> nodata ")
+        Some(ApiData("nodata", None))
       }
     } catch {
-      case e: Exception => None
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
     }
 
   }
 
 
-  private def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): String = {
+  private def buildQueryData(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
@@ -251,49 +165,54 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     val sqlEngAccount = engId match {
       case Some(x) => x + " )"
       case None => "select s.id from eng_profile_social_credentials s where s.fk_profile_id in (" +
-        " select profile_id from profiles where profile_id = " + profileId + ") and s.fk_datasource_id = 2)"
+        " select profile_id from profiles where profile_id = " + profileId + ") and s.fk_datasource_id = 9)"
     }
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    dataType match {
-      case "stats" => getSqlMentionFav(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount, dataType)
-      case "video_stats" => getSqlMentionFavTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount, dataType)
+    val grouBydate = DateUtils.sqlGrouByDate(numDays)
 
-    }
-
-  }
-
-  private def getSqlMentionFavTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String, dataType: String) = {
-    val twType = dataType match {
-      case "totalmention" => "TW_MENTIONS"
-      case "totalfavorite" => "TW_FAVORITES"
-    }
+    // ADD THE RIGHT SQL QUERY HERE !!!!!!!
     val sql = s"""
-      select count(*) from ENG_TW_MENT_AND_FAV
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = '${twType}'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        """
+         select t.y_title, t.Y_PLAYER_URL, t.Y_THUMBNAILS, t.Y_FAVORITE_COUNT, t.Y_VIEW_COUNT,t.Y_DISLIKE_COUNT, t.Y_LIKE_COUNT, t.Y_SUM_TEXT
+          from ENG_YT_WALL t
+           where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q where  q.attr = 'YT_USER_WALL'
+             and fk_profile_social_eng_id in ( $sqlEngAccount )
+                and m_sysdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        order by m_sysdate asc
+      """
+    logger.info("------------>" + sql)
     sql
+
   }
 
-  private def getSqlMentionFav(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String, dataType: String) = {
-    val twType = dataType match {
-      case "mention" => "TW_MENTIONS"
-      case "favorite" => "TW_FAVORITES"
+
+
+
+  private def buildQueryLine(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+    val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
+    logger.info("------------->" + numDays + "-----------")
+
+    val sqlEngAccount = engId match {
+      case Some(x) => x + " )"
+      case None => "select s.id from eng_profile_social_credentials s where s.fk_profile_id in (" +
+        " select profile_id from profiles where profile_id = " + profileId + ") and s.fk_datasource_id = 9)"
     }
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
 
     val grouBydate = DateUtils.sqlGrouByDate(numDays)
 
+    // ADD THE RIGHT SQL QUERY HERE !!!!!!!
     val sql = s"""
       select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_MENT_AND_FAV
         where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = '${twType}'
+          where q.is_active = 1 and q.attr = 'YT_FFSL'
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                      and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -303,29 +222,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
                      """
     logger.info("------------>" + sql)
     sql
-
   }
-
-
-  private def getSqlRetweet(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
-    val sql = s"""
-       select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_RETWEETS
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = 'TW_RETWEETS'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'${grouBydate}')
-                    order by trunc(created_at,'${grouBydate}')asc
-                     """
-    logger.info("------------>" + sql)
-    sql
-
-  }
-
-
 
 
 
@@ -355,6 +252,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
     sqlEngAccount
   }
+
 
   private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
 

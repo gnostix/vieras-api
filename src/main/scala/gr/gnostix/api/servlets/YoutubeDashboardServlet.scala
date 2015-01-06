@@ -40,7 +40,7 @@ with FutureSupport {
 
   // mount point /api/user/socialchannels/dashboard/youtube/*
 
-  // get all data for youtube for one profile datatype = (post or comment)
+  // get all data for youtube for one profile datatype
   get("/profile/:profileId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/youtube/*  ")
@@ -76,7 +76,7 @@ with FutureSupport {
     }
   }
 
-  // get all data for youtube for one profile datatype = (post or comment)
+  // get all data for youtube for one profile datatype
   get("/profile/:profileId/:credId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/youtube/*  ")
@@ -92,13 +92,16 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, Some(credId))
+      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, Some(credId))
+      val rawDataVideoStats = MySocialChannelDaoYt.getVideoStats(executor, fromDate, toDate, profileId, Some(credId))
 
       new AsyncResult() {
         override val is =
           for {
-            a1 <- rawData
-          } yield f2(a1)
+            a1 <- rawDataStats
+            a2 <- rawDataVideoStats
+
+          } yield f3(Some(List(a1.get, a2.get)))
       }
 
     } catch {
@@ -137,13 +140,13 @@ with FutureSupport {
 
         val existData = dt.filter(_.dataName != "nodata")
 
-        val koko = existData.map{
+        val myData = existData.map{
           case (x) => (x.dataName -> x.data)
         }.toMap
 
         logger.info(s"----> existData " + existData)
         val hasData = existData.size match {
-          case x if( x > 0 ) => ApiMessages.generalSuccessOneParam(koko)
+          case x if( x > 0 ) => ApiMessages.generalSuccessOneParam(myData)
           case x if( x == 0) => ApiMessages.generalSuccessNoData
         }
 
@@ -159,9 +162,9 @@ with FutureSupport {
   // -------------------- DATA --------------------------
 
   // get all data for youtube for one profile datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:dataType/:fromDate/:toDate") {
-    logger.info(s"----> get text data for youtube for  one account datatype = (post, comment)" +
-      s"  /api/user/socialchannels/dashboard/youtube/* ${params("dataType")} ")
+  get("/profile/:profileId/message/:fromDate/:toDate") {
+    logger.info(s"----> get text data for youtube for  one account  " +
+      s"  /api/user/socialchannels/dashboard/youtube/*  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -172,10 +175,8 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
-      val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, dataType, None)
-
+      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, None)
 
       new AsyncResult() {
         override val is =
@@ -196,9 +197,9 @@ with FutureSupport {
 
 
   // get all data for youtube for one channel account datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:dataType/:engId/:fromDate/:toDate") {
+  get("/profile/:profileId/message/:engId/:fromDate/:toDate") {
     logger.info(s"----> get all data for youtube for  one account datatype = (post, comment)" +
-      s"  /api/user/socialchannels/dashboard/youtube/* ${params("dataType")} ")
+      s"  /api/user/socialchannels/dashboard/youtube/*  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -210,9 +211,8 @@ with FutureSupport {
 
       val profileId = params("profileId").toInt
       val engId = params("engId").toInt
-      val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, dataType, Some(engId))
+      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, Some(engId))
 
 
       new AsyncResult() {
@@ -247,18 +247,18 @@ with FutureSupport {
 
       val profileId = params("profileId").toInt
 
-      val mention = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "mention", None)
-      val favorite = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "favorite", None)
-      val retweet = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "retweet", None)
+      val mention = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, None)
+//      val favorite = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "favorite", None)
+//      val retweet = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "retweet", None)
 
       val theData =
         new AsyncResult() {
           override val is =
             for {
               a1 <- mention
-              a2 <- favorite
-              a3 <- retweet
-            } yield f3(Some(List(a1.get, a2.get, a3.get)))
+//              a2 <- favorite
+//              a3 <- retweet
+            } yield f3(Some(List(a1.get)))
         }
 
       theData
@@ -287,18 +287,16 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val engId = params("credId").toInt
 
-      val mention = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "mention", Some(engId))
-      val favorite = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "favorite", Some(engId))
-      val retweet = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "retweet", Some(engId))
+      val mention = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, Some(engId))
+
 
       val theData =
         new AsyncResult() {
           override val is =
             for {
               a1 <- mention
-              a2 <- favorite
-              a3 <- retweet
-            } yield f3(Some(List(a1.get, a2.get, a3.get)))
+
+            } yield f3(Some(List(a1.get)))
         }
 
       theData
