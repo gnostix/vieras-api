@@ -14,7 +14,7 @@ import scala.slick.jdbc.GetResult
 
 object MySocialChannelDaoYt extends DatabaseAccessSupport {
   implicit val getYtLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
-  implicit val getYoutubeStats = GetResult(r => YoutubeStats(r.<<, r.<<, r.<<))
+  implicit val getYoutubeStats = GetResult(r => YoutubeStats(r.<<, r.<<, r.<<,r.<<, r.<<, r.<<, r.<<))
   implicit val getYoutubeVideoStats = GetResult(r => YoutubeVideoStats(r.<<, r.<<, r.<<, r.<<))
   implicit val getYoutubeVideoData = GetResult(r => YoutubeVideoData(r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<, r.<<))
 
@@ -264,14 +264,14 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     val sqlEngAccount = engId match {
       case Some(x) =>
         s"""
-        SELECT max(subscribers), max(total_views), max(ffsl_date) FROM ENG_YT_STATS t
+        SELECT max(subscribers), max(total_views), max(ffsl_date), max(likes), max(dislikes), max(favorites), max(video_views) FROM ENG_YT_STATS t
            where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
             and FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${engId} and fk_profile_id=${profileId} ))
                   and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
          """
       case None =>
         s"""
-        SELECT max(subscribers) , max(total_views), max(ffsl_date) FROM ENG_YT_STATS t
+        SELECT max(subscribers) , max(total_views), max(ffsl_date), max(likes), max(dislikes), max(favorites), max(video_views) FROM ENG_YT_STATS t
            where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
             and FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} ))
                   and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')

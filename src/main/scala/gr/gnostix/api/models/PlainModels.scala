@@ -102,7 +102,7 @@ case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: String,
 case class TwitterStats(totalTweets: Int, totalFollowers: Int, totalFollowing: Int, totalFavorites: Int, totalListed: Int, handle: String, created: Timestamp)
 
 // Youtube page
-case class YoutubeStats(subscribers: Int, totalViews: Int, created: Timestamp)
+case class YoutubeStats(subscribers: Int, totalViews: Int, created: Timestamp, likes: Int, dislikes: Int, favorites: Int, videoViews: Int)
 case class YoutubeVideoStats(likes: Int, dislikes: Int, favorites: Int, videoViews: Int)
 case class YoutubeVideoData(title: String, url: String, thumbnail: String, favorites: Int, views: Int, dislikes: Int, likes: Int, text: String)
 

@@ -56,15 +56,13 @@ with FutureSupport {
       val profileId = params("profileId").toInt
 
       val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, None)
-      val rawDataVideoStats = MySocialChannelDaoYt.getVideoStats(executor, fromDate, toDate, profileId, None)
 
       new AsyncResult() {
         override val is =
           for {
             a1 <- rawDataStats
-            a2 <- rawDataVideoStats
 
-          } yield f3(Some(List(a1.get, a2.get)))
+          } yield f2(Some(a1.get))
       }
 
     } catch {
@@ -93,15 +91,13 @@ with FutureSupport {
       val credId = params("credId").toInt
 
       val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, Some(credId))
-      val rawDataVideoStats = MySocialChannelDaoYt.getVideoStats(executor, fromDate, toDate, profileId, Some(credId))
 
       new AsyncResult() {
         override val is =
           for {
             a1 <- rawDataStats
-            a2 <- rawDataVideoStats
 
-          } yield f3(Some(List(a1.get, a2.get)))
+          } yield f2(Some(a1.get))
       }
 
     } catch {
