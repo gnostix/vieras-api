@@ -30,10 +30,10 @@ case class FirstLevelData(msgId: Int, text: String, fromUser: String, msgDate: T
                           msgUrl: String) extends DataGraph
 
 //get the second level data for each row
-case class SecondLevelDataTwitter(userProfileImageUrl: String, fromUserId: Long, toUser: String, tweetId: Long,
+case class SecondLevelDataTwitter(userProfileImageUrl: String, fromUserId: String, toUser: String, tweetId: String,
                                    followers: Int, following: Int, tweetsNum: Int, userUrl: String, listed: Int) extends DataGraph
 
-case class SecondLevelDataFacebook(fromId: Long, comments: Int, shares: Int, likes: String, iconLink: String, link: String,
+case class SecondLevelDataFacebook(fromId: String, comments: Int, shares: Int, likes: String, iconLink: String, link: String,
                                    picture: String) extends DataGraph
 
 case class SecondLevelDataGplus(itemId: String, plusoners: Int, resharers: Int, replies: Int, actorId: String,
@@ -56,7 +56,7 @@ case class ThirdLevelDataWeb(firstLevel: FirstLevelData, secondLevel: SecondLeve
 
 
 // classes for the messages of each datasource
-case class DataTwitterGraph(twId: Int, msgDate: Timestamp, twitterHandle: String, userId: Int, queryId: Int, tweetId: Long,
+case class DataTwitterGraph(twId: Int, msgDate: Timestamp, twitterHandle: String, userId: Int, queryId: Int, tweetId: String,
                             followers: Int, following: Int, listed: Int, text: String, userProfileImage: String,
                             sentiment: String) extends DataGraph
 
@@ -93,12 +93,12 @@ case class FacebookStatsTop(reach: Int, views: Int, engaged: Int, talkingAbout: 
 case class FacebookStatsApi(facebookStatsTotals: FacebookStatsTop, facebookStatsData: List[FacebookStats])
 case class Female(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
 case class Male(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
-case class FacebookComment(id: Int, message: String, created: Timestamp  , userName: String, userId: Long, likes: Int, postId: Long, engQueryId: Int, commentId: Long)
-case class FacebookPost(id: Int, message: String, created: Timestamp  , userName: String, userId: Long, likes: Int, comments: Int, engQueryId: Int, postId: Long, postLink: String, shares: Int)
+case class FacebookComment(id: Int, message: String, created: Timestamp  , userName: String, userId: String, likes: Int, postId: String, engQueryId: Int, commentId: String)
+case class FacebookPost(id: Int, message: String, created: Timestamp  , userName: String, userId: String, likes: Int, comments: Int, engQueryId: Int, postId: String, postLink: String, shares: Int)
 
 // twitter page
-case class TwitterMentionFav(id: Int, created: Timestamp, actionUserHandler: String, actionUserId: Long, actionUserFollowers: Int, actionUserListed: Int, text: String, queryId: Int, favorites: Int, statusId: Long)
-case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: Long, retweetedCount: Int, text: String, queryId: Int)
+case class TwitterMentionFav(id: Int, created: Timestamp, actionUserHandler: String, actionUserId: String, actionUserFollowers: Int, actionUserListed: Int, text: String, queryId: Int, favorites: Int, statusId: String)
+case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: String, retweetedCount: Int, text: String, queryId: Int)
 case class TwitterStats(totalTweets: Int, totalFollowers: Int, totalFollowing: Int, totalFavorites: Int, totalListed: Int, handle: String, created: Timestamp)
 
 // Youtube page
