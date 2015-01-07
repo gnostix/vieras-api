@@ -178,7 +178,7 @@ with FutureSupport {
 
         val hasData = dt.dataName match {
           case "nodata" => ApiMessages.generalSuccessNoData
-          case _ => ApiMessages.generalSuccessOneParam(dt)
+          case _ => ApiMessages.generalSuccessOneParam( Map(dt.dataName -> dt.data))
         }
 
         hasData

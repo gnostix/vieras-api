@@ -61,7 +61,6 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-
           } yield f2(Some(a1.get))
       }
 
@@ -119,7 +118,7 @@ with FutureSupport {
 
         val hasData = dt.dataName match {
           case "nodata" => ApiMessages.generalSuccessNoData
-          case _ => ApiMessages.generalSuccessOneParam(dt)
+          case _ => ApiMessages.generalSuccessOneParam( Map(dt.dataName -> dt.data))
         }
 
         hasData
@@ -226,85 +225,6 @@ with FutureSupport {
       }
     }
   }
-
-
-
-  // get all data for youtube for  all accounts datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:fromDate/:toDate/all") {
-    logger.info(s"---->  /api/user/socialchannels/dashboard/youtube/* ${params("profileId")} ")
-    try {
-      val fromDate: DateTime = DateTime.parse(params("fromDate"),
-        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
-      logger.info(s"---->   parsed date ---> ${fromDate}    ")
-
-      val toDate: DateTime = DateTime.parse(params("toDate"),
-        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
-      logger.info(s"---->   parsed date ---> ${toDate}    ")
-
-      val profileId = params("profileId").toInt
-
-      val mention = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, None)
-//      val favorite = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "favorite", None)
-//      val retweet = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, "retweet", None)
-
-      val theData =
-        new AsyncResult() {
-          override val is =
-            for {
-              a1 <- mention
-//              a2 <- favorite
-//              a3 <- retweet
-            } yield f3(Some(List(a1.get)))
-        }
-
-      theData
-    } catch {
-      case e: NumberFormatException => "wrong profile number"
-      case e: Exception => {
-        logger.info(s"-----> ${e.printStackTrace()}")
-        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
-      }
-    }
-  }
-
-  // get all data for youtube for  one accounts datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:credId/:fromDate/:toDate/all") {
-    logger.info(s"----> " +
-      s"/api/user/socialchannels/dashboard/youtube/profile/:profileId/message/:credId/:fromDate/:toDate/all ${params("profileId")} ")
-    try {
-      val fromDate: DateTime = DateTime.parse(params("fromDate"),
-        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
-      logger.info(s"---->   parsed date ---> ${fromDate}    ")
-
-      val toDate: DateTime = DateTime.parse(params("toDate"),
-        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
-      logger.info(s"---->   parsed date ---> ${toDate}    ")
-
-      val profileId = params("profileId").toInt
-      val engId = params("credId").toInt
-
-      val mention = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, Some(engId))
-
-
-      val theData =
-        new AsyncResult() {
-          override val is =
-            for {
-              a1 <- mention
-
-            } yield f3(Some(List(a1.get)))
-        }
-
-      theData
-    } catch {
-      case e: NumberFormatException => "wrong profile number"
-      case e: Exception => {
-        logger.info(s"-----> ${e.printStackTrace()}")
-        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
-      }
-    }
-  }
-
 
 
 
