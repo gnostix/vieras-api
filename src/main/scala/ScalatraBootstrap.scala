@@ -50,6 +50,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new SocialChannelsFacebookLineServlet(executor), "/api/user/socialchannels/facebook/line/*")
     context.mount(new SocialChannelsTwitterLineServlet(executor), "/api/user/socialchannels/twitter/line/*")
     context.mount(new HospitalityLineCountsServlet(executor), "/api/user/socialchannels/hotel/line/*")
+    context.mount(new SocialChannelsYoutubeLineServlet(executor), "/api/user/socialchannels/youtube/line/*")
 
     // hospitality services
     context.mount(new HospitalityServicesServlet(executor), "/api/user/account/hospitality/services/*")

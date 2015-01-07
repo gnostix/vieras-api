@@ -105,6 +105,7 @@ case class TwitterStats(totalTweets: Int, totalFollowers: Int, totalFollowing: I
 case class YoutubeStats(subscribers: Int, totalViews: Int, created: Timestamp, likes: Int, dislikes: Int, favorites: Int, videoViews: Int)
 case class YoutubeVideoStats(likes: Int, dislikes: Int, favorites: Int, videoViews: Int)
 case class YoutubeVideoData(title: String, url: String, thumbnail: String, favorites: Int, views: Int, dislikes: Int, likes: Int, text: String)
+case class YoutubeLineData(subscribers: Int, totalViews: Int, videoViews: Int, likes: Int, dislikes: Int, favorites: Int, created: Timestamp)
 
 // hotels
 case class HotelAddUrl(dsId: Int, hotelUrl: String)

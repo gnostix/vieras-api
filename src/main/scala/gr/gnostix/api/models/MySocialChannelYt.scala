@@ -17,6 +17,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
   implicit val getYoutubeStats = GetResult(r => YoutubeStats(r.<<, r.<<, r.<<,r.<<, r.<<, r.<<, r.<<))
   implicit val getYoutubeVideoStats = GetResult(r => YoutubeVideoStats(r.<<, r.<<, r.<<, r.<<))
   implicit val getYoutubeVideoData = GetResult(r => YoutubeVideoData(r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<, r.<<))
+  implicit val getYoutubeLineData = GetResult(r => YoutubeLineData(r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -44,13 +45,13 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
   }
 
 
-  def getLineCounts(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[Payload]] = {
+  def getLineCounts(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
     val sql = buildQueryLine(fromDate, toDate, profileId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
     Future {
-      prom.success(getVideoStats(sql))
+      prom.success(getLineData(sql))
     }
     prom.future
 
@@ -156,6 +157,37 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
   }
 
 
+  private def getLineData(sql: String): Option[ApiData] = {
+
+    try {
+      var myData = List[YoutubeLineData]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my social video yt ------------->" + sql)
+          val records = Q.queryNA[YoutubeLineData](sql)
+          myData = records.list()
+      }
+
+      if (myData.size > 0) {
+        logger.info(" -------------> we have video stats ")
+        Some(ApiData("video_data", myData))
+      } else {
+        logger.info(" -------------> nodata ")
+        Some(ApiData("nodata", None))
+      }
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+
+  }
+
+  def fixLineData(dt: List[YoutubeLineData]): List[YoutubeLineData] = {
+    dt
+  }
+
   private def buildQueryData(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
@@ -210,16 +242,16 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
     // ADD THE RIGHT SQL QUERY HERE !!!!!!!
     val sql = s"""
-      select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_MENT_AND_FAV
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = 'YT_FFSL'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'${grouBydate}')
-                    order by trunc(created_at,'${grouBydate}')asc
-                     """
+       SELECT max(subscribers), max(total_views), max(video_views), max(likes), max(dislikes), max(favorites),
+        trunc(ffsl_date,'${grouBydate}') FROM ENG_YT_STATS t
+         where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
+            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+            and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+            and trunc(ffsl_date,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           group by trunc(ffsl_date,'${grouBydate}')
+           order by trunc(ffsl_date,'${grouBydate}')asc
+      """
     logger.info("------------>" + sql)
     sql
   }
