@@ -98,7 +98,7 @@ case class FacebookPost(id: Int, message: String, created: Timestamp  , userName
 
 // twitter page
 case class TwitterMentionFav(id: Int, created: Timestamp, actionUserHandler: String, actionUserId: String, actionUserFollowers: Int, actionUserListed: Int, text: String, queryId: Int, favorites: Int, statusId: String)
-case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: String, retweetedCount: Int, text: String, queryId: Int)
+case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: String, retweetedCount: Int, text: String, queryId: Int,handle: String)
 case class TwitterStats(totalTweets: Int, totalFollowers: Int, totalFollowing: Int, totalFavorites: Int, totalListed: Int, handle: String, created: Timestamp)
 
 // Youtube page

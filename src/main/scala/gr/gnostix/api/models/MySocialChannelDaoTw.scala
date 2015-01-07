@@ -18,7 +18,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
   implicit val getTwLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getMentionsFavs = GetResult(r => TwitterMentionFav(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
-  implicit val getTwitterRetweets = GetResult(r => TwitterRetweets(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getTwitterRetweets = GetResult(r => TwitterRetweets(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getTwitterStats = GetResult(r => TwitterStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
@@ -368,7 +368,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
     val sqlEngAccount = engId match {
       case Some(x) =>
         s"""
-            select t.ID, t.CREATED_AT, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID from ENG_TW_RETWEETS t
+            select t.ID, t.CREATED_AT, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from ENG_TW_RETWEETS t
              where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q where fk_profile_social_eng_id
              in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=2 and id = ${x} ))
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -376,7 +376,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
          """
       case None =>
         s"""
-            select t.ID, t.CREATED_AT, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID from ENG_TW_RETWEETS t
+            select t.ID, t.CREATED_AT, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from ENG_TW_RETWEETS t
              where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q where fk_profile_social_eng_id
              in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=2 ))
                      and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
