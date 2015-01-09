@@ -106,7 +106,7 @@ with FutureSupport {
 
   // get all data for facebook for one profile datatype = (post or comment)
   get("/profile/:profileId/demographics/:fromDate/:toDate") {
-    logger.info(s"----> get stats  one account " +
+    logger.info(s"----> get demographics  one account " +
       s"  /api/user/socialchannels/dashboard/facebook/*  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -138,7 +138,7 @@ with FutureSupport {
   }
 
   get("/profile/:profileId/:credId/demographics/:fromDate/:toDate") {
-    logger.info(s"----> get stats  one account " +
+    logger.info(s"----> get demographics  one account " +
       s"  /api/user/socialchannels/dashboard/facebook/* ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),

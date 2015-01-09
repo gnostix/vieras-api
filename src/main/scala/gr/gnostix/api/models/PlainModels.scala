@@ -93,7 +93,7 @@ case class FacebookStatsTop(reach: Int, views: Int, engaged: Int, talkingAbout: 
 case class FacebookStatsApi(facebookStatsTotals: FacebookStatsTop, facebookStatsData: List[FacebookStats])
 case class Female(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
 case class Male(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age64: Int, age65Plus: Int)
-case class FacebookComment(id: Int, message: String, created: Timestamp  , userName: String, userId: String, likes: Int, postId: String, engQueryId: Int, commentId: String)
+case class FacebookComment(id: Int, message: String, created: Timestamp  , userName: String, userId: String, likes: Int, postId: String, engQueryId: Int, commentId: String, post_user_id: String)
 case class FacebookPost(id: Int, message: String, created: Timestamp  , userName: String, userId: String, likes: Int, comments: Int, engQueryId: Int, postId: String, postLink: String, shares: Int)
 
 // twitter page

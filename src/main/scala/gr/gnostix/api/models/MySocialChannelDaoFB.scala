@@ -19,7 +19,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getFbDemographics = GetResult(r => FacebookDemographics(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getFbStats = GetResult(r => FacebookStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
-  implicit val getFbComment = GetResult(r => FacebookComment(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getFbComment = GetResult(r => FacebookComment(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getFbPost = GetResult(r => FacebookPost(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
@@ -417,22 +417,22 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
     val sqlEngAccount = engId match {
       case Some(x) =>
         s"""
-         select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
+         select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
            from ENG_FB_WALL_COMMENTS
             where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
                       (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1  and id = ${x}   ))
               and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
+          group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
           order by comment_date asc
          """
       case None =>
         s"""
-        select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
+        select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
            from ENG_FB_WALL_COMMENTS
             where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
                       (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
               and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id
+          group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
           order by comment_date asc
          """
     }
