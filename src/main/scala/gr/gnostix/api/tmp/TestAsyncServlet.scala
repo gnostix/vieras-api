@@ -12,6 +12,7 @@ import org.scalatra.{CorsSupport, FutureSupport, ScalatraServlet}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
+import scala.language.postfixOps
 
 case class TestAsyncServlet(system: ActorSystem, myActor: ActorRef) extends ScalatraServlet
 with JacksonJsonSupport
@@ -29,6 +30,7 @@ with FutureSupport {
   //val db: Database
 
   implicit val timeout = new Timeout(2 seconds)
+  
   protected implicit def executor: ExecutionContext = system.dispatcher
 
   before() {

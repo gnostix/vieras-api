@@ -273,7 +273,6 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
     val grouBydate = DateUtils.sqlGrouByDate(numDays)
 
-    // ADD THE RIGHT SQL QUERY HERE !!!!!!!
     val sql = s"""
        SELECT max(subscribers), max(total_views), max(video_views), max(likes), max(dislikes), max(favorites),
         trunc(ffsl_date,'${grouBydate}') FROM ENG_YT_STATS t
