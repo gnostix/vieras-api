@@ -5,6 +5,7 @@ import gr.gnostix.api.utilities.{DateUtils, SqlUtils}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Promise, Future, ExecutionContext}
 import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 
@@ -14,10 +15,10 @@ import scala.slick.jdbc.GetResult
 
 object MySocialChannelDaoYt extends DatabaseAccessSupport {
   implicit val getYtLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
-  implicit val getYoutubeStats = GetResult(r => YoutubeStats(r.<<, r.<<, r.<<,r.<<, r.<<, r.<<, r.<<))
+  implicit val getYoutubeStats = GetResult(r => YoutubeStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getYoutubeVideoStats = GetResult(r => YoutubeVideoStats(r.<<, r.<<, r.<<, r.<<))
-  implicit val getYoutubeVideoData = GetResult(r => YoutubeVideoData(r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<, r.<<))
-  implicit val getYoutubeLineData = GetResult(r => YoutubeLineData(r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<))
+  implicit val getYoutubeVideoData = GetResult(r => YoutubeVideoData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getYoutubeLineData = GetResult(r => YoutubeLineData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -58,7 +59,6 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
   }
 
 
-
   // get raw data
   def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
     val mySqlDynamic = buildQueryData(fromDate, toDate, profileId, engId)
@@ -71,8 +71,6 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
     prom.future
   }
-
-
 
 
   private def getStats(sql: String): Option[ApiData] = {
@@ -101,6 +99,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     }
 
   }
+
 
   private def getVideoStats(sql: String): Option[ApiData] = {
 
@@ -170,7 +169,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
       if (myData.size > 0) {
         logger.info(" -------------> we have video stats ")
-        Some(ApiData("video_data", myData))
+        Some(ApiData("video_data", dataMinus(myData) ))
       } else {
         logger.info(" -------------> nodata ")
         Some(ApiData("nodata", None))
@@ -184,9 +183,45 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
   }
 
-  def fixLineData(dt: List[YoutubeLineData]): List[YoutubeLineData] = {
-    dt
+  //case class YoutubeLineData(subscribers: Int, totalViews: Int, videoViews: Int, likes: Int, dislikes: Int, favorites: Int, created: Timestamp)
+
+  /**
+   * this a helper function to minus from a list the previous with the current class/tuple
+   * @param li
+   * @return
+   */
+  def dataMinus(li: List[YoutubeLineData]): List[YoutubeLineData] = {
+    val buf = new ListBuffer[YoutubeLineData]
+
+    @annotation.tailrec
+    def go(li: List[YoutubeLineData]): List[YoutubeLineData] = {
+      li match {
+        case Nil => Nil
+        case x :: Nil => List(buf.toList: _*)
+        case x :: y :: Nil => buf += YoutubeLineData(
+          y.subscribers - x.subscribers,
+          y.totalViews - x.totalViews,
+          y.videoViews - x.videoViews,
+          y.likes - x.likes,
+          y.dislikes - x.dislikes,
+          y.favorites - x.favorites,
+          y.created);
+          go(y :: Nil)
+        case x :: y :: xs => buf += YoutubeLineData(
+          y.subscribers - x.subscribers,
+          y.totalViews - x.totalViews,
+          y.videoViews - x.videoViews,
+          y.likes - x.likes,
+          y.dislikes - x.dislikes,
+          y.favorites - x.favorites,
+          y.created);
+          go(y :: xs)
+      }
+    }
+
+    go(li)
   }
+
 
   private def buildQueryData(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
 
@@ -221,8 +256,6 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
   }
 
 
-
-
   private def buildQueryLine(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
@@ -248,14 +281,12 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
             and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
             and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and trunc(ffsl_date,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
            group by trunc(ffsl_date,'${grouBydate}')
            order by trunc(ffsl_date,'${grouBydate}')asc
       """
     logger.info("------------>" + sql)
     sql
   }
-
 
 
   private def buildQueryVideoStats(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
