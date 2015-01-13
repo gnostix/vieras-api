@@ -2,7 +2,7 @@
 package gr.gnostix.api.models
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
-import gr.gnostix.api.utilities.{DateUtils, SqlUtils}
+import gr.gnostix.api.utilities.{HelperFunctions, DateUtils, SqlUtils}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -39,10 +39,10 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
   }
 
   def getReviewStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,
-                     datasourceId: Option[Int]): Future[Option[ApiData]] = {
+                     datasourceId: Option[Int]): Future[Option[List[ApiData]]] = {
     val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, datasourceId)
     //bring the actual data
-    val prom = Promise[Option[ApiData]]()
+    val prom = Promise[Option[List[ApiData]]]()
 
     Future {
       prom.success(getDataStats(mySqlDynamic))
@@ -75,7 +75,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
   }
 
 
-  private def getDataStats(sql: String): Option[ApiData] = {
+  private def getDataStats(sql: String): Option[List[ApiData]] = {
 
     try {
       var myData = List[HotelReviewStats]()
@@ -88,20 +88,31 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
 
       if (myData.size > 0) {
         logger.info(" -------------> we have hotel stats ")
+
+        // top boxes stats
         val stats = Map("score" -> myData.head.datasourceHotelRating,
                         "outOf" -> myData.head.maxHotelScore,
                         "reviewsNum" -> myData.size,
                         "positive" -> myData.filter(x => x.vierasReviewRating >= 8).size,
                         "negative" -> myData.filter(x => x.vierasReviewRating <= 4).size)
 
-       /* val stayType = myData.groupBy(x => x.stayType).map{
-          case a, s => (a, s._2.)
-        }*/
-        Some(ApiData("stats", stats))
+        // stay type graph
+        val stayType = myData.groupBy(_.stayType).map{
+          case (name, tuple) => (name -> tuple.size)
+        }.toMap
+
+        // geographic data
+        val countries = myData.groupBy(_.country).map{
+          case(x, y) => (x -> y.size)
+        }.toList.sortBy(_._2).toMap
+
+        Some(List(ApiData("stats", stats), ApiData("countries",countries), ApiData("stayType", stayType)))
+
       } else {
         logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
+        Some(List(ApiData("nodata", None)))
       }
+
     } catch {
       case e: Exception => {
         e.printStackTrace()

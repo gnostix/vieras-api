@@ -3,6 +3,7 @@ package gr.gnostix.api.servlets
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.{ErrorDataResponse, ApiMessages, ApiData, MySocialChannelHotelDao}
+import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
@@ -56,7 +57,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield f2(Some(a1.get))
+          } yield HelperFunctions.f3(Some(a1.get))
       }
 
     } catch {
@@ -90,7 +91,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield f2(Some(a1.get))
+          } yield HelperFunctions.f3(Some(a1.get))
       }
 
     } catch {
