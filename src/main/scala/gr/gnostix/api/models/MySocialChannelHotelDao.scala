@@ -19,6 +19,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
   implicit val getLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getReviewStats = GetResult(r => HotelReviewStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getRatingStats = GetResult(r => HotelRatingStats(r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -50,6 +51,18 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
     prom.future
   }
 
+  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,
+                           datasourceId: Option[Int]): Future[Option[List[ApiData]]] = {
+    val mySqlDynamic = buildQueryRatingStats(fromDate, toDate, profileId, datasourceId)
+    //bring the actual data
+    val prom = Promise[Option[List[ApiData]]]()
+
+    Future {
+      prom.success(getDataRatingStats(mySqlDynamic))
+    }
+    prom.future
+  }
+
 
   def getDataCountsFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, datasourceId: Option[Int]): Future[Option[SocialData]] = {
     val mySqlDynamic = buildQuery(fromDate, toDate, profileId, dataType, datasourceId)
@@ -74,6 +87,140 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
     prom.future
   }
 
+  private def getDataRatingStats(sql: String): Option[List[ApiData]] = {
+    try {
+      var myData = List[HotelRatingStats]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my hotel rating stats ------------->" + sql)
+          val records = Q.queryNA[HotelRatingStats](sql)
+          myData = records.list()
+      }
+
+      if (myData.size > 0) {
+        logger.info(" -------------> we have hotel rating stats ")
+
+        val (neg, pos) = getTopMinusMaxReviews(myData)
+
+        val negative_tips = neg.map(x => s""" ${x.numMsg} reviews mentioned negative your hotel ${x.service_name}""")
+        val positive_tips = pos.map(x => s"""Based on ${x.numMsg} reviews, yout hotel ${x.service_name} is mentioned positively""")
+
+        val tips = Map("positive_tips" -> positive_tips, "negative_tips" -> negative_tips)
+        // geographic data
+        val value = myData.filter(x => x.ratingName.equalsIgnoreCase("value")).groupBy(_.ratingValue)
+          .map {
+          case (a, s) => (a -> s.size)
+        }.toList
+
+
+        val staff = myData.groupBy(_.ratingName).filter(_._1 contains "staff")
+        val room = myData.groupBy(_.ratingName).filter(_._1 contains "room")
+        val cleanliness = myData.groupBy(_.ratingName).filter(_._1 contains "cleanliness")
+        val sleep = myData.groupBy(_.ratingName).filter(_._1 contains "sleep")
+        val location = myData.groupBy(_.ratingName).filter(_._1 contains "location")
+
+        val ratingTips = Map("value" -> value, "staff" -> staff, "room" -> room, "cleanliness" -> cleanliness, "sleep" -> sleep, "location" -> location)
+
+        val servicesStats = getServicesAverageRating(myData)
+
+        Some(List(ApiData("servicesStats", servicesStats), ApiData("tips", tips), ApiData("rating_tips", ratingTips)))
+
+      } else {
+        logger.info(" -------------> nodata ")
+        Some(List(ApiData("nodata", None)))
+      }
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+  }
+
+  /**
+   * returns for the services in this map the average score
+   * @param li
+   * @return
+   */
+  private def getServicesAverageRating(li: List[HotelRatingStats]): Map[String, Int] = {
+
+    li.groupBy(_.ratingName).map{
+      case (x,y)=> (x, y.map(_.ratingValue).sum / y.size)
+    }
+  }
+
+
+  private def getTopMinusMaxReviews(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
+    //k.filter(x => x.name.equals("sleep"))
+    val sleep = li.filter(x => x.ratingName.equalsIgnoreCase("sleep")).groupBy(_.ratingValue).map {
+      case (x, y) => RevStat(y.head.ratingName, x, y.size)
+    }.toList
+
+    val sleep1 = sleep.sortBy(x => x.score) match {
+      case Nil => Nil
+      case (h :: Nil) => List(h)
+      case (h :: t) => List(h, t.reverse.head)
+    }
+
+    val room = li.filter(x => x.ratingName.equalsIgnoreCase("room")).groupBy(_.ratingValue).map {
+      case (x, y) => RevStat(y.head.ratingName, x, y.size)
+    }.toList
+
+    val room1 = room.sortBy(x => x.score) match {
+      case Nil => Nil
+      case (h :: Nil) => List(h)
+      case (h :: t) => List(h, t.reverse.head)
+    }
+
+    val clean = li.filter(x => x.ratingName.equalsIgnoreCase("clean")).groupBy(_.ratingValue).map {
+      case (x, y) => RevStat(y.head.ratingName, x, y.size)
+    }.toList
+
+    val clean1 = clean.sortBy(x => x.score) match {
+      case Nil => Nil
+      case (h :: Nil) => List(h)
+      case (h :: t) => List(h, t.reverse.head)
+    }
+
+    val value = li.filter(x => x.ratingName.equalsIgnoreCase("value")).groupBy(_.ratingValue).map {
+      case (x, y) => RevStat(y.head.ratingName, x, y.size)
+    }.toList
+
+    val value1 = value.sortBy(x => x.score) match {
+      case Nil => Nil
+      case (h :: Nil) => List(h)
+      case (h :: t) => List(h, t.reverse.head)
+    }
+
+    val location = li.filter(x => x.ratingName.equalsIgnoreCase("location")).groupBy(_.ratingValue).map {
+      case (x, y) => RevStat(y.head.ratingName, x, y.size)
+    }.toList
+
+    val location1 = location.sortBy(x => x.score) match {
+      case Nil => Nil
+      case (h :: Nil) => List(h)
+      case (h :: t) => List(h, t.reverse.head)
+    }
+
+    val staff = li.filter(x => x.ratingName.equalsIgnoreCase("staff")).groupBy(_.ratingValue).map {
+      case (x, y) => RevStat(y.head.ratingName, x, y.size)
+    }.toList
+
+    val staff1 = staff.sortBy(x => x.score) match {
+      case Nil => Nil
+      case (h :: Nil) => List(h)
+      case (h :: t) => List(h, t.reverse.head)
+    }
+
+    val aa1 = List(sleep1, room1, clean1, value1, location1, staff1).flatMap(x => x).sortBy(r => (r.score, r.numMsg))
+    val neg = aa1.take(3).toList
+    val pos = aa1.reverse.take(2).toList
+
+
+    (neg, pos)
+  }
+
 
   private def getDataStats(sql: String): Option[List[ApiData]] = {
 
@@ -91,22 +238,30 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
 
         // top boxes stats
         val stats = Map("score" -> myData.head.datasourceHotelRating,
-                        "outOf" -> myData.head.maxHotelScore,
-                        "reviewsNum" -> myData.size,
-                        "positive" -> myData.filter(x => x.vierasReviewRating >= 8).size,
-                        "negative" -> myData.filter(x => x.vierasReviewRating <= 4).size)
+          "outOf" -> myData.head.maxHotelScore,
+          "reviewsNum" -> myData.size,
+          "positive" -> myData.filter(x => x.vierasReviewRating >= 8).size,
+          "negative" -> myData.filter(x => x.vierasReviewRating <= 4).size)
 
         // stay type graph
-        val stayType = myData.groupBy(_.stayType).map{
-          case (name, tuple) => (name -> tuple.size)
-        }.toMap
+        /*        val stayType = myData.groupBy(_.stayType).map{
+                  case (name, tuple) => (name -> tuple.size)
+                }.toMap*/
+
+        val stayType = Map("couple" -> myData.filter(x => x.stayType.toLowerCase.contains("couple")
+          || x.stayType.toLowerCase.contains("partner")).size, //add also partner
+          "friend" -> myData.filter(_.stayType.toLowerCase.contains("friend")).size,
+          "business" -> myData.filter(_.stayType.toLowerCase.contains("business")).size,
+          "family" -> myData.filter(_.stayType.toLowerCase.contains("famil")).size,
+          "solo" -> myData.filter(x => x.stayType.toLowerCase.contains("solo")
+            || x.stayType.toLowerCase.contains("person")).size)
 
         // geographic data
-        val countries = myData.groupBy(_.country).map{
-          case(x, y) => (x -> y.size)
+        val countries = myData.groupBy(_.country).map {
+          case (x, y) => (x -> y.size)
         }.toList.sortBy(_._2).toMap
 
-        Some(List(ApiData("stats", stats), ApiData("countries",countries), ApiData("stayType", stayType)))
+        Some(List(ApiData("stats", stats), ApiData("countries", countries), ApiData("stayType", stayType)))
 
       } else {
         logger.info(" -------------> nodata ")
@@ -193,6 +348,42 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
               and r.REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and r.FK_HOTEL_ID = h.HOTEL_ID
+         """
+    }
+
+
+    //logger.info("------------->" + sql + "-----------")
+
+    sql
+  }
+
+  private def buildQueryRatingStats(fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Option[Int]): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+
+    val sql = datasourceId match {
+      case Some(x) =>
+        s"""
+            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from ENG_HOTEL_REVIEWS r, eng_hotel_rating hr
+              where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x}  )
+                and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                and r.REVIEW_ID = hr.FK_PID
+                and hr.VIERAS_RATING_NAME is not null
+        """
+      case None =>
+        // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
+        s"""
+            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from ENG_HOTEL_REVIEWS r, eng_hotel_rating hr
+              where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId}  )
+                and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                and r.REVIEW_ID = hr.FK_PID
+                and hr.VIERAS_RATING_NAME is not null
          """
     }
 

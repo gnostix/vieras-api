@@ -120,6 +120,75 @@ with FutureSupport {
 
   }
 
+
+  // get all data for youtube for one profile datatype
+  get("/profile/:profileId/ratingtips/:fromDate/:toDate") {
+    logger.info(s"----> get stats  one account " +
+      s"  /api/user/socialchannels/dashboard/hotel/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+
+      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, profileId, None)
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawDataStats
+          } yield HelperFunctions.f3(Some(a1.get))
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+  // get all data for youtube for one profile datatype
+  get("/profile/:profileId/ratingtips/datasourceid/:dsid/:fromDate/:toDate") {
+    logger.info(s"----> get stats  one account " +
+      s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val dsId = params("dsid").toInt
+
+      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, profileId, Some(dsId))
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawDataStats
+          } yield HelperFunctions.f3(Some(a1.get))
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+
 }
 
 case class HospitalityDashboardServlet(executor: ExecutionContext) extends GnostixAPIStack with HospitalityDashboardServletRoutes
