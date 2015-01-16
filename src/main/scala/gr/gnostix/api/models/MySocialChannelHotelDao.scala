@@ -123,7 +123,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
 
         val servicesStats = getServicesAverageRating(myData)
 
-        Some(List(ApiData("servicesStats", servicesStats), ApiData("tips", tips), ApiData("rating_tips", ratingTips)))
+        Some(List(ApiData("servicesStats", servicesStats), ApiData("tips", tips), ApiData("rating_tips_data_test", ratingTips)))
 
       } else {
         logger.info(" -------------> nodata ")
@@ -185,7 +185,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
     (neg, pos)
   }
 
-  @deprecated
+  @deprecated("is deprecated for cleaniless reasons", "since 16/01/2015")
   private def getTopMinusMaxReviews1(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
     //k.filter(x => x.name.equals("sleep"))
     val sleep = li.filter(x => x.ratingName.equalsIgnoreCase("sleep")).groupBy(_.ratingValue).map {
