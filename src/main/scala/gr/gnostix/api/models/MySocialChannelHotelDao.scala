@@ -178,8 +178,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
       }
     }.toList.flatten.sortBy(n => (n.score, n.numMsg))
 
-    val neg = massagedData.take(3).toList
-    val pos = massagedData.reverse.take(2).toList
+    val neg = massagedData.take(5).toList
+    val pos = massagedData.reverse.take(5).toList
 
 
     (neg, pos)
