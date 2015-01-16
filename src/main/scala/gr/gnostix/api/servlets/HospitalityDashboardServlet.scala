@@ -122,7 +122,7 @@ with FutureSupport {
 
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/ratingtips/:fromDate/:toDate") {
+  get("/profile/:profileId/services/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/hotel/*  ")
     try {
@@ -155,7 +155,7 @@ with FutureSupport {
   }
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/ratingtips/datasourceid/:dsid/:fromDate/:toDate") {
+  get("/profile/:profileId/services/datasourceid/:dsid/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
     try {

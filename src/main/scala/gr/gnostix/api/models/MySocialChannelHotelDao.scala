@@ -166,7 +166,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
   HotelRatingStats("room", 10), HotelRatingStats("sleep", 4), HotelRatingStats("staff", 6),
   HotelRatingStats("location", 10), HotelRatingStats("staff", 8), HotelRatingStats("sleep", 8))*/
 
-    val massageddata =
+    val massagedData =
       li.groupBy(_.ratingName).map {
       case (x, y) => (x, y.groupBy(_.ratingValue).map {
         case (a, s) => RevStat(s.head.ratingName, a, s.size)
@@ -178,13 +178,14 @@ object MySocialChannelHotelDao extends DatabaseAccessSupport {
       }
     }.toList.flatten.sortBy(n => (n.score, n.numMsg))
 
-    val neg = massageddata.take(3).toList
-    val pos = massageddata.reverse.take(2).toList
+    val neg = massagedData.take(3).toList
+    val pos = massagedData.reverse.take(2).toList
 
 
     (neg, pos)
   }
 
+  @deprecated
   private def getTopMinusMaxReviews1(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
     //k.filter(x => x.name.equals("sleep"))
     val sleep = li.filter(x => x.ratingName.equalsIgnoreCase("sleep")).groupBy(_.ratingValue).map {
