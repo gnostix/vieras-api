@@ -1,6 +1,7 @@
 package gr.gnostix.api.db.plainsql
 
 import com.mchange.v2.c3p0.ComboPooledDataSource
+
 import scala.slick.jdbc.JdbcBackend._
 
 /**

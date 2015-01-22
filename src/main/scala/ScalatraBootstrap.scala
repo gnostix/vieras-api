@@ -1,8 +1,9 @@
+import javax.servlet.ServletContext
+
 import _root_.akka.actor.{ActorSystem, Props}
 import gr.gnostix.api.servlets._
-import gr.gnostix.api.tmp.{GnxActor, DatafindingsDataServlet}
+import gr.gnostix.api.tmp.{DatafindingsDataServlet, GnxActor}
 import org.scalatra._
-import javax.servlet.ServletContext
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext

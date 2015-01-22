@@ -2,7 +2,8 @@ package gr.gnostix.api.tmp
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models._
+import gr.gnostix.api.models.plainModels.{DataResponse, SocialData}
+import gr.gnostix.api.models.publicSearch._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}

@@ -2,15 +2,15 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models._
+import gr.gnostix.api.models.oraDao.GeoLocationDao
+import gr.gnostix.api.models.plainModels.{ApiMessages, CountriesLine, ErrorDataResponse}
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 
-import scala.concurrent.{Future, ExecutionContext}
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
 
 /**
  * Created by rebel on 27/11/14.

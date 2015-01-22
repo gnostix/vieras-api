@@ -1,6 +1,6 @@
 package gr.gnostix.api.utilities
 
-import org.joda.time.{Days, DateTime}
+import org.joda.time.{DateTime, Days}
 import org.slf4j.LoggerFactory
 
 

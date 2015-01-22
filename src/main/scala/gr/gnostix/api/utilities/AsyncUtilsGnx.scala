@@ -1,10 +1,4 @@
 package gr.gnostix.api.utilities
-
-import gr.gnostix.api.models.{SocialData, DatafindingsSentimentLineDao, SentimentLine}
-import org.joda.time.DateTime
-import akka.actor.ActorSystem
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.{Failure, Success, Try}
 /**
  * Created by rebel on 23/7/14.
  */

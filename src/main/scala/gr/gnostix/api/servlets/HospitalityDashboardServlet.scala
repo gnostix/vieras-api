@@ -2,13 +2,14 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.{ErrorDataResponse, ApiMessages, ApiData, MySocialChannelHotelDao}
+import gr.gnostix.api.models.oraDao.MySocialChannelHotelDao
+import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, ErrorDataResponse}
 import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{FutureSupport, AsyncResult, CorsSupport, ScalatraServlet}
 import org.scalatra.json.JacksonJsonSupport
+import org.scalatra.{AsyncResult, CorsSupport, FutureSupport, ScalatraServlet}
 
 import scala.concurrent.ExecutionContext
 

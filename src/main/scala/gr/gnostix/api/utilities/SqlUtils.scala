@@ -1,8 +1,5 @@
 package gr.gnostix.api.utilities
 
-import gr.gnostix.api.models.SocialData
-import org.joda.time.DateTime
-
 /**
  * Created by rebel on 16/6/14.
  */

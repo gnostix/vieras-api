@@ -2,7 +2,8 @@ package gr.gnostix.api.tmp
 
 import _root_.akka.actor.ActorSystem
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models._
+import gr.gnostix.api.models.plainModels.{DataResponse, SentimentLine, SocialData}
+import gr.gnostix.api.models.publicSearch.FutureSentimentDao
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}

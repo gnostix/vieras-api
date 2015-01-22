@@ -1,7 +1,7 @@
 package gr.gnostix.api.tmp
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
-import gr.gnostix.api.models.{DataFacebookGraph, SocialData}
+import gr.gnostix.api.models.plainModels.{DataFacebookGraph, SocialData}
 import gr.gnostix.api.utilities.{DateUtils, SqlUtils}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}

@@ -1,15 +1,12 @@
 package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
-import org.scalatra.{CorsSupport, ScalatraServlet}
-import org.scalatra.json.JacksonJsonSupport
 import gr.gnostix.api.auth.AuthenticationSupport
+import gr.gnostix.api.models.plainModels.DataResponse
+import gr.gnostix.api.models.publicSearch.DatafindingsSecondLevelDataDAO
 import org.json4s.{DefaultFormats, Formats}
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
-import gr.gnostix.api.models._
-import gr.gnostix.api.models.DataResponse
-import gr.gnostix.api.models.AllDataResponse
+import org.scalatra.json.JacksonJsonSupport
+import org.scalatra.{CorsSupport, ScalatraServlet}
 
 trait RestDatafindingsSecondLevelDataRoutes extends ScalatraServlet
 with JacksonJsonSupport

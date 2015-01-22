@@ -1,10 +1,11 @@
 package gr.gnostix.api.auth.strategies
 
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
+import gr.gnostix.api.models.oraDao.{User, UserDao}
 import org.scalatra.ScalatraBase
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.scalatra.auth.ScentryStrategy
 import org.slf4j.LoggerFactory
-import gr.gnostix.api.models.{UserDao, User}
 
 class UserPasswordStrategy(protected val app: ScalatraBase)
                           (implicit request: HttpServletRequest, response: HttpServletResponse)

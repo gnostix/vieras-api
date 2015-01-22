@@ -4,7 +4,7 @@ import com.restfb.Connection;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
 import com.restfb.types.Page;
-import gr.gnostix.api.models.FacebookPage;
+import gr.gnostix.api.models.plainModels.FacebookPage;
 
 import java.util.ArrayList;
 import java.util.List;

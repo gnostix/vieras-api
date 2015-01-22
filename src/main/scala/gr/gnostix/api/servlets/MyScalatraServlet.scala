@@ -1,11 +1,11 @@
 package gr.gnostix.api.servlets
 
-import gr.gnostix.api.auth.AuthenticationSupport
-import org.scalatra._
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.json._
 import gr.gnostix.api.GnostixAPIStack
-import gr.gnostix.api.models._
+import gr.gnostix.api.auth.AuthenticationSupport
+import gr.gnostix.api.models.plainModels.AllDataResponse
+import org.json4s.{DefaultFormats, Formats}
+import org.scalatra._
+import org.scalatra.json._
 
 
 trait RestApiRoutes extends ScalatraServlet

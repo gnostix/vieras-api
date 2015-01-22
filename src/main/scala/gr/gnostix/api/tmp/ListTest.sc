@@ -1,4 +1,4 @@
-import gr.gnostix.api.models.{SentimentLine, DataLineGraph, SocialDataSum}
+
 
 val k1 = List(("positive", 23), ("negative", 56), ("neutral", 89))
 val k2 = List(("positive", 123), ("negative", 156), ("neutral", 189))

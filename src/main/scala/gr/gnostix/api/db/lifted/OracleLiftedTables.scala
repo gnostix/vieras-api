@@ -1,21 +1,19 @@
 package gr.gnostix.api.db.lifted
 
-import java.sql.{Clob, Timestamp}
+import java.sql.Clob
 
 import gr.gnostix.api.db.plainsql.DatabaseAccess
-import oracle.sql.TIMESTAMP
-import org.joda.time.DateTime
-
-import scala.slick.ast.ColumnOption.AutoInc
 
 /**
  * Created by rebel on 12/5/14.
  */
 object OracleLiftedTables {
 
-  import scala.slick.lifted.TableQuery
-  import com.typesafe.slick.driver.oracle.OracleDriver.simple._
   import java.sql.Date
+
+import com.typesafe.slick.driver.oracle.OracleDriver.simple._
+
+import scala.slick.lifted.TableQuery
 
 
   class DSGroups(tag: Tag) extends Table[(Int, String)](tag, "DS_GROUPS") {

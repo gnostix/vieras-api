@@ -2,13 +2,15 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.SocialAccountsHotelDao.SocialAccountsQueriesDao
-import gr.gnostix.api.models._
+import gr.gnostix.api.models.oraDao.SocialAccountsHotelDao.SocialAccountsQueriesDao
+import gr.gnostix.api.models.oraDao._
+import gr.gnostix.api.models.plainModels._
+import gr.gnostix.api.models.publicSearch.{Keyword, KeywordDao, Topic, TopicDao}
 import gr.gnostix.api.utilities.{FbExtendedToken, TwOauth}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
-import twitter4j.auth.{RequestToken, AccessToken}
+import twitter4j.auth.AccessToken
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer

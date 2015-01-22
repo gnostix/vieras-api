@@ -1,6 +1,6 @@
 package gr.gnostix.api.utilities
 
-import gr.gnostix.api.models.{ErrorDataResponse, ApiMessages, ApiData}
+import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, ErrorDataResponse}
 
 /**
  * Created by rebel on 13/1/15.
