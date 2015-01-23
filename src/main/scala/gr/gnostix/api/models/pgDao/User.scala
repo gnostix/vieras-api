@@ -39,10 +39,12 @@ object UserDao extends DatabaseAccessSupport{
   def findById(userId: Int) = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[User](s"""select USER_ID, USERNAME, PASSWORD, USERLEVEL, USER_FIRSTNAME, USER_LASTNAME, REGISTRATION_DATE,
-          EMAIL, STREET_ADDRESS, STREET_NO, POSTAL_CODE, CITY,COMPANY, LANGUAGE, EXPIRATION_DATE,
-          TOTAL_COUNTS, TOTAL_KEYWORDS, ENABLED, SENT_EMAIL, TOTAL_PROFILES, TOTAL_FB_FAN_PAGES,
-          TOTAL_TWITTER_ACCOUNTS,TOTAL_TOPIC_PROFILES, TOTAL_YOUTUBE_ACCOUNTS, TOTAL_HOTELS from USERS where USER_ID = $userId""")
+        val records = Q.queryNA[User](s"""
+          select ID, USERNAME, PASSWORD, USERLEVEL, USER_FIRSTNAME, USER_LASTNAME, REGISTRATION_DATE, EMAIL, STREET_ADDRESS,
+            STREET_NO, POSTAL_CODE, CITY,COMPANY, LANGUAGE, EXPIRATION_DATE,  TOTAL_COUNTS, TOTAL_KEYWORDS, ENABLED, EMAIL,
+            TOTAL_PROFILES, total_topic_profiles,   total_social_account, TOTAL_HOTELS
+          from vieras.USERS where ID =  $userId
+          """)
         records.first
     }
   }
@@ -50,10 +52,13 @@ object UserDao extends DatabaseAccessSupport{
   def findByUsername(username: String): Option[User] = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[User](s"""select USER_ID, USERNAME, PASSWORD, USERLEVEL, USER_FIRSTNAME, USER_LASTNAME, REGISTRATION_DATE,
-          EMAIL, STREET_ADDRESS, STREET_NO, POSTAL_CODE, CITY,COMPANY, LANGUAGE, EXPIRATION_DATE,
-          TOTAL_COUNTS, TOTAL_KEYWORDS, ENABLED, SENT_EMAIL, TOTAL_PROFILES, TOTAL_FB_FAN_PAGES,
-          TOTAL_TWITTER_ACCOUNTS,TOTAL_TOPIC_PROFILES, TOTAL_YOUTUBE_ACCOUNTS, TOTAL_HOTELS from USERS where username = '$username' """)
+        val records = Q.queryNA[User](s"""
+          select ID, USERNAME, PASSWORD, USERLEVEL, USER_FIRSTNAME, USER_LASTNAME, REGISTRATION_DATE,
+            EMAIL, STREET_ADDRESS, STREET_NO, POSTAL_CODE, CITY,COMPANY, LANGUAGE, EXPIRATION_DATE,
+            TOTAL_COUNTS, TOTAL_KEYWORDS, ENABLED, EMAIL, TOTAL_PROFILES, total_topic_profiles,
+            total_social_account, TOTAL_HOTELS
+          from vieras.USERS where username = '$username'
+          """)
         if (records.list.size == 0) None else Some(records.first)
     }
 

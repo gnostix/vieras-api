@@ -70,14 +70,15 @@ object GeoLocationDao extends DatabaseAccessSupport {
 
     val sql =
       s"""
-      SELECT * FROM (
-        select VIERAS_COUNTRY, COUNT(*) from ENG_HOTEL_REVIEWS
-          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID =${profileId})
-            and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        SELECT * FROM (
+        select VIERAS_COUNTRY, COUNT(*) from vieras.ENG_REVIEWS
+          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS
+          WHERE FK_PROFILE_ID = ${profileId} )
+            and CREATED between
+            to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss') and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
         Group by VIERAS_COUNTRY
         order by COUNT(*) DEsc) RESULT
-        WHERE ROWNUM <=10
+         LIMIT 9
        """
 
     sql
@@ -92,15 +93,15 @@ object GeoLocationDao extends DatabaseAccessSupport {
 
     val sql =
       s"""
-        SELECT * FROM (
-        select VIERAS_COUNTRY, COUNT(*) from ENG_HOTEL_REVIEWS
-          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS
-              WHERE  FK_DATASOURCE_ID=${datasourceId} and fk_profile_id=${profileId} )
-            and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+      SELECT * FROM (
+        select VIERAS_COUNTRY, COUNT(*) from vieras.ENG_REVIEWS
+          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS
+          WHERE FK_DATASOURCE_ID=${datasourceId} and FK_PROFILE_ID = ${profileId} )
+            and CREATED between
+            to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss') and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
         Group by VIERAS_COUNTRY
         order by COUNT(*) DEsc) RESULT
-        WHERE ROWNUM <=10
+         LIMIT 9
        """
 
     sql
@@ -116,14 +117,14 @@ object GeoLocationDao extends DatabaseAccessSupport {
     val sql =
       s"""
         SELECT * FROM (
-        select VIERAS_COUNTRY, COUNT(*) from ENG_HOTEL_REVIEWS
-          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS
-              WHERE  ID=${credId} and fk_profile_id=${profileId} )
-            and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        select VIERAS_COUNTRY, COUNT(*) from vieras.ENG_REVIEWS
+          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS
+          WHERE ID=${credId} and FK_PROFILE_ID = ${profileId} )
+            and CREATED between
+            to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss') and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
         Group by VIERAS_COUNTRY
         order by COUNT(*) DEsc) RESULT
-        WHERE ROWNUM <=10
+         LIMIT 10
        """
 
     sql

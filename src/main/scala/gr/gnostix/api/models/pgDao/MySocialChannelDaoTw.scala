@@ -230,8 +230,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val sqlEngAccount = engId match {
       case Some(x) => x + " )"
-      case None => "select s.id from eng_profile_social_credentials s where s.fk_profile_id in (" +
-        " select profile_id from profiles where profile_id = " + profileId + ") and s.fk_datasource_id = 2)"
+      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 2)"
     }
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)

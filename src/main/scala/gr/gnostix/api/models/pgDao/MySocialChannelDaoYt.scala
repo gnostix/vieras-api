@@ -230,8 +230,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val sqlEngAccount = engId match {
       case Some(x) => x + " )"
-      case None => "select s.id from eng_profile_social_credentials s where s.fk_profile_id in (" +
-        " select profile_id from profiles where profile_id = " + profileId + ") and s.fk_datasource_id = 9)"
+      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 9)"
     }
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -242,12 +241,13 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
     // ADD THE RIGHT SQL QUERY HERE !!!!!!!
     val sql = s"""
-         select t.y_title, t.Y_PLAYER_URL, t.Y_THUMBNAILS, t.Y_FAVORITE_COUNT, t.Y_VIEW_COUNT,t.Y_DISLIKE_COUNT, t.Y_LIKE_COUNT, t.Y_SUM_TEXT
-          from ENG_YT_WALL t
-           where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q where  q.attr = 'YT_USER_WALL'
-             and fk_profile_social_eng_id in ( $sqlEngAccount )
-                and m_sysdate between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        order by m_sysdate asc
+    select t.title, t.PLAYER_URL, t.THUMBNAILS, t.FAVORITE_COUNT, t.VIEW_COUNT,t.DISLIKE_COUNT, t.LIKE_COUNT, t.SUM_TEXT
+      from vieras.ENG_YT_WALL t
+        where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where  q.attr = 'YT_USER_WALL'
+          and fk_profile_social_eng_id in ( $sqlEngAccount )
+           and created::timestamp between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+		       and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        order by created asc
       """
     logger.info("------------>" + sql)
     sql
@@ -261,8 +261,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
 
     val sqlEngAccount = engId match {
       case Some(x) => x + " )"
-      case None => "select s.id from eng_profile_social_credentials s where s.fk_profile_id in (" +
-        " select profile_id from profiles where profile_id = " + profileId + ") and s.fk_datasource_id = 9)"
+      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 9)"
     }
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
@@ -297,17 +296,21 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     val sqlEngAccount = engId match {
       case Some(x) =>
         s"""
-         SELECT sum(y_like_count), sum(y_dislike_count), sum(y_favorite_count), sum(y_view_count) FROM ENG_YT_WALL t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_USER_WALL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId}  and id = ${x} ))
-                  and y_published_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+         SELECT sum(like_count), sum(dislike_count), sum(favorite_count), sum(view_count)
+	        FROM vieras.ENG_YT_WALL t
+           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_USER_WALL'
+            and FK_PROFILE_SOCIAL_ENG_ID in (select id from vieras.ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId}  and id = ${x} ))
+            and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+	          and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
          """
       case None =>
         s"""
-         SELECT sum(y_like_count), sum(y_dislike_count), sum(y_favorite_count), sum(y_view_count) FROM ENG_YT_WALL t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_USER_WALL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} ))
-                  and y_published_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+         SELECT sum(like_count), sum(dislike_count), sum(favorite_count), sum(view_count)
+	        FROM vieras.ENG_YT_WALL t
+           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_USER_WALL'
+            and FK_PROFILE_SOCIAL_ENG_ID in (select id from vieras.ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId}  ))
+            and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+	          and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
          """
     }
 
@@ -325,17 +328,19 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     val sqlEngAccount = engId match {
       case Some(x) =>
         s"""
-        SELECT max(subscribers), max(total_views), max(ffsl_date), max(likes), max(dislikes), max(favorites), max(video_views) FROM ENG_YT_STATS t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${engId} and fk_profile_id=${profileId} ))
-                  and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+      SELECT max(subscribers), max(total_views), max(created), max(likes), max(dislikes), max(favorites), max(video_views) FROM vieras.ENG_YT_STATS t
+           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
+            and FK_PROFILE_SOCIAL_ENG_ID in (select id from vieras.ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${engId}  and fk_profile_id=${profileId} ))
+	    and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+	    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
          """
       case None =>
         s"""
-        SELECT max(subscribers) , max(total_views), max(ffsl_date), max(likes), max(dislikes), max(favorites), max(video_views) FROM ENG_YT_STATS t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} ))
-                  and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+      SELECT max(subscribers), max(total_views), max(created), max(likes), max(dislikes), max(favorites), max(video_views) FROM vieras.ENG_YT_STATS t
+           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
+            and FK_PROFILE_SOCIAL_ENG_ID in (select id from vieras.ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} ))
+	    and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+	    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
          """
     }
 

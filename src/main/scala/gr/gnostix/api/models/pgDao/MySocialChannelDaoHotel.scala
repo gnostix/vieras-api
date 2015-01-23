@@ -13,7 +13,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 /**
  * Created by rebel on 21/10/14.
  */
-object MySocialChannelHotelDao extends DatabaseAccessSupport {
+object MySocialChannelDaoHotel extends DatabaseAccessSupport {
   implicit val getLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getReviewStats = GetResult(r => HotelReviewStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))

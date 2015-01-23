@@ -29,10 +29,11 @@ object ProfileDao extends DatabaseAccessSupport {
   def findById(profileId: Int, userId: Int) = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[Profile]( s""" select c.profile_id, c.profile_firstname,
-                     c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
-                              from profiles c
-                            where c.profile_id = $profileId  and c.fk_user_id = $userId """)
+        val records = Q.queryNA[Profile]( s"""
+                select c.id, c.profile_firstname,c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,
+                    c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
+                   from vieras.profiles c  where c.id = $profileId  and c.fk_user_id = $userId
+          """)
         records.list()
 
     }
@@ -41,10 +42,11 @@ object ProfileDao extends DatabaseAccessSupport {
   def getAllProfiles(userId: Int) = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[Profile]( s"""select c.profile_id, c.profile_name,
-                       c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
-                                from profiles c
-                              where  c.fk_user_id = $userId """)
+        val records = Q.queryNA[Profile]( s"""
+          select c.id, c.profile_name,  c.registration_date, c.email,c.userlevel,
+              c.total_counts,c.enabled,c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
+            from vieras.profiles c  where  c.fk_user_id = $userId
+          """)
         records.list
     }
   }
@@ -54,7 +56,7 @@ object ProfileDao extends DatabaseAccessSupport {
       implicit session =>
         try {
           Q.updateNA(
-            s""" update profiles set profile_name = '${profileName}' where profile_id = ${profileId}
+            s""" update vieras.profiles set profile_name = '${profileName}' where id = ${profileId}
                and fk_user_id = $userId """).execute()
           Some(true)
         } catch {
@@ -71,11 +73,15 @@ object ProfileDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         try {
-          Q.u( s""" insert into profiles (profile_id, profile_name, fk_user_id) values (SEQ_PROFILE_ID.nextval, '${profileName}', $userId) """).execute()
+          Q.u(
+            s""" insert into vieras.profiles (profile_name, fk_user_id)
+                  values ('${profileName}', $userId)
+            """).execute()
 
-          val profileId = Q.queryNA[Int]( s""" select * from (
-                                    select c.profile_id from profiles c where c.fk_user_id = $userId order by c.profile_id desc
-                                  ) where rownum = 1 """)
+          val profileId = Q.queryNA[Int]( s""" select * from (  select c.id from vieras.profiles c where
+                                                c.fk_user_id = 2 order by c.id desc) as foo
+                                                limit 1
+                                          """)
           if (profileId.list().size > 0) {
             Some(profileId.first())
           } else {
@@ -96,8 +102,8 @@ object ProfileDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         try {
-          Q.u( s"""delete from profiles c
-                              where  c.fk_user_id = $userId and profile_id = ${profileId}""").execute()
+          Q.u( s"""delete from profiles c  where  c.fk_user_id = $userId and id = ${profileId}
+            """).execute()
           Some(true)
         } catch {
           case e: Exception => {
