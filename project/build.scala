@@ -50,6 +50,8 @@ object ScalatraoraBuild extends Build {
         customJars.classpath
       },
 
+      scalacOptions ++= Seq("-deprecation", "-feature"),
+
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile) { base =>
         Seq(
           TemplateConfig(
