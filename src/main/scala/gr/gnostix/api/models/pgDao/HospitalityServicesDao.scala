@@ -2,6 +2,7 @@ package gr.gnostix.api.models.pgDao
 
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.models.plainModels.{RevStat, HotelRatingStats}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -65,4 +66,46 @@ object HospitalityServicesDao extends DatabaseAccessSupport {
         }
     }
   }
+
+  private def getTopMinusMaxReviews(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
+    /*      ------------ Test data --------------
+    * val li = List(HotelRatingStats("Value", 10), HotelRatingStats("Value", 8),
+  HotelRatingStats("Value", 10), HotelRatingStats("Value", 8), HotelRatingStats("Value", 6),
+  HotelRatingStats("sleep", 6), HotelRatingStats("staff", 6), HotelRatingStats("room", 8),
+  HotelRatingStats("location", 10), HotelRatingStats("room", 4), HotelRatingStats("staff", 6),
+  HotelRatingStats("room", 4), HotelRatingStats("sleep", 8), HotelRatingStats("Value", 10),
+  HotelRatingStats("location", 8), HotelRatingStats("staff", 10), HotelRatingStats("staff", 6),
+  HotelRatingStats("clean", 1), HotelRatingStats("staff", 10), HotelRatingStats("location", 6),
+  HotelRatingStats("staff", 4), HotelRatingStats("sleep", 6), HotelRatingStats("staff", 8),
+  HotelRatingStats("sleep", 6), HotelRatingStats("location", 8), HotelRatingStats("Value", 8),
+  HotelRatingStats("clean", 4), HotelRatingStats("clean", 8), HotelRatingStats("staff", 6),
+  HotelRatingStats("sleep", 8), HotelRatingStats("clean", 1), HotelRatingStats("location", 10),
+  HotelRatingStats("room", 10), HotelRatingStats("sleep", 4), HotelRatingStats("staff", 6),
+  HotelRatingStats("location", 10), HotelRatingStats("staff", 8), HotelRatingStats("sleep", 8))*/
+
+
+    val firstStep = li.
+      groupBy(_.ratingName).map {
+      case (x, y) => (x, y.groupBy(_.ratingValue).map {
+        case (a, s) => RevStat(s.head.ratingName, a, s.size)
+      })
+    }
+
+    val secondStep = firstStep.toStream.map {
+      case (q, w) => {
+        List(w.toList.sortBy(r => (r.score, r.numMsg)).head,
+          w.toList.sortBy(r => (r.score, r.numMsg)).reverse.head)
+      }
+    }
+
+    val massagedData =
+      secondStep.toList.flatten.sortBy(n => (n.score, n.numMsg))
+
+    val neg = massagedData.take(5).toList
+    val pos = massagedData.reverse.take(5).toList
+
+
+    (neg, pos)
+  }
+
 }

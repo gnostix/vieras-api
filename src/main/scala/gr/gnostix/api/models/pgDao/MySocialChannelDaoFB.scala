@@ -284,17 +284,22 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
 
   }
 
+  private def buildCredentialsQuery(profileId: Int, credId: Option[Int]): String = {
+    credId match {
+      case Some(x) => x + " )"
+      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 1)"
+    }
+  }
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): String = {
+  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
-    val sqlEngAccount = engId match {
-      case Some(x) => x + " )"
-      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 1)"
-    }
+
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
@@ -310,231 +315,182 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   }
 
   def getSqlPostsTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val sql = s"""select count(*) from eng_fb_wall
-                      where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
-                        where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-                        and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')"""
+    val sql = s"""
+                  select count(*) from vieras.eng_fb_wall where fk_eng_engagement_data_quer_id in
+                      ( select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
+                    and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+                    and created between    to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS'))
+                        """
     sql
   }
 
   def getSqlPosts(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
-    val sql = s"""select count(*),trunc(msg_date,'${grouBydate}') from eng_fb_wall
-                      where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
-                        where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
+    val sql = s"""
+                 select count(*),date_trunc('${grouBydate}',created) from vieras.eng_fb_wall
+                      where fk_eng_engagement_data_quer_id in
+                        ( select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
                         and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-                        and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        and trunc(msg_date,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(msg_date,'${grouBydate}')
-                    order by trunc(msg_date,'${grouBydate}')asc"""
+                      and created between  to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and date_trunc('${grouBydate}',created) >=  to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    group by date_trunc('${grouBydate}',created)
+                    order by date_trunc('${grouBydate}',created) asc
+                 """
     logger.info("------------>" + sql)
     sql
 
   }
 
   def getSqlCommentsTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val sql = s"""select count(*) from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-                        where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')"""
+    val sql = s"""
+                  select count(*) from vieras.ENG_FB_WALL_COMMENTS  where fk_eng_engagement_data_quer_id in
+                      (select q.id from vieras.eng_engagement_data_queries q  where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+                     and created  between  to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                  """
     logger.info("------------>" + sql)
     sql
   }
 
   def getSqlComments(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
-    val sql = s"""select count(*),trunc(comment_date,'${grouBydate}') from ENG_FB_WALL_COMMENTS
-                      where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-                        where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-                          and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                          and trunc(comment_date,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(comment_date,'${grouBydate}')
-                    order by trunc(comment_date,'${grouBydate}')asc"""
+    val sql = s"""
+                select count(*), date_trunc('${grouBydate}',created) from vieras.ENG_FB_WALL_COMMENTS
+                       where fk_eng_engagement_data_quer_id in (select q.id from vieras.eng_engagement_data_queries q where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+                  and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                  and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                  and date_trunc('${grouBydate}',created) >=  to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                 group by date_trunc('${grouBydate}',created)
+                 order by date_trunc('${grouBydate}',created) asc
+              """
     logger.info("------------>" + sql)
     sql
 
   }
 
-  def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
-        s"""
-         select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
-            (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${x}  and  fk_profile_id=${profileId}))
-              and item_date is not null
-              and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('2014/12/04', 'YYYY/MM/DD HH24:MI:SS')
-          order by item_date desc)   where   rownum<=1
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+
+    val sql =  s"""
+        select fk_eng_engagement_data_quer_id,max(age_13_17),max(age_18_24),max(age_25_34),max(age_35_44),max(age_45_54),max(age_55_64),max(age_65_plus),gender,created
+            from vieras.ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
+             (select q.id from vieras.eng_engagement_data_queries q where FK_PROFILE_SOCIAL_ENG_ID in  ( $sqlEngAccount )
+            and created is not null and gender='M'
+            and created between  to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+            and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          group by fk_eng_engagement_data_quer_id,gender,created
           union all
-          select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
-              FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where ID = ${x}  and  fk_profile_id=${profileId}))
-             and item_date is not null
-             and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          order by item_date desc)   where   rownum<=1
+          select fk_eng_engagement_data_quer_id,max(age_13_17),max(age_18_24),max(age_25_34),max(age_35_44),max(age_45_54),max(age_55_64),max(age_65_plus),gender,created
+           from vieras.ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in
+             (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where  FK_PROFILE_SOCIAL_ENG_ID in   ( $sqlEngAccount )
+            and created is not null  and gender='F'
+            and created between  to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+            and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          group by fk_eng_engagement_data_quer_id,gender,created
+          order by created desc limit 2
          """
-      case None =>
-        s"""
-        select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
-          (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS
-                    where fk_profile_id=${profileId} and fk_datasource_id=1))
-           and item_date is not null
-            and gender='M'    AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          order by item_date desc)   where   rownum<=1
-         union all
-           select * from (select * from ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where
-             FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
-             and item_date is not null
-             and gender='F'     AND ITEM_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           order by item_date desc)   where   rownum<=1
-         """
-    }
 
-    sqlEngAccount
+
+    sql
   }
 
 
-  def buildQueryComments(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  def buildQueryComments(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
-        s"""
-         select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
-           from ENG_FB_WALL_COMMENTS
-            where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1  and id = ${x}   ))
-              and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
-          order by comment_date asc
-         """
-      case None =>
-        s"""
-        select id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
-           from ENG_FB_WALL_COMMENTS
-            where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
-              and comment_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          group by id,message,comment_date,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
-          order by comment_date asc
-         """
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
 
-    sqlEngAccount
+    val sql =  s"""
+          select id,message,created,user_name,user_id, likes,fk_post_id, fk_eng_engagement_data_quer_id, comment_id,  post_user_id
+              from vieras.ENG_FB_WALL_COMMENTS  where fk_eng_engagement_data_quer_id in
+                (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+              and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+              and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          group by id,message,created,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
+          order by created asc
+         """
+
+
+
+    sql
   }
 
 
-  def buildQueryPosts(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  def buildQueryPosts(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
-        s"""
-          select id,message,msg_date, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
-           from eng_fb_wall
-            where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1 and id = ${x} ))
-              and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('29-12-2014 00:00:00', 'DD-MM-YYYY HH24:MI:SS')
-          group by id,message,msg_date, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
-          order by msg_date asc
-         """
-      case None =>
-        s"""
-          select id,message,msg_date, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
-           from eng_fb_wall
-            where fk_eng_engagement_data_quer_id in  (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
-              and msg_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          group by id,message,msg_date, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
-          order by msg_date asc
-         """
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
 
-    sqlEngAccount
+    val sql = s"""
+          select id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
+           from vieras.eng_fb_wall where fk_eng_engagement_data_quer_id in
+            (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+              and created  between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+              and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+         group by id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
+         order by created asc
+
+         """
+
+    sql
   }
 
-  def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
-        s"""
-          SELECT NVL(FB_SW.QID, FB_COMM.QID) QID, NVL(FB_SW.MDATE, FB_COMM.MDATE) MDATE, PAGE_LIKES, POSTS, POST_LIKES, POST_SHARES, COMMENTS, COMM_LIKES, TALKING_ABOUT_COUNT, REACH, VIEWS, ENGAGED
-          FROM ((SELECT NVL(FB_STATS.QID, FB_WALL.QID) QID, NVL(FB_STATS.MDATE, FB_WALL.MDATE) MDATE,  PAGE_LIKES,  POSTS, POST_LIKES, POST_SHARES,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
-           FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(FFSL_DATE, '${grouBydate}') AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
-           FROM ENG_FB_STATS
-              WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                              (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${x} and fk_profile_id=${profileId} and fk_datasource_id=1))
-                 AND FFSL_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED, trunc(FFSL_DATE, '${grouBydate}')) FB_STATS
-               FULL OUTER JOIN
-                (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(MSG_DATE, '${grouBydate}') AS MDATE,   COUNT(*) POSTS, SUM(LIKES) POST_LIKES, SUM(SHARES) POST_SHARES
-                 FROM ENG_FB_WALL   WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                 (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  id = ${x} and  fk_profile_id=${profileId} and fk_datasource_id=1))
-                       AND MSG_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(MSG_DATE, '${grouBydate}')) FB_WALL
-                  ON FB_STATS.MDATE = FB_WALL.MDATE) FB_SW  FULL OUTER JOIN (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(COMMENT_DATE, '${grouBydate}') AS MDATE,  COUNT(*) COMMENTS,   SUM(LIKES) COMM_LIKES
-                   FROM ENG_FB_WALL_COMMENTS
-                     WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  id = ${x} and fk_profile_id=${profileId} and fk_datasource_id=1))
-                           AND COMMENT_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(COMMENT_DATE, '${grouBydate}')) FB_COMM ON FB_SW.MDATE = FB_COMM.MDATE)
-        ORDER BY MDATE
-         """
-      case None =>
-        s"""
-          SELECT NVL(FB_SW.QID, FB_COMM.QID) QID, NVL(FB_SW.MDATE, FB_COMM.MDATE) MDATE, PAGE_LIKES, POSTS, POST_LIKES, POST_SHARES, COMMENTS, COMM_LIKES, TALKING_ABOUT_COUNT, REACH, VIEWS, ENGAGED
-          FROM ((SELECT NVL(FB_STATS.QID, FB_WALL.QID) QID, NVL(FB_STATS.MDATE, FB_WALL.MDATE) MDATE,  PAGE_LIKES,  POSTS, POST_LIKES, POST_SHARES,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
-           FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(FFSL_DATE, '${grouBydate}') AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
-           FROM ENG_FB_STATS
-              WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                              (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where  fk_profile_id=${profileId} and fk_datasource_id=1))
-                 AND FFSL_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED, trunc(FFSL_DATE, '${grouBydate}')) FB_STATS
-               FULL OUTER JOIN
-                (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(MSG_DATE, '${grouBydate}') AS MDATE,   COUNT(*) POSTS, SUM(LIKES) POST_LIKES, SUM(SHARES) POST_SHARES
-                 FROM ENG_FB_WALL   WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                 (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
-                       AND MSG_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(MSG_DATE, '${grouBydate}')) FB_WALL
-                  ON FB_STATS.MDATE = FB_WALL.MDATE) FB_SW  FULL OUTER JOIN (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, trunc(COMMENT_DATE, '${grouBydate}') AS MDATE,  COUNT(*) COMMENTS,   SUM(LIKES) COMM_LIKES
-                   FROM ENG_FB_WALL_COMMENTS
-                     WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in
-                      (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=1))
-                           AND COMMENT_DATE BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, trunc(COMMENT_DATE, '${grouBydate}')) FB_COMM ON FB_SW.MDATE = FB_COMM.MDATE)
-        ORDER BY MDATE
-         """
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
 
-    sqlEngAccount
+    val sql =  s"""
+        SELECT coalesce(FB_SW.QID, FB_COMM.QID) QID, coalesce(FB_SW.MDATE, FB_COMM.MDATE) MDATE, PAGE_LIKES, POSTS, POST_LIKES, POST_SHARES, COMMENTS, COMM_LIKES, TALKING_ABOUT_COUNT, REACH, VIEWS, ENGAGED
+          FROM ((SELECT coalesce(FB_STATS.QID, FB_WALL.QID) QID, coalesce(FB_STATS.MDATE, FB_WALL.MDATE) MDATE,  PAGE_LIKES,  POSTS, POST_LIKES, POST_SHARES,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
+           FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouBydate}',created) AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
+           FROM vieras.ENG_FB_STATS WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+           AND created  between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED, date_trunc('${grouBydate}',created)) FB_STATS
+               FULL OUTER JOIN
+                (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouBydate}',created) AS MDATE,   COUNT(*) POSTS, SUM(LIKES) POST_LIKES, SUM(SHARES) POST_SHARES
+                 FROM vieras.ENG_FB_WALL   WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+              AND created  between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+              and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, date_trunc('${grouBydate}',created)) FB_WALL
+                  ON FB_STATS.MDATE = FB_WALL.MDATE) FB_SW  FULL OUTER JOIN (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouBydate}',created) AS MDATE,  COUNT(*) as COMMENTS,   SUM(LIKES) COMM_LIKES
+                   FROM vieras.ENG_FB_WALL_COMMENTS
+                     WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+            AND created  between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+            and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, date_trunc('${grouBydate}',created)) FB_COMM ON FB_SW.MDATE = FB_COMM.MDATE)
+        ORDER BY MDATE
+         """
+
+
+    sql
   }
 
 

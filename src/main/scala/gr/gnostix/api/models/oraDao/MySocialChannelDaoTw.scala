@@ -269,7 +269,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
       case "favorite" => "TW_FAVORITES"
     }
 
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
 
     val sql = s"""
       select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_MENT_AND_FAV
@@ -302,7 +302,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
   }
 
   private def getSqlRetweet(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
     val sql = s"""
        select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_RETWEETS
         where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q

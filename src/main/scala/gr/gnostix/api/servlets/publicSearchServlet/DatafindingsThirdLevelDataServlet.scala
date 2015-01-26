@@ -1,4 +1,4 @@
-package gr.gnostix.api.servlets
+package gr.gnostix.api.servlets.publicSearchServlet
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport

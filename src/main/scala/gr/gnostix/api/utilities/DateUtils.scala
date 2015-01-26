@@ -19,7 +19,7 @@ object DateUtils {
     }
   }
 
-  def sqlGrouByDate(numDays: Int): String = {
+  def sqlGrouByDateOra(numDays: Int): String = {
     numDays match {
       case 0 => "HH"
       case x if 0 until 31 contains x => "DD"
@@ -28,4 +28,15 @@ object DateUtils {
       case _ => "month"
     }
   }
+
+  def sqlGrouByDatePg(numDays: Int): String = {
+    numDays match {
+      case 0 => "hour"
+      case x if 0 until 31 contains x => "day"
+      case x if 31 until 91 contains x => "week"
+      case x if x >= 91 => "month"
+      case _ => "month"
+    }
+  }
+
 }

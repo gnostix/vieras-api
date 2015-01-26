@@ -2,6 +2,7 @@ import javax.servlet.ServletContext
 
 import _root_.akka.actor.{ActorSystem, Props}
 import gr.gnostix.api.servlets._
+import gr.gnostix.api.servlets.publicSearchServlet._
 import gr.gnostix.api.tmp.{DatafindingsDataServlet, GnxActor}
 import org.scalatra._
 import org.slf4j.LoggerFactory

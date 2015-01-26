@@ -221,17 +221,22 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
 
   }
 
+  private def buildCredentialsQuery(profileId: Int, credId: Option[Int]): String = {
+    credId match {
+      case Some(x) => x + " )"
+      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 2)"
+    }
+  }
 
-  private def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): String = {
+
+  private def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
-    val sqlEngAccount = engId match {
-      case Some(x) => x + " )"
-      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 2)"
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
@@ -252,13 +257,13 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
       case "totalfavorite" => "TW_FAVORITES"
     }
     val sql = s"""
-      select count(*) from ENG_TW_MENT_AND_FAV
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = '${twType}'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                        """
+     select count(*) from vieras.ENG_TW_MENT_AND_FAV
+        where fk_eng_engagement_data_quer_id in (select q.id from vieras.eng_engagement_data_queries q
+          where q.is_active = 1 and q.attr = '${twType}' and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
+        and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+     """
+
     sql
   }
 
@@ -268,50 +273,51 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
       case "favorite" => "TW_FAVORITES"
     }
 
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val sql = s"""
-      select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_MENT_AND_FAV
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
+      select count(*),date_trunc('${grouBydate}',created) from vieras.ENG_TW_MENT_AND_FAV
+        where fk_eng_engagement_data_quer_id in (select q.id from vieras.eng_engagement_data_queries q
           where q.is_active = 1 and q.attr = '${twType}'
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'${grouBydate}')
-                    order by trunc(created_at,'${grouBydate}')asc
-                     """
+                and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and date_trunc('${grouBydate}',created) >= to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    group by date_trunc('${grouBydate}',created)
+                    order by date_trunc('${grouBydate}',created) asc
+        """
     logger.info("------------>" + sql)
     sql
 
   }
 
+
+
   private def getSqlRetweetTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
     val sql =
       s"""
-      select count(*) from ENG_TW_RETWEETS
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
-          where q.is_active = 1 and q.attr = 'TW_RETWEETS'
-            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        select count(*) from vieras.ENG_TW_RETWEETS
+         where fk_eng_engagement_data_quer_id in (select q.id from vieras.eng_engagement_data_queries q
+          where q.is_active = 1 and q.attr = 'TW_RETWEETS' and FK_PROFILE_SOCIAL_ENG_ID in  ( $sqlEngAccount  )
+          and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
          """.stripMargin
     logger.info("------------>" + sql)
     sql
   }
 
   private def getSqlRetweet(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
     val sql = s"""
-       select count(*),trunc(created_at,'${grouBydate}') from ENG_TW_RETWEETS
-        where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
+        select count(*),date_trunc('${grouBydate}',created) from vieras.ENG_TW_RETWEETS
+        where fk_eng_engagement_data_quer_id in (select q.id from vieras.eng_engagement_data_queries q
           where q.is_active = 1 and q.attr = 'TW_RETWEETS'
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount  )
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                     and trunc(created_at,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    group by trunc(created_at,'${grouBydate}')
-                    order by trunc(created_at,'${grouBydate}')asc
+                     and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                     and date_trunc('${grouBydate}',created) >= to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    group by date_trunc('${grouBydate}',created)
+                    order by date_trunc('${grouBydate}',created) asc
                      """
     logger.info("------------>" + sql)
     sql
@@ -319,7 +325,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
   }
 
 
-  private def buildQueryMentionsFavs(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int], dataType: String): String = {
+  private def buildQueryMentionsFavs(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int], dataType: String): String = {
 
     val twType = dataType match {
       case "mention" => "TW_MENTIONS"
@@ -331,86 +337,65 @@ object MySocialChannelDaoTw extends DatabaseAccessSupport {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
-        s"""
-          select t.id, t.CREATED_AT, t.ACTION_FROM_USER_HANDLER, t.ACTION_FROM_USER_ID, t.ACTION_FROM_USER_FOLLOWERS,
-              t.ACTION_FROM_USER_LISTED, t.TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.FAVORITES, t.status_id  from ENG_TW_MENT_AND_FAV t
-           where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q where  q.attr = '${twType}'
-           and fk_profile_social_eng_id in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=2 and id = ${x}  ))
-                   and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          order by created_at asc
-         """
-      case None =>
-        s"""
-          select t.id, t.CREATED_AT, t.ACTION_FROM_USER_HANDLER, t.ACTION_FROM_USER_ID, t.ACTION_FROM_USER_FOLLOWERS,
-              t.ACTION_FROM_USER_LISTED, t.TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.FAVORITES, t.status_id  from ENG_TW_MENT_AND_FAV t
-           where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q where  q.attr = '${twType}'
-           and fk_profile_social_eng_id in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=2 ))
-                   and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-          order by created_at asc
-         """
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
 
-    sqlEngAccount
+    val sql =
+        s"""
+          select t.id, t.CREATED, t.ACTION_FROM_USER_HANDLER, t.ACTION_FROM_USER_ID, t.ACTION_FROM_USER_FOLLOWERS,
+              t.ACTION_FROM_USER_LISTED, t.TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.FAVORITES, t.status_id  from vieras.ENG_TW_MENT_AND_FAV t
+           where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where  q.attr = '${twType}'
+           and fk_profile_social_eng_id in  ( $sqlEngAccount  )
+             and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+             and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          order by created asc
+         """
+
+
+    sql
   }
 
 
-  private def buildQueryRetweets(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  private def buildQueryRetweets(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+
+    val sql =
         s"""
-            select t.ID, t.CREATED_AT, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from ENG_TW_RETWEETS t
-             where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q where fk_profile_social_eng_id
-             in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=2 and id = ${x} ))
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            order by created_at asc
+          select t.ID, t.CREATED, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from vieras.ENG_TW_RETWEETS t
+              where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where fk_profile_social_eng_id in  ( $sqlEngAccount  )
+                and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+             order by created asc
          """
-      case None =>
-        s"""
-            select t.ID, t.CREATED_AT, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from ENG_TW_RETWEETS t
-             where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q where fk_profile_social_eng_id
-             in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=2 ))
-                     and created_at between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            order by created_at asc
-         """
-    }
 
     sqlEngAccount
   }
 
 
-  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
-        s"""
-          SELECT max(status_number) as tweets,max(followers),max(following), max(favorites), max(listed), max(handle), max(ffsl_date) FROM ENG_TW_STATS t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'TW_FFSL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${engId} and fk_profile_id=${profileId} and fk_datasource_id=2))
-              and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-         """
-      case None =>
-        s"""
-          SELECT max(status_number) as tweets,max(followers),max(following), max(favorites), max(listed), max(handle), max(ffsl_date) FROM ENG_TW_STATS t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'TW_FFSL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} and fk_datasource_id=2))
-              and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-         """
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
 
-    sqlEngAccount
+    val sql =
+        s"""
+        SELECT max(status_number) as tweets,max(followers),max(following), max(favorites), max(listed), max(handle), max(created) FROM vieras.ENG_TW_STATS t
+          where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'TW_FFSL'
+           and FK_PROFILE_SOCIAL_ENG_ID in  ( $sqlEngAccount  )
+           and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+         """
+
+    sql
   }
 
 }

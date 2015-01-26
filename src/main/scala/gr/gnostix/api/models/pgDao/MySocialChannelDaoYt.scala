@@ -221,25 +221,29 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     go(li)
   }
 
+  private def buildCredentialsQuery(profileId: Int, credId: Option[Int]): String = {
+    credId match {
+      case Some(x) => x + " )"
+      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 9)"
+    }
+  }
 
-  private def buildQueryData(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+
+  private def buildQueryData(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
-    val sqlEngAccount = engId match {
-      case Some(x) => x + " )"
-      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 9)"
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
-    // ADD THE RIGHT SQL QUERY HERE !!!!!!!
     val sql = s"""
     select t.title, t.PLAYER_URL, t.THUMBNAILS, t.FAVORITE_COUNT, t.VIEW_COUNT,t.DISLIKE_COUNT, t.LIKE_COUNT, t.SUM_TEXT
       from vieras.ENG_YT_WALL t
@@ -255,96 +259,77 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
   }
 
 
-  private def buildQueryLine(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  private def buildQueryLine(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
-    val sqlEngAccount = engId match {
-      case Some(x) => x + " )"
-      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 9)"
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val sql = s"""
        SELECT max(subscribers), max(total_views), max(video_views), max(likes), max(dislikes), max(favorites),
-        trunc(ffsl_date,'${grouBydate}') FROM ENG_YT_STATS t
-         where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
+        date_trunc('${grouBydate}',created) FROM vieras.ENG_YT_STATS t
+         where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
             and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-            and ffsl_date between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           group by trunc(ffsl_date,'${grouBydate}')
-           order by trunc(ffsl_date,'${grouBydate}')asc
+            and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+            and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           group by date_trunc('${grouBydate}',created)
+           order by date_trunc('${grouBydate}',created)asc
       """
     logger.info("------------>" + sql)
     sql
   }
 
 
-  private def buildQueryVideoStats(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  private def buildQueryVideoStats(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
-        s"""
-         SELECT sum(like_count), sum(dislike_count), sum(favorite_count), sum(view_count)
-	        FROM vieras.ENG_YT_WALL t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_USER_WALL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from vieras.ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId}  and id = ${x} ))
-            and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-	          and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-         """
-      case None =>
-        s"""
-         SELECT sum(like_count), sum(dislike_count), sum(favorite_count), sum(view_count)
-	        FROM vieras.ENG_YT_WALL t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_USER_WALL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from vieras.ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId}  ))
-            and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-	          and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-         """
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
 
-    sqlEngAccount
+    val sql =
+        s"""
+         SELECT sum(like_count), sum(dislike_count), sum(favorite_count), sum(view_count)
+	        FROM vieras.ENG_YT_WALL t
+           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_USER_WALL'
+            and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+            and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+	          and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+         """
+
+    sql
   }
 
 
-  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): String = {
+  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = engId match {
-      case Some(x) =>
-        s"""
-      SELECT max(subscribers), max(total_views), max(created), max(likes), max(dislikes), max(favorites), max(video_views) FROM vieras.ENG_YT_STATS t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from vieras.ENG_PROFILE_SOCIAL_CREDENTIALS where id = ${engId}  and fk_profile_id=${profileId} ))
-	    and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-	    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-         """
-      case None =>
-        s"""
-      SELECT max(subscribers), max(total_views), max(created), max(likes), max(dislikes), max(favorites), max(video_views) FROM vieras.ENG_YT_STATS t
-           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
-            and FK_PROFILE_SOCIAL_ENG_ID in (select id from vieras.ENG_PROFILE_SOCIAL_CREDENTIALS where fk_profile_id=${profileId} ))
-	    and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-	    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-         """
-    }
+    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
 
-    sqlEngAccount
+    val sql =
+        s"""
+          SELECT max(subscribers), max(total_views), max(created), max(likes), max(dislikes), max(favorites), max(video_views) FROM vieras.ENG_YT_STATS t
+               where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'YT_FFSL'
+                and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+          and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+          and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+         """
+
+
+    sql
   }
 
 }

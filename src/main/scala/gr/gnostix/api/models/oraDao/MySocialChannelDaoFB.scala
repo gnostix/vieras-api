@@ -321,7 +321,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   }
 
   def getSqlPosts(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
 
       val sql = s"""select count(*),trunc(msg_date,'${grouBydate}') from eng_fb_wall
                       where fk_eng_engagement_data_quer_id in ( select q.id from eng_engagement_data_queries q
@@ -348,7 +348,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
   }
 
   def getSqlComments(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
 
       val sql = s"""select count(*),trunc(comment_date,'${grouBydate}') from ENG_FB_WALL_COMMENTS
                       where fk_eng_engagement_data_quer_id in (select q.id from eng_engagement_data_queries q
@@ -477,7 +477,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupport {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)

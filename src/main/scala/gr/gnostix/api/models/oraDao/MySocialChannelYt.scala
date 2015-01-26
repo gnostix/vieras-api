@@ -238,7 +238,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
 
     // ADD THE RIGHT SQL QUERY HERE !!!!!!!
     val sql = s"""
@@ -270,7 +270,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupport {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
 
     val sql = s"""
        SELECT max(subscribers), max(total_views), max(video_views), max(likes), max(dislikes), max(favorites),

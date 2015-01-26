@@ -473,7 +473,7 @@ object MySocialChannelDaoHotel extends DatabaseAccessSupport {
   }
 
   private def getSqlHotelDataLine(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
-    val grouBydate = DateUtils.sqlGrouByDate(numDays)
+    val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
 
     val sql = s"""
       select count(*),trunc(REVIEW_DATE,'${grouBydate}') from ENG_HOTEL_REVIEWS
