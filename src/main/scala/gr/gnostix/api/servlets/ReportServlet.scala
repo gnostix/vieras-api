@@ -38,11 +38,11 @@ with FutureSupport {
     try {
             val path = servletContext.getRealPath("/")
             logger.info(s"-------------->   " + path)
-            val file = new java.io.File(path + "/reports/CV_AlexPappas-January-2014.doc")
+            val file = new java.io.File(path + "/api/reports/CV_AlexPappas-January-2014.doc")
             contentType = "application/octet-stream"
             response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
 
-            response.redirect("/reports/" + file.getName)
+            response.redirect("/api/reports/" + file.getName)
     } catch {
       case e: Exception => e.printStackTrace()
     }
@@ -64,7 +64,7 @@ with FutureSupport {
 
       val profileId = params("profileId").toInt
 
-      val path = servletContext.getRealPath("/") + "/reports"
+      val path = servletContext.getRealPath("/") + "/api/reports"
       val reporting: Reporting = new Reporting
       val fileReport = reporting.generateReport(new java.util.Date(), new java.util.Date(), "docx", path)
 
@@ -74,7 +74,7 @@ with FutureSupport {
       //response.setContentType("application/msword");
       response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
 
-      response.redirect("/reports/" + file.getName)
+      response.redirect("/api/reports/" + file.getName)
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
