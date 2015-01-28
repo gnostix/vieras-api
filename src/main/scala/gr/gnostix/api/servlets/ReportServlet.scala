@@ -64,17 +64,16 @@ with FutureSupport {
 
       val profileId = params("profileId").toInt
 
-      val path = servletContext.getRealPath("/") + "/api/reports"
+      val path = servletContext.getRealPath("/") + "/reports"
       val reporting: Reporting = new Reporting
       val fileReport = reporting.generateReport(new java.util.Date(), new java.util.Date(), "docx", path)
 
       logger.info(s"-------------->   " + path)
       val file = new java.io.File(path + fileReport)
       contentType = "application/octet-stream"
-      //response.setContentType("application/msword");
       response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
-
-      response.redirect("/api/reports/" + file.getName)
+      response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
+      response.redirect("/reports/" + file.getName)
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
