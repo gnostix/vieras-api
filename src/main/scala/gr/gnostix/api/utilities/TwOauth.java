@@ -1,6 +1,6 @@
 package gr.gnostix.api.utilities;
 
-import gr.gnostix.api.models.oraDao.SocialCredentialsSimple;
+import gr.gnostix.api.models.pgDao.SocialCredentialsSimple;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
