@@ -2,7 +2,7 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.oraDao.MySocialChannelHotelDao
+import gr.gnostix.api.models.pgDao.MySocialChannelHotelDao
 import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, ErrorDataResponse}
 import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime

@@ -1,6 +1,6 @@
 package gr.gnostix.api.models.pgDao
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{ApiData, DataLineGraph, HotelRatingStats, HotelReviewStats, MsgNum, Payload, RevStat, SocialData, SocialDataSum}
 import gr.gnostix.api.utilities.DateUtils
 import org.joda.time.DateTime
@@ -13,7 +13,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 /**
  * Created by rebel on 21/10/14.
  */
-object MySocialChannelDaoHotel extends DatabaseAccessSupport {
+object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   implicit val getLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getReviewStats = GetResult(r => HotelReviewStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
@@ -148,6 +148,8 @@ object MySocialChannelDaoHotel extends DatabaseAccessSupport {
     }
   }
 
+
+
   private def getTopMinusMaxReviews(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
     /*      ------------ Test data --------------
     * val li = List(HotelRatingStats("Value", 10), HotelRatingStats("Value", 8),
@@ -184,77 +186,6 @@ object MySocialChannelDaoHotel extends DatabaseAccessSupport {
 
     val neg = massagedData.take(5).toList
     val pos = massagedData.reverse.take(5).toList
-
-
-    (neg, pos)
-  }
-
-  @deprecated("is deprecated for cleaniless reasons", "since 16/01/2015")
-  private def getTopMinusMaxReviews1(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
-    //k.filter(x => x.name.equals("sleep"))
-    val sleep = li.filter(x => x.ratingName.equalsIgnoreCase("sleep")).groupBy(_.ratingValue).map {
-      case (x, y) => RevStat(y.head.ratingName, x, y.size)
-    }.toList
-
-    val sleep1 = sleep.sortBy(x => x.score) match {
-      case Nil => Nil
-      case (h :: Nil) => List(h)
-      case (h :: t) => List(h, t.reverse.head)
-    }
-
-    val room = li.filter(x => x.ratingName.equalsIgnoreCase("room")).groupBy(_.ratingValue).map {
-      case (x, y) => RevStat(y.head.ratingName, x, y.size)
-    }.toList
-
-    val room1 = room.sortBy(x => x.score) match {
-      case Nil => Nil
-      case (h :: Nil) => List(h)
-      case (h :: t) => List(h, t.reverse.head)
-    }
-
-    val clean = li.filter(x => x.ratingName.equalsIgnoreCase("clean")).groupBy(_.ratingValue).map {
-      case (x, y) => RevStat(y.head.ratingName, x, y.size)
-    }.toList
-
-    val clean1 = clean.sortBy(x => x.score) match {
-      case Nil => Nil
-      case (h :: Nil) => List(h)
-      case (h :: t) => List(h, t.reverse.head)
-    }
-
-    val value = li.filter(x => x.ratingName.equalsIgnoreCase("value")).groupBy(_.ratingValue).map {
-      case (x, y) => RevStat(y.head.ratingName, x, y.size)
-    }.toList
-
-    val value1 = value.sortBy(x => x.score) match {
-      case Nil => Nil
-      case (h :: Nil) => List(h)
-      case (h :: t) => List(h, t.reverse.head)
-    }
-
-    val location = li.filter(x => x.ratingName.equalsIgnoreCase("location")).groupBy(_.ratingValue).map {
-      case (x, y) => RevStat(y.head.ratingName, x, y.size)
-    }.toList
-
-    val location1 = location.sortBy(x => x.score) match {
-      case Nil => Nil
-      case (h :: Nil) => List(h)
-      case (h :: t) => List(h, t.reverse.head)
-    }
-
-    val staff = li.filter(x => x.ratingName.equalsIgnoreCase("staff")).groupBy(_.ratingValue).map {
-      case (x, y) => RevStat(y.head.ratingName, x, y.size)
-    }.toList
-
-    val staff1 = staff.sortBy(x => x.score) match {
-      case Nil => Nil
-      case (h :: Nil) => List(h)
-      case (h :: t) => List(h, t.reverse.head)
-    }
-
-    val aa1 = List(sleep1, room1, clean1, value1, location1, staff1).flatMap(x => x).sortBy(r => (r.score, r.numMsg))
-    val neg = aa1.take(3).toList
-    val pos = aa1.reverse.take(2).toList
 
 
     (neg, pos)
@@ -368,25 +299,24 @@ object MySocialChannelDaoHotel extends DatabaseAccessSupport {
     val sql = datasourceId match {
       case Some(x) =>
         s"""
-           select r.REVIEW_ID,r.REVIEWER ,r.STAY_TYPE,r.VIERAS_COUNTRY,r.VIERAS_TOTAL_RATING as vieras_review_rating,
+        select r.ID,r.REVIEWER ,r.STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING as vieras_review_rating,
              h.TOTAL_RATING  as datasource_hotel_rating, vd.ds_rating_scale as max_hotel_rating
-            from ENG_HOTEL_REVIEWS r, eng_hotels h, vieras_datasources vd
-              where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x}   )
-              and r.REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-              and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-              and r.FK_HOTEL_ID = h.HOTEL_ID
-              and vd.ds_id=${x}
+        from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd
+           where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x} )
+              and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+              and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+              and r.FK_HOTEL_ID = h.ID        and vd.id=${x}
         """
       case None =>
         // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
         s"""
-           select r.REVIEW_ID,r.REVIEWER ,r.STAY_TYPE,r.VIERAS_COUNTRY,r.VIERAS_TOTAL_RATING as vieras_review_rating,
-             h.VIERAS_TOTAL_RATING  as datasource_hotel_rating, 5+5 as max_hotel_rating
-            from ENG_HOTEL_REVIEWS r, eng_hotels h
-              where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} )
-              and r.REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-              and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-              and r.FK_HOTEL_ID = h.HOTEL_ID
+        select r.ID,r.REVIEWER ,r.STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING as vieras_review_rating,
+             h.TOTAL_RATING  as datasource_hotel_rating, vd.ds_rating_scale as max_hotel_rating
+        from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd
+           where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId})
+              and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+              and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+              and r.FK_HOTEL_ID = h.ID
          """
     }
 
@@ -407,22 +337,22 @@ object MySocialChannelDaoHotel extends DatabaseAccessSupport {
     val sql = datasourceId match {
       case Some(x) =>
         s"""
-            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from ENG_HOTEL_REVIEWS r, eng_hotel_rating hr
-              where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x}  )
-                and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                and r.REVIEW_ID = hr.FK_PID
-                and hr.VIERAS_RATING_NAME is not null
+            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_hotel_rating hr
+                 where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x} )
+                    and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and r.ID = hr.FK_PID
+                    and hr.VIERAS_RATING_NAME is not null
         """
       case None =>
         // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
         s"""
-            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from ENG_HOTEL_REVIEWS r, eng_hotel_rating hr
-              where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId}  )
-                and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                and r.REVIEW_ID = hr.FK_PID
-                and hr.VIERAS_RATING_NAME is not null
+            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_hotel_rating hr
+                 where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId}  )
+                    and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and r.ID = hr.FK_PID
+                    and hr.VIERAS_RATING_NAME is not null
          """
     }
 
@@ -447,8 +377,8 @@ object MySocialChannelDaoHotel extends DatabaseAccessSupport {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val sqlEngAccount = datasourceId match {
-      case Some(x) => s""" SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and fk_datasource_id = ${x} """
-      case None => s""" SELECT FK_HOTEL_ID FROM ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} """
+      case Some(x) => s""" SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x}  """
+      case None => s""" SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId}  """
 
     }
     logger.info("------------->" + sqlEngAccount + "-----------")
@@ -465,9 +395,10 @@ object MySocialChannelDaoHotel extends DatabaseAccessSupport {
 
   private def getSqlHotelDataTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
     val sql = s"""
-        select count(*) from ENG_HOTEL_REVIEWS
-          where FK_HOTEL_ID IN ( $sqlEngAccount  )
-            and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+    select count(*) from vieras.ENG_REVIEWS
+      where FK_HOTEL_ID IN ( $sqlEngAccount )
+        and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+	      and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
         """
     sql
   }
@@ -476,12 +407,13 @@ object MySocialChannelDaoHotel extends DatabaseAccessSupport {
     val grouBydate = DateUtils.sqlGrouByDateOra(numDays)
 
     val sql = s"""
-      select count(*),trunc(REVIEW_DATE,'${grouBydate}') from ENG_HOTEL_REVIEWS
-          where FK_HOTEL_ID IN ( $sqlEngAccount  )
-            and REVIEW_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-            and trunc(REVIEW_DATE,'${grouBydate}') >= TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        group by trunc(REVIEW_DATE,'${grouBydate}')
-        order by trunc(REVIEW_DATE,'${grouBydate}')asc
+        select count(*),date_trunc('${grouBydate}',created) from vieras.ENG_REVIEWS
+          where FK_HOTEL_ID IN ( $sqlEngAccount )
+             and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+             and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+             and date_trunc('${grouBydate}',created) >= to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+        group by date_trunc('${grouBydate}',created)
+        order by date_trunc('${grouBydate}',created) asc
                      """
     logger.info("------------>" + sql)
     sql

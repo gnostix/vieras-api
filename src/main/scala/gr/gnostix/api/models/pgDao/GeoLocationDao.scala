@@ -1,6 +1,6 @@
 package gr.gnostix.api.models.pgDao
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.CountriesLine
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
@@ -12,7 +12,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 /**
  * Created by rebel on 27/11/14.
  */
-object GeoLocationDao extends DatabaseAccessSupport {
+object GeoLocationDao extends DatabaseAccessSupportPg {
 
   implicit val getCountriesResult = GetResult(r => CountriesLine(r.<<, r.<<))
 

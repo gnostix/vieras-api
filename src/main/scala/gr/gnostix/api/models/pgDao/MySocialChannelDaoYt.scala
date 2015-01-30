@@ -1,6 +1,6 @@
 package gr.gnostix.api.models.pgDao
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{ApiData, DataLineGraph, YoutubeLineData, YoutubeStats, YoutubeVideoData, YoutubeVideoStats}
 import gr.gnostix.api.utilities.DateUtils
 import org.joda.time.DateTime
@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
 
-object MySocialChannelDaoYt extends DatabaseAccessSupport {
+object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
   implicit val getYtLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getYoutubeStats = GetResult(r => YoutubeStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getYoutubeVideoStats = GetResult(r => YoutubeVideoStats(r.<<, r.<<, r.<<, r.<<))

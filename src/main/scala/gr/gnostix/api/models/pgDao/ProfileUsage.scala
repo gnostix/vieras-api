@@ -1,7 +1,7 @@
 package gr.gnostix.api.models.pgDao
 
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
@@ -12,7 +12,7 @@ case class ProfilesUsage(id: Int, userLevel: Int, maxCounts: Int, description: S
                          maxTopics: Int, socialAccounts: Int, maxProfiles: Int)
 
 
-object ProfilesUsage extends DatabaseAccessSupport{
+object ProfilesUsage extends DatabaseAccessSupportPg{
 
   implicit val getProfilesUsageResult = GetResult(r => ProfilesUsage(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<))

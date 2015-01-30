@@ -2,8 +2,8 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.oraDao.SocialAccountsHotelDao.SocialAccountsQueriesDao
-import gr.gnostix.api.models.oraDao._
+import gr.gnostix.api.models.pgDao.SocialAccountsHotelDao.SocialAccountsQueriesDao
+import gr.gnostix.api.models.pgDao._
 import gr.gnostix.api.models.plainModels._
 import gr.gnostix.api.models.publicSearch.{Keyword, KeywordDao, Topic, TopicDao}
 import gr.gnostix.api.utilities.{FbExtendedToken, TwOauth}

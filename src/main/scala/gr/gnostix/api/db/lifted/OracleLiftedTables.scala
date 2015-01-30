@@ -2,7 +2,7 @@ package gr.gnostix.api.db.lifted
 
 import java.sql.Clob
 
-import gr.gnostix.api.db.plainsql.DatabaseAccess
+import gr.gnostix.api.db.plainsql.DatabaseAccessOra
 
 /**
  * Created by rebel on 12/5/14.
@@ -46,7 +46,7 @@ import scala.slick.lifted.TableQuery
 
   }
 
-  val db: Database = DatabaseAccess.database
+  val db: Database = DatabaseAccessOra.database
 
   val betaUsers = TableQuery[BetaUsers]
 

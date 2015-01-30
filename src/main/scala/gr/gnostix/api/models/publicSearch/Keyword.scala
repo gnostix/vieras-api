@@ -2,7 +2,7 @@ package gr.gnostix.api.models.publicSearch
 
 import java.sql.Timestamp
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportOra
 import org.slf4j.LoggerFactory
 
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
@@ -16,7 +16,7 @@ case class Keyword(keywordId: Int,
                    langId: Int,
                    updatedDate: Timestamp)
 
-object KeywordDao extends DatabaseAccessSupport {
+object KeywordDao extends DatabaseAccessSupportOra {
 
   implicit val getKeywordResult = GetResult(r => Keyword(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   val logger = LoggerFactory.getLogger(getClass)

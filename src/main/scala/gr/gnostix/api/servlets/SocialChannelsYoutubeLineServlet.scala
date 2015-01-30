@@ -6,7 +6,7 @@ package gr.gnostix.api.servlets
  
   import gr.gnostix.api.GnostixAPIStack
   import gr.gnostix.api.auth.AuthenticationSupport
-  import gr.gnostix.api.models.oraDao.MySocialChannelDaoYt
+  import gr.gnostix.api.models.pgDao.MySocialChannelDaoYt
   import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, ErrorDataResponse}
   import org.joda.time.DateTime
   import org.joda.time.format.DateTimeFormat

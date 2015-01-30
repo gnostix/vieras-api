@@ -2,7 +2,7 @@ package gr.gnostix.api.auth.strategies
 
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
-import gr.gnostix.api.models.oraDao.{User, UserDao}
+import gr.gnostix.api.models.pgDao.{User, UserDao}
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.ScentryStrategy
 import org.slf4j.LoggerFactory
@@ -67,8 +67,8 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
 
   def checkUserPassword(username: String, password: String, userDbPassword: String): Boolean = {
     //logger.info (s"---------> UserPasswordStrategy checkUserPassword :  $username $password")
-    //logger.info (s"---------> UserPasswordStrategy userDbPassword : $userDbPassword")
-    //logger.info (s"---------> UserPasswordStrategy Password :  ${md5Hash (username + password)}")
+    logger.info (s"---------> UserPasswordStrategy userDbPassword : $userDbPassword")
+    logger.info (s"---------> UserPasswordStrategy Password :  ${md5Hash (username + password)}")
     if (md5Hash(username + password) == userDbPassword.toLowerCase) true else false
   }
 

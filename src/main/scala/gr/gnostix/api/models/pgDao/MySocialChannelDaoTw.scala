@@ -1,6 +1,6 @@
 package gr.gnostix.api.models.pgDao
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{ApiData, DataLineGraph, MsgNum, Payload, SocialData, TwitterMentionFav, TwitterRetweets, TwitterStats}
 import gr.gnostix.api.utilities.DateUtils
 import org.joda.time.DateTime
@@ -13,7 +13,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 /**
  * Created by rebel on 21/10/14.
  */
-object MySocialChannelDaoTw extends DatabaseAccessSupport {
+object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
   implicit val getTwLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getMentionsFavs = GetResult(r => TwitterMentionFav(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))

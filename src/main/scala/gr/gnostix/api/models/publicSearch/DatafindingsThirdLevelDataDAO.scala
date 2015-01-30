@@ -1,6 +1,6 @@
 package gr.gnostix.api.models.publicSearch
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportOra
 import gr.gnostix.api.models.plainModels._
 import gr.gnostix.api.utilities.SqlUtils
 import org.joda.time.DateTime
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
 
-object DatafindingsThirdLevelDataDAO extends DatabaseAccessSupport {
+object DatafindingsThirdLevelDataDAO extends DatabaseAccessSupportOra {
 
   implicit val getThirdLevelDataTwitterResult = GetResult(r => ThirdLevelDataTwitter(FirstLevelData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<)
     , SecondLevelDataTwitter(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<)))

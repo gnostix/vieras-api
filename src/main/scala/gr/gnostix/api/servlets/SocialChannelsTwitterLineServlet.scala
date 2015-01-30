@@ -1,7 +1,7 @@
 
   import gr.gnostix.api.GnostixAPIStack
   import gr.gnostix.api.auth.AuthenticationSupport
-  import gr.gnostix.api.models.oraDao.MySocialChannelDaoTw
+  import gr.gnostix.api.models.pgDao.MySocialChannelDaoTw
   import gr.gnostix.api.models.plainModels._
   import org.joda.time.DateTime
   import org.joda.time.format.DateTimeFormat

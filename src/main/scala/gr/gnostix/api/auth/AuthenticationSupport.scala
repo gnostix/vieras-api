@@ -2,7 +2,7 @@ package gr.gnostix.api.auth
 
 
 import gr.gnostix.api.auth.strategies.UserPasswordStrategy
-import gr.gnostix.api.models.oraDao.{User, UserDao}
+import gr.gnostix.api.models.pgDao.{User, UserDao}
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.{ScentryConfig, ScentrySupport}
 //import com.constructiveproof.hackertracker.auth.strategies.RememberMeStrategy

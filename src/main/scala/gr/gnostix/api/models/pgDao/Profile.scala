@@ -2,7 +2,7 @@ package gr.gnostix.api.models.pgDao
 
 import java.sql.Timestamp
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import org.slf4j.LoggerFactory
 
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
@@ -19,7 +19,7 @@ case class Profile(profileId: Int,
                    language: String,
                    vierasTotalRating: Double)
 
-object ProfileDao extends DatabaseAccessSupport {
+object ProfileDao extends DatabaseAccessSupportPg {
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -39,15 +39,22 @@ object ProfileDao extends DatabaseAccessSupport {
     }
   }
 
+
   def getAllProfiles(userId: Int) = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[Profile]( s"""
+
+        try {
+          val records = Q.queryNA[Profile]( s"""
           select c.id, c.profile_name,  c.registration_date, c.email,c.userlevel,
               c.total_counts,c.enabled,c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
             from vieras.profiles c  where  c.fk_user_id = $userId
           """)
-        records.list
+          records.list
+        } catch {
+          case e: Exception => e.printStackTrace()
+            None
+        }
     }
   }
 

@@ -1,9 +1,9 @@
 package gr.gnostix.api.db.lifted
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportOra
 
 
-object OracleLiftedQueries extends DatabaseAccessSupport {
+object OracleLiftedQueries extends DatabaseAccessSupportOra {
 	import com.typesafe.slick.driver.oracle.OracleDriver.simple._
 
   val db: Database = getConnection

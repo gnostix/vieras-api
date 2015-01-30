@@ -2,7 +2,7 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.oraDao.GeoLocationDao
+import gr.gnostix.api.models.pgDao.GeoLocationDao
 import gr.gnostix.api.models.plainModels.{ApiMessages, CountriesLine, ErrorDataResponse}
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat

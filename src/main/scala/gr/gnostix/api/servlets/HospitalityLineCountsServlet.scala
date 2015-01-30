@@ -2,7 +2,7 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.oraDao.MySocialChannelHotelDao
+import gr.gnostix.api.models.pgDao.MySocialChannelHotelDao
 import gr.gnostix.api.models.plainModels.{DataResponse, ErrorDataResponse}
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
@@ -27,7 +27,7 @@ with CorsSupport {
 
   before() {
     contentType = formats("json")
-    requireLogin()
+    //requireLogin()
   }
 
   // mount point /api/user/socialchannels/hotel/line/*

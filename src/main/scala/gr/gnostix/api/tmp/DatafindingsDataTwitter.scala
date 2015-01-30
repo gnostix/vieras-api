@@ -1,6 +1,6 @@
 package gr.gnostix.api.tmp
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportOra
 import gr.gnostix.api.models.plainModels.{DataTwitterGraph, SocialData}
 import gr.gnostix.api.utilities.{DateUtils, SqlUtils}
 import org.joda.time.DateTime
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
 
-object DatafindingsDataTwitterDAO extends DatabaseAccessSupport {
+object DatafindingsDataTwitterDAO extends DatabaseAccessSupportOra {
 
   implicit val getDtTwitterDataGraphResult = GetResult(r => DataTwitterGraph(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 

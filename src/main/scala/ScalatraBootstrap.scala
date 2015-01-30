@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.ExecutionContext
 
 //import scala.slick.driver.JdbcDriver.backend.Database
-import gr.gnostix.api.db.plainsql.DatabaseAccess
+import gr.gnostix.api.db.plainsql.{DatabaseAccessPg}
 
 class ScalatraBootstrap extends LifeCycle {
 
@@ -20,14 +20,14 @@ class ScalatraBootstrap extends LifeCycle {
   val myActor = system.actorOf(Props[GnxActor])
   protected implicit def executor: ExecutionContext = system.dispatcher
 
-  DatabaseAccess.createDatasource
+  DatabaseAccessPg.createDatasource
   //val cpds = new ComboPooledDataSource
   logger.info("-->  Created c3p0 connection pool")
 
   //
   override def init(context: ServletContext) {
 
-    val db = DatabaseAccess.database
+    val db = DatabaseAccessPg.database
     logger.info("-->  create a Database")
     //val db = Database.forDataSource(cpds)  // create a Database which uses the DataSource
 
@@ -78,7 +78,7 @@ class ScalatraBootstrap extends LifeCycle {
   private def closeDbConnection() {
     logger.info("-->  Closing c3po connection pool")
     //cpds.close
-    DatabaseAccess.closeDBPool
+    DatabaseAccessPg.closeDBPool
   }
 
   //

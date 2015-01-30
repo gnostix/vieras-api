@@ -3,7 +3,7 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.oraDao.MySocialChannelDaoFB
+import gr.gnostix.api.models.pgDao.MySocialChannelDaoFB
 import gr.gnostix.api.models.plainModels._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat

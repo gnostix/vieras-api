@@ -76,3 +76,4 @@ webapp/
 
 # Alex files
 src/main/scala/gr/gnostix/api/tmp/*
+oraDao/

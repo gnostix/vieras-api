@@ -5,6 +5,7 @@ import java.sql.Date
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
+import gr.gnostix.api.models.pgDao.UserDao
 import gr.gnostix.api.utilities.Reporting
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
@@ -36,13 +37,16 @@ with FutureSupport {
 
   get("/rp") {
     try {
-            val path = servletContext.getRealPath("/")
-            logger.info(s"-------------->   " + path)
-            val file = new java.io.File(path + "/api/reports/CV_AlexPappas-January-2014.doc")
-            contentType = "application/octet-stream"
-            response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
+//            val path = servletContext.getRealPath("/")
+//            logger.info(s"-------------->   " + path)
+//            val file = new java.io.File(path + "/api/reports/CV_AlexPappas-January-2014.doc")
+//            contentType = "application/octet-stream"
+//            response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
+//
+//            response.redirect("/api/reports/" + file.getName)
 
-            response.redirect("/api/reports/" + file.getName)
+      Map("usersNum" -> UserDao.getUsers)
+
     } catch {
       case e: Exception => e.printStackTrace()
     }

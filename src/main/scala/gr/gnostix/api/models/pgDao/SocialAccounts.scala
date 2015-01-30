@@ -3,7 +3,7 @@ package gr.gnostix.api.models.pgDao
 import java.sql.CallableStatement
 import java.util.Calendar
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{DataGraph, SocialAccounts}
 import org.slf4j.LoggerFactory
 
@@ -46,7 +46,7 @@ case class UserHotelUrls(credId: Int, hotelUrl: String, dsId: Int)
 case class SupportedHospitalitySites(name: String, id: Int)
 
 
-object SocialAccountsTwitterDao extends DatabaseAccessSupport {
+object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getSocialAccountsTwitterResult = GetResult(r => SocialAccountsTwitter(r.<<, r.<<,
@@ -56,15 +56,17 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsTwitter](
-          s"""  select FK_PROFILE_SOCIAL_ENG_ID, HANDLE,max(FOLLOWERS) ,
-                max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from eng_tw_stats,eng_engagement_data_queries i
+          s"""
+                select FK_PROFILE_SOCIAL_ENG_ID, HANDLE,max(FOLLOWERS) ,
+                max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from vieras.eng_tw_stats, vieras.eng_engagement_data_queries i
                   where fk_eng_engagement_data_quer_id in (
-                    select q.id from eng_engagement_data_queries q
+                    select q.id from vieras.eng_engagement_data_queries q
                       where q.is_active = 1 and q.attr = 'TW_FFSL'
                         and FK_PROFILE_SOCIAL_ENG_ID = ${credId}
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
+                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 2)) and fk_eng_engagement_data_quer_id=i.id
-                group by FK_PROFILE_SOCIAL_ENG_ID,handle """)
+                group by FK_PROFILE_SOCIAL_ENG_ID,handle
+                """)
         val accounts = records.list()
         SocialAccounts("twitter", accounts)
 
@@ -80,14 +82,16 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
           implicit session =>
             try {
               val records = Q.queryNA[SocialAccountsTwitter](
-                s"""select FK_PROFILE_SOCIAL_ENG_ID, HANDLE,max(FOLLOWERS) ,
-                max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from eng_tw_stats,eng_engagement_data_queries i
+                s"""
+                select FK_PROFILE_SOCIAL_ENG_ID, HANDLE,max(FOLLOWERS) ,
+                max(FOLLOWING),max(LISTED),max(STATUS_NUMBER) from vieras.eng_tw_stats, vieras.eng_engagement_data_queries i
                   where fk_eng_engagement_data_quer_id in (
-                    select q.id from eng_engagement_data_queries q
+                    select q.id from vieras.eng_engagement_data_queries q
                       where q.is_active = 1 and q.attr = 'TW_FFSL'
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
+                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 2)) and fk_eng_engagement_data_quer_id=i.id
-                group by FK_PROFILE_SOCIAL_ENG_ID,handle """)
+                group by FK_PROFILE_SOCIAL_ENG_ID,handle
+                 """)
               val accounts = records.list()
               if (accounts.isEmpty) {
                 logger.info("-------------> the accounts is empty")
@@ -116,7 +120,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
       //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
-      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -139,7 +143,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
 
       val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
-      connection.commit()
+      //connection.commit()
       connection.close()
 
       println("---------------------> " + credId)
@@ -157,7 +161,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupport {
   }
 }
 
-object SocialAccountsFacebookDao extends DatabaseAccessSupport {
+object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getSocialAccountsFacebookResult = GetResult(r => SocialAccountsFacebook(r.<<, r.<<,
@@ -167,16 +171,19 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsFacebook](
-          s""" select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) , max(talking_about_count),max(talking_about_sixdays),
+          s"""
+          select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) , max(talking_about_count),max(talking_about_sixdays),
                  max(checkins), max(reach), max(views), max(engaged), max(fanpage)
-                  from eng_fb_stats ,eng_engagement_data_queries i
-                   where fk_eng_engagement_data_quer_id in (
-                   select q.id from
-                      eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FFSL'
-                      and FK_PROFILE_SOCIAL_ENG_ID = ${credId}
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
-                         where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 1)) and fk_eng_engagement_data_quer_id=i.id
-              group by FK_PROFILE_SOCIAL_ENG_ID """)
+          from vieras.eng_fb_stats ,vieras.eng_engagement_data_queries i
+             where fk_eng_engagement_data_quer_id in (
+                    select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FFSL'
+                    and FK_PROFILE_SOCIAL_ENG_ID =  ${credId}
+                    and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
+               where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 1))
+           and fk_eng_engagement_data_quer_id=i.id
+          group by FK_PROFILE_SOCIAL_ENG_ID
+
+   """)
         val accounts = records.list()
         SocialAccounts("facebook", accounts)
 
@@ -191,15 +198,17 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsFacebook](
-              s"""select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans), max(talking_about_count),max(talking_about_sixdays),
-                    max(checkins),max(reach), max(views), max(engaged),  max(fanpage)
-                  from eng_fb_stats ,eng_engagement_data_queries i
-                   where fk_eng_engagement_data_quer_id in (
-                   select q.id from
-                      eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FFSL'
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
-                         where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 1)) and fk_eng_engagement_data_quer_id=i.id
-              group by FK_PROFILE_SOCIAL_ENG_ID  """)
+              s"""
+          select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) , max(talking_about_count),max(talking_about_sixdays),
+                 max(checkins), max(reach), max(views), max(engaged), max(fanpage)
+          from vieras.eng_fb_stats ,vieras.eng_engagement_data_queries i
+             where fk_eng_engagement_data_quer_id in (
+                    select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FFSL'
+                    and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
+               where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 1))
+           and fk_eng_engagement_data_quer_id=i.id
+          group by FK_PROFILE_SOCIAL_ENG_ID
+              """)
             val accounts = records.list()
 
             if (accounts.isEmpty){
@@ -232,7 +241,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
         case _ => cred.expires
       }
 
-      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -255,7 +264,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
 
       val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
-      connection.commit()
+      //connection.commit()
       connection.close()
 
       println("---------------------> " + credId)
@@ -275,7 +284,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupport {
 
 }
 
-object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
+object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getSocialAccountsYoutubeResult = GetResult(r => SocialAccountsYoutube(r.<<, r.<<,
@@ -285,15 +294,17 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsYoutube](
-          s"""select FK_PROFILE_SOCIAL_ENG_ID , max(subscribers) , max(video_views) , max(total_views), max(channel_name)
-               from ENG_YT_STATS ,eng_engagement_data_queries i
+          s"""
+            select FK_PROFILE_SOCIAL_ENG_ID , max(subscribers) , max(video_views) , max(total_views), max(channel_name)
+               from vieras.ENG_YT_STATS ,vieras.eng_engagement_data_queries i
                where fk_eng_engagement_data_quer_id in
-                ( select q.id from eng_engagement_data_queries q
+                ( select q.id from vieras.eng_engagement_data_queries q
                     where q.is_active = 1 and  q.attr = 'YT_FFSL'
                     and FK_PROFILE_SOCIAL_ENG_ID = ${credId}
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
+                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 9)) and fk_eng_engagement_data_quer_id=i.id
-              group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id """)
+              group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id
+              """)
         val accounts = records.list()
         SocialAccounts("youtube", accounts)
 
@@ -308,14 +319,16 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsYoutube](
-              s"""select FK_PROFILE_SOCIAL_ENG_ID , max(subscribers) , max(video_views) , max(total_views), max(channel_name)
-               from ENG_YT_STATS ,eng_engagement_data_queries i
+              s"""
+            select FK_PROFILE_SOCIAL_ENG_ID , max(subscribers) , max(video_views) , max(total_views), max(channel_name)
+               from vieras.ENG_YT_STATS ,vieras.eng_engagement_data_queries i
                where fk_eng_engagement_data_quer_id in
-                ( select q.id from eng_engagement_data_queries q
+                ( select q.id from vieras.eng_engagement_data_queries q
                     where q.is_active = 1 and  q.attr = 'YT_FFSL'
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
+                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 9)) and fk_eng_engagement_data_quer_id=i.id
-              group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id """)
+              group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id
+              """)
             val accounts = records.list()
 
             if(accounts.isEmpty){
@@ -336,7 +349,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
       //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
-      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -359,7 +372,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
 
       val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
-      connection.commit()
+      //connection.commit()
       connection.close()
 
       println("---------------------> " + credId)
@@ -378,7 +391,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupport {
 
 }
 
-object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
+object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getSocialAccountsGAnalyticsResult = GetResult(r => SocialAccountsGAnalytics(r.<<, r.<<,
@@ -390,15 +403,17 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsGAnalytics](
-          s"""select FK_PROFILE_SOCIAL_ENG_ID, profile_name, max(visits),max(avgtimeonsite), max(newvisits)
-                from eng_ga_stats,eng_engagement_data_queries i
+          s"""
+                select FK_PROFILE_SOCIAL_ENG_ID, profile_name, max(visits),max(avgtimeonsite), max(newvisits)
+                from vieras.eng_ga_stats, vieras.eng_engagement_data_queries i
                 where  fk_eng_engagement_data_quer_id in (
-                select q.id from eng_engagement_data_queries q
+                select q.id from vieras.eng_engagement_data_queries q
                   where q.is_active = 1 and q.attr = 'GA_STATS'
                   and FK_PROFILE_SOCIAL_ENG_ID = ${credId}
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
+                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 15)) and fk_eng_engagement_data_quer_id=i.id
-                group by FK_PROFILE_SOCIAL_ENG_ID, profile_name""")
+                group by FK_PROFILE_SOCIAL_ENG_ID, profile_name
+                """)
         val accounts = records.list()
         SocialAccounts("ganalytics", accounts)
 
@@ -414,14 +429,16 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsGAnalytics](
-              s""" select FK_PROFILE_SOCIAL_ENG_ID, profile_name, max(visits),max(avgtimeonsite), max(newvisits)
-                from eng_ga_stats,eng_engagement_data_queries i
+              s"""
+                select FK_PROFILE_SOCIAL_ENG_ID, profile_name, max(visits),max(avgtimeonsite), max(newvisits)
+                from vieras.eng_ga_stats, vieras.eng_engagement_data_queries i
                 where  fk_eng_engagement_data_quer_id in (
-                select q.id from eng_engagement_data_queries q
+                select q.id from vieras.eng_engagement_data_queries q
                   where q.is_active = 1 and q.attr = 'GA_STATS'
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from eng_profile_social_credentials s
+                   and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 15)) and fk_eng_engagement_data_quer_id=i.id
-                group by FK_PROFILE_SOCIAL_ENG_ID, profile_name """)
+                group by FK_PROFILE_SOCIAL_ENG_ID, profile_name
+                """)
             val accounts = records.list()
 
             if(accounts.isEmpty){
@@ -443,7 +460,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
       //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
-      val sql: String = "{call PRC_INSERT_SOCIAL_CREDENTIAL(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -466,7 +483,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
 
       val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
-      connection.commit()
+      //connection.commit()
       connection.close()
 
       println("---------------------> " + credId)
@@ -484,7 +501,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupport {
 }
 
 
-object SocialAccountsHotelDao extends DatabaseAccessSupport {
+object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getSocialAccountsHotelResult = GetResult(r => SocialAccountsHotel(r.<<, r.<<,
@@ -497,13 +514,15 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[SocialAccountsHotel](
-          s"""select c.id, h.HOTEL_ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
+          s"""
+          select c.id, h.ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
                      h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL, h.VIERAS_TOTAL_RATING
-                   from eng_hotels h, ENG_PROFILE_HOTEL_CREDENTIALS c
-                     where h.hotel_id = c.fk_hotel_id
+                   from vieras.eng_hotels h, vieras.ENG_PROFILE_HOTEL_CREDENTIALS c
+                     where h.id = c.fk_hotel_id
                       and c.FK_PROFILE_id = ${profileId}
                       and c.id = ${credId}
-                   order by h.TOTAL_RATING desc """)
+                   order by h.TOTAL_RATING desc
+                   """)
         val accounts = records.list()
         SocialAccounts("hotel", accounts)
 
@@ -518,12 +537,14 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
         getConnection withSession {
           implicit session =>
             val records = Q.queryNA[SocialAccountsHotel](
-              s""" select c.id, h.HOTEL_ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
+              s"""
+          select c.id, h.ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
                      h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL, h.VIERAS_TOTAL_RATING
-                   from eng_hotels h, ENG_PROFILE_HOTEL_CREDENTIALS c
-                     where h.hotel_id = c.fk_hotel_id
+                   from vieras.eng_hotels h, vieras.ENG_PROFILE_HOTEL_CREDENTIALS c
+                     where h.id = c.fk_hotel_id
                       and c.FK_PROFILE_id = ${profileId}
-                   order by h.TOTAL_RATING desc  """)
+                   order by h.TOTAL_RATING desc
+                   """)
             val accounts = records.list()
 
             if(accounts.isEmpty){
@@ -540,7 +561,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
   def addAccount(profileId: Int, cred: SocialCredentialsHotel): Option[Int] = {
     try {
 
-      val sql: String = "{call PRC_INSERT_HOTEL_CREDENTIAL(?,?,?,?)}"
+      val sql: String = "{call vieras.insert_hotel_credential(?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -556,7 +577,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
 
       val hotelId: Int = callableStatement.getInt(4)
       callableStatement.close()
-      connection.commit()
+      //connection.commit()
       connection.close()
 
       println("---------------------> " + hotelId)
@@ -625,10 +646,13 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
             "http://" + url
           }
 
-          val credId = Q.queryNA[Int]( s"""  select i.id from ENG_PROFILE_HOTEL_CREDENTIALS i,eng_hotels h
-                  where i.fk_hotel_id=h.hotel_id
-                    and I.FK_PROFILE_ID=1
-                    and h.hotel_url = '$newUrl' """).list()
+          val credId = Q.queryNA[Int]( s"""
+             select i.id from  vieras.ENG_PROFILE_HOTEL_CREDENTIALS i,vieras.eng_hotels h
+                  where i.fk_hotel_id=h.id
+
+                    and h.hotel_url = '$newUrl'
+                    """).list()
+          //and fk_profile_id = $profileId
           logger.error("---------->    credId credId credId " + credId.size)
 
           if (credId.size > 0) {
@@ -649,7 +673,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     try {
       getConnection withSession {
         implicit session =>
-          val credId = Q.queryNA[String]( s"""  select ds_name from vieras_datasources where fk_g_id=9  """)
+          val credId = Q.queryNA[String]( s"""  select ds_name from vieras.vieras_datasources where fk_g_id=9  """)
           val hospitalityUrls = credId.list()
 
           val isSupported = hospitalityUrls.map(ds_name => url.toLowerCase.contains(ds_name.toLowerCase))
@@ -674,7 +698,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     try {
       getConnection withSession {
         implicit session =>
-          val credId = Q.queryNA[SupportedHospitalitySites]( s""" select ds_name, ds_id from vieras_datasources where fk_g_id=9 """)
+          val credId = Q.queryNA[SupportedHospitalitySites]( s""" select ds_name, id from vieras.vieras_datasources where fk_g_id=9 """)
           credId.list()
       }
 
@@ -689,9 +713,11 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
       getConnection withSession {
         implicit session =>
           val urls = Q.queryNA[UserHotelUrls]( s"""
-                                          select i.id,h.hotel_url,i.fk_datasource_id from ENG_PROFILE_HOTEL_CREDENTIALS i,eng_hotels h
-                                          where i.fk_hotel_id=h.hotel_id
-                                            and I.FK_PROFILE_id=$profileId """)
+                  select i.id,h.hotel_url,i.fk_datasource_id
+                   from vieras.ENG_PROFILE_HOTEL_CREDENTIALS i, vieras.eng_hotels h
+                       where i.fk_hotel_id=h.id
+                    and I.FK_PROFILE_id = $profileId
+            """)
           urls.list()
       }
 
@@ -700,16 +726,16 @@ object SocialAccountsHotelDao extends DatabaseAccessSupport {
     }
   }
 
-  object SocialAccountsQueriesDao extends DatabaseAccessSupport {
+  object SocialAccountsQueriesDao extends DatabaseAccessSupportPg{
 
     def deleteSocialAccount(profileId: Int, credId: Int, datasource: String) = Option[Int] {
       try {
         getConnection withSession {
           implicit session =>
             datasource match {
-              case "hotel" => (Q.u + s"""{call PRC_DELETE_HOTEL_CREDENTIAL($profileId, $credId)}""").execute()
+              case "hotel" => (Q.u + s"""{call vieras.delete_social_credential($profileId, $credId)}""").execute()
               case "twitter" | "facebook" | "youtube" | "ganalytics" =>
-                (Q.u + s"""{call PRC_DELETE_SOCIAL_CREDENTIAL($profileId, $credId)}""").execute()
+                (Q.u + s"""{call vieras.delete_hotel_credential($profileId, $credId)}""").execute()
             }
 
         }

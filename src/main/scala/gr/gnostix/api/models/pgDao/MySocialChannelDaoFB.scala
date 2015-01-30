@@ -1,6 +1,6 @@
 package gr.gnostix.api.models.pgDao
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{ApiData, DataLineGraph, DemographicsDataFB, FacebookComment, FacebookDemographics, FacebookPost, FacebookStats, FacebookStatsApi, FacebookStatsTop, MsgNum, Payload, SocialData, SocialDataSum}
 import gr.gnostix.api.utilities.DateUtils
 import org.joda.time.DateTime
@@ -13,7 +13,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 /**
  * Created by rebel on 21/10/14.
  */
-object MySocialChannelDaoFB extends DatabaseAccessSupport {
+object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   implicit val getFbLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getFbDemographics = GetResult(r => FacebookDemographics(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))

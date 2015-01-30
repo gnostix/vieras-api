@@ -3,7 +3,7 @@ package gr.gnostix.api.models.pgDao
 
 import java.sql.Timestamp
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.{DatabaseAccessSupportPg}
 import gr.gnostix.api.models.plainModels.Payload
 import org.slf4j.LoggerFactory
 
@@ -23,27 +23,27 @@ case class UserDetails(firstName: String, lastName: String,
                        expirationDate: Timestamp)
 
 case class UserTotals(totalCounts: Int, totalKeywords: Int,
-                      enabled: Int, sentEmail: Int,
-                      totalProfiles: Int, totalFbFanPages: Int,
-                      totalTwitterAccounts: Int, totalTopicProfiles: String,
-                      totalYoutubeAccounts: Int, totalHotelAccounts: Int)
+                      enabled: Int, totalProfiles: Int,
+                      totalTopicProfiles: Int, totalSocialAccounts: Int,
+                      totalHotelAccounts: Int)
 
-object UserDao extends DatabaseAccessSupport{
+object UserDao extends DatabaseAccessSupportPg {
 
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getUserResult = GetResult(r => User(r.<<, r.<<, r.<<, r.<<,
     UserDetails(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<),
-    UserTotals(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<)))
+    UserTotals(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<)))
 
   def findById(userId: Int) = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[User](s"""
-          select ID, USERNAME, PASSWORD, USERLEVEL, USER_FIRSTNAME, USER_LASTNAME, REGISTRATION_DATE, EMAIL, STREET_ADDRESS,
-            STREET_NO, POSTAL_CODE, CITY,COMPANY, LANGUAGE, EXPIRATION_DATE,  TOTAL_COUNTS, TOTAL_KEYWORDS, ENABLED, EMAIL,
-            TOTAL_PROFILES, total_topic_profiles,   total_social_account, TOTAL_HOTELS
-          from vieras.USERS where ID =  $userId
+        val records = Q.queryNA[User]( s"""
+          select id, username, password, userlevel, user_firstname, user_lastname, registration_date,
+            email, street_address, street_no, postal_code, city, company, language, expiration_date,
+            total_counts, total_keywords, enabled, total_profiles, total_topic_profiles,
+            total_social_account, total_hotels
+          from vieras.users where id =  $userId
           """)
         records.first
     }
@@ -52,26 +52,32 @@ object UserDao extends DatabaseAccessSupport{
   def findByUsername(username: String): Option[User] = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[User](s"""
-          select ID, USERNAME, PASSWORD, USERLEVEL, USER_FIRSTNAME, USER_LASTNAME, REGISTRATION_DATE,
-            EMAIL, STREET_ADDRESS, STREET_NO, POSTAL_CODE, CITY,COMPANY, LANGUAGE, EXPIRATION_DATE,
-            TOTAL_COUNTS, TOTAL_KEYWORDS, ENABLED, EMAIL, TOTAL_PROFILES, total_topic_profiles,
-            total_social_account, TOTAL_HOTELS
-          from vieras.USERS where username = '$username'
+
+        try {
+          val records = Q.queryNA[User]( s"""
+        select id, username, password, userlevel, user_firstname, user_lastname, registration_date,
+            email, street_address, street_no, postal_code, city, company, language, expiration_date,
+            total_counts, total_keywords, enabled, total_profiles, total_topic_profiles,
+            total_social_account, total_hotels
+          from vieras.users where username = '$username'
           """)
-        if (records.list.size == 0) None else Some(records.first)
-    }
+          if (records.list.size == 0) None else Some(records.first)
+        } catch {
+          case e: Exception => e.printStackTrace()
+            None
+        }
 
-  }
-
-  def getUsers = {
-    getConnection withSession {
-      implicit session =>
-        val records = Q.queryNA[User]("""select * from USERS""")
-        records.list()
     }
   }
 
+    def getUsers = {
+      getConnection withSession {
+        implicit session =>
+          val records = Q.queryNA[Int]( """select count(*) from vieras.users""")
+          records.first
+      }
+    }
 
-}
+
+  }
 

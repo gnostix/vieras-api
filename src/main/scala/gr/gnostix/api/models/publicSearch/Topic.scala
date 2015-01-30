@@ -2,7 +2,7 @@ package gr.gnostix.api.models.publicSearch
 
 import java.sql.Timestamp
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportOra
 import org.slf4j.LoggerFactory
 
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
@@ -10,7 +10,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 case class Topic(topicId: Int, topicName: String, topicAttributes: String, profileId: Int,
                  creationDate: Timestamp, topicDesc: String)
 
-object TopicDao extends DatabaseAccessSupport {
+object TopicDao extends DatabaseAccessSupportOra {
 
   implicit val getTopicResult = GetResult(r => Topic(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<))

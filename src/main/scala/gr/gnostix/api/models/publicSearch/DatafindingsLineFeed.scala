@@ -1,6 +1,6 @@
 package gr.gnostix.api.models.publicSearch
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportOra
 import gr.gnostix.api.models.plainModels.{SocialData, DataLineGraph}
 import gr.gnostix.api.utilities.{DateUtils, SqlUtils}
 import org.joda.time.DateTime
@@ -16,7 +16,7 @@ object FeedDatasources {
   val personal = Map(13 -> "personal")
 }
 
-object DtFeedLineGraphDAO extends DatabaseAccessSupport {
+object DtFeedLineGraphDAO extends DatabaseAccessSupportOra {
 
   implicit val getDtFeedLineGraphResult = GetResult(r => DataLineGraph(r.<<, r.<<))
 

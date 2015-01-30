@@ -1,8 +1,8 @@
 package gr.gnostix.api.models.pgDao
 
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
-import gr.gnostix.api.models.plainModels.{RevStat, HotelRatingStats}
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
+import gr.gnostix.api.models.plainModels.{ApiData, RevStat, HotelRatingStats}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -17,57 +17,39 @@ case class Sentiment(positive: Int, negative: Int, neutral: Int)
 
 case class HospitalityServicesSentiment(serviceName: String, score: Int, sentiment: Sentiment)
 
-object HospitalityServicesDao extends DatabaseAccessSupport {
+object HospitalityServicesDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
+  implicit val getServicesStatsResult = GetResult(r => HotelRatingStats(r.<<, r.<<))
 
-  def getByName(implicit ctx: ExecutionContext, serviceName: String, profileId: Int, fromDate: DateTime,
-                toDate: DateTime): Future[Option[HospitalityServicesSentiment]] = {
 
-    val prom = Promise[Option[HospitalityServicesSentiment]]()
+  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryRatingSentiment(fromDate, toDate, profileId)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
 
     Future {
-      prom.success(getData(serviceName, profileId, fromDate, toDate))
+      prom.success(getDataRatingSentiment(mySqlDynamic))
+    }
+    prom.future
+  }
 
+  def getDataServiceByName(implicit ctx: ExecutionContext, serviceName: String, profileId: Int, fromDate: DateTime, toDate: DateTime): Future[Option[ApiData]] = {
+    implicit val getHospitalitySentimentResult = GetResult(r => Sentiment(r.<<, r.<<, r.<<))
+
+    val mySqlDynamic = buildQueryRatingSentimentByName(fromDate, toDate, profileId, serviceName: String)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getDataRatingSentiment(mySqlDynamic))
     }
     prom.future
   }
 
 
-  def getData(serviceName: String, profileId: Int, fromDate: DateTime, toDate: DateTime): Option[HospitalityServicesSentiment] = {
-    implicit val getHospitalitySentimentResult = GetResult(r => Sentiment(r.<<, r.<<, r.<<))
 
-    val datePattern = "dd-MM-yyyy HH:mm:ss"
 
-    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
-    val fromDateStr: String = fmt.print(fromDate)
-    val toDateStr: String = fmt.print(toDate)
-
-    var myData = Sentiment
-
-    getConnection withSession {
-      implicit session =>
-        val records = Q.queryNA[Sentiment]( s"""
-      select positive_reviews, neutral_reviews,negative_reviews
-        from (select
-          sum(case when vieras_rating_value > 6 then 1 else 0 end) positive_reviews,
-          sum(case when vieras_rating_value <4 then 1 else 0 end) negative_reviews,
-          sum(case when vieras_rating_value >= 4 and vieras_rating_value <= 6 then 1 else 0 end) neutral_reviews
-            from (select * from ENG_HOTEL_RATING i where i.fk_pid in
-              ( select review_id from ENG_HOTEL_REVIEWS where fk_hotel_id in (select fk_hotel_id from ENG_PROFILE_HOTEL_CREDENTIALS where fk_profile_id=${profileId})
-              and review_date   BETWEEN TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS') AND TO_DATE('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS'))
-              and I.VIERAS_RATING_NAME='${serviceName}'
-              or (fk_pid in (select fk_hotel_id from ENG_PROFILE_HOTEL_CREDENTIALS where fk_profile_id=${profileId} )
-               and I.VIERAS_RATING_NAME='${serviceName}')))
-          """)
-        if (records.list.size == 0) None
-        else {
-          val sent: Sentiment = records.first
-          Some(HospitalityServicesSentiment(serviceName, sent.positive - sent.negative, sent))
-        }
-    }
-  }
-
-  private def getTopMinusMaxReviews(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
+  private def getDataRatingSentiment(sql: String): Option[ApiData] = {
     /*      ------------ Test data --------------
     * val li = List(HotelRatingStats("Value", 10), HotelRatingStats("Value", 8),
   HotelRatingStats("Value", 10), HotelRatingStats("Value", 8), HotelRatingStats("Value", 6),
@@ -83,29 +65,78 @@ object HospitalityServicesDao extends DatabaseAccessSupport {
   HotelRatingStats("room", 10), HotelRatingStats("sleep", 4), HotelRatingStats("staff", 6),
   HotelRatingStats("location", 10), HotelRatingStats("staff", 8), HotelRatingStats("sleep", 8))*/
 
-
-    val firstStep = li.
-      groupBy(_.ratingName).map {
-      case (x, y) => (x, y.groupBy(_.ratingValue).map {
-        case (a, s) => RevStat(s.head.ratingName, a, s.size)
-      })
-    }
-
-    val secondStep = firstStep.toStream.map {
-      case (q, w) => {
-        List(w.toList.sortBy(r => (r.score, r.numMsg)).head,
-          w.toList.sortBy(r => (r.score, r.numMsg)).reverse.head)
+    try {
+      var myData = List[HotelRatingStats]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my hotel rating stats ------------->" + sql)
+          val records = Q.queryNA[HotelRatingStats](sql)
+          myData = records.list()
       }
+
+      if (myData.size > 0) {
+        Some(ApiData("Services", myData.groupBy(_.ratingName).map {
+          case (x, y) => (x -> Map("positive" -> y.filter(a => a.ratingValue >= 7).size,
+            "negative" -> y.filter(a => a.ratingValue <= 4).size,
+            "neutral" -> y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size,
+            "score" -> (y.filter(a => a.ratingValue >= 7).size).min(y.filter(a => a.ratingValue <= 4).size)
+          ))
+        } ))
+      } else {
+        Some(ApiData("nodata", None))
+      }
+
     }
 
-    val massagedData =
-      secondStep.toList.flatten.sortBy(n => (n.score, n.numMsg))
+  }
 
-    val neg = massagedData.take(5).toList
-    val pos = massagedData.reverse.take(5).toList
+  private def buildQueryRatingSentiment(fromDate: DateTime, toDate: DateTime, profileId: Int): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
 
 
-    (neg, pos)
+    val sql =
+        s"""
+            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
+                 where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} )
+                    and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and r.ID = hr.FK_PID
+                    and hr.VIERAS_RATING_NAME is not null
+        """
+
+
+    //logger.info("------------->" + sql + "-----------")
+
+    sql
+  }
+
+
+  private def buildQueryRatingSentimentByName(fromDate: DateTime, toDate: DateTime, profileId: Int, serviceName: String): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+
+    val sql =
+      s"""
+            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
+                 where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} )
+                    and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                    and r.ID = hr.FK_PID
+                    and hr.VIERAS_RATING_NAME = '${serviceName}'
+        """
+
+
+    //logger.info("------------->" + sql + "-----------")
+
+    sql
   }
 
 }

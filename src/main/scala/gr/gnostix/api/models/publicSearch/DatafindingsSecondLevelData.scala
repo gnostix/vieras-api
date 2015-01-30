@@ -1,6 +1,6 @@
 package gr.gnostix.api.models.publicSearch
 
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupport
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportOra
 import gr.gnostix.api.models.plainModels._
 import org.slf4j.LoggerFactory
 
@@ -8,7 +8,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
 
 
-object DatafindingsSecondLevelDataDAO extends DatabaseAccessSupport {
+object DatafindingsSecondLevelDataDAO extends DatabaseAccessSupportOra {
 
   implicit val getSecondLevelDataTwitterResult = GetResult(r => SecondLevelDataTwitter(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getSecondLevelDataFacebookResult = GetResult(r => SecondLevelDataFacebook(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
