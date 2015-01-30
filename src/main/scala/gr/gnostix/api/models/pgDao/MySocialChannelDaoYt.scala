@@ -252,9 +252,9 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
       from vieras.ENG_YT_WALL t
         where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where  q.attr = 'YT_USER_WALL'
           and fk_profile_social_eng_id in ( $sqlEngAccount )
-           and created::timestamp between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+           and m_sysdate::timestamp between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
 		       and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        order by created asc
+        order by VIEW_COUNT desc
       """
     logger.info("------------>" + sql)
     sql
