@@ -165,7 +165,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
           val records = Q.queryNA[YoutubeLineData](sql)
           myData = records.list()
       }
-
+      logger.info(" -------------> we have video stats COUNT " + myData.size)
       if (myData.size > 0) {
         logger.info(" -------------> we have video stats ")
         Some(ApiData("video_data", dataMinus(myData) ))
@@ -196,7 +196,10 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
     def go(li: List[YoutubeLineData]): List[YoutubeLineData] = {
       li match {
         case Nil => Nil
-        case x :: Nil => List(buf.toList: _*)
+        case x :: Nil => {
+          buf += x
+          List(buf.toList: _*)
+        }
         case x :: y :: Nil => buf += YoutubeLineData(
           y.subscribers - x.subscribers,
           y.totalViews - x.totalViews,
