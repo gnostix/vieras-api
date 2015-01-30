@@ -373,7 +373,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
              order by created asc
          """
 
-    sqlEngAccount
+    sql
   }
 
 
