@@ -1,8 +1,10 @@
 package gr.gnostix.api.models.pgDao
 
 import java.sql.Timestamp
+import java.text.DecimalFormat
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
+import gr.gnostix.api.models.plainModels.{ApiMessages, ApiData}
 import org.slf4j.LoggerFactory
 
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
@@ -17,7 +19,7 @@ case class Profile(profileId: Int,
                    enabled: Int,
                    totalKeywords: Int,
                    language: String,
-                   vierasTotalRating: Double)
+                   var vierasTotalRating: Double)
 
 object ProfileDao extends DatabaseAccessSupportPg {
 
@@ -26,16 +28,39 @@ object ProfileDao extends DatabaseAccessSupportPg {
   implicit val getProfileResult = GetResult(r => Profile(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
-  def findById(profileId: Int, userId: Int) = {
+  def findById(profileId: Int, userId: Int): Option[ApiData] = {
     getConnection withSession {
       implicit session =>
-        val records = Q.queryNA[Profile]( s"""
+
+        try {
+          val records = Q.queryNA[Profile]( s"""
                 select c.id, c.profile_firstname,c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,
                     c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
                    from vieras.profiles c  where c.id = $profileId  and c.fk_user_id = $userId
           """)
-        records.list()
+          val profiles = records.list()
 
+          profiles.map {
+            x => x.vierasTotalRating = {
+              val rating = Q.queryNA[Double](
+                s"""
+          select vieras_total_rating from vieras.eng_hotels where vieras_total_rating is not null
+	          and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_profile_id=${x.profileId})
+           """).list()
+
+              // in order to get the double with 2 digits precision instead of 5.23455 we get 5.34
+              BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+            }
+          }
+
+          if (profiles.size > 0) {
+            Some(ApiData("profile", profiles.head))
+          } else Some(ApiData("nodata", profiles))
+
+        } catch {
+          case e: Exception => e.printStackTrace()
+            None
+        }
     }
   }
 
@@ -50,7 +75,24 @@ object ProfileDao extends DatabaseAccessSupportPg {
               c.total_counts,c.enabled,c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
             from vieras.profiles c  where  c.fk_user_id = $userId
           """)
-          records.list
+          val profiles = records.list()
+
+          profiles.map {
+            x => x.vierasTotalRating = {
+              val rating = Q.queryNA[Double](
+                s"""
+          select vieras_total_rating from vieras.eng_hotels where vieras_total_rating is not null
+	          and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_profile_id=${x.profileId})
+           """).list()
+
+              BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+            }
+          }
+
+          if (profiles.size > 0) {
+            Some(ApiData("profile", profiles.head))
+          } else Some(ApiData("nodata", profiles))
+
         } catch {
           case e: Exception => e.printStackTrace()
             None

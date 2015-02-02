@@ -58,25 +58,27 @@ with FutureSupport {
 
 
 
+  get("/profile/:id") {
+    logger.info(s"---->   return profile with id ${params("id")}     ")
+    val profiledata = ProfileDao.findById(params("id").toInt, user.userId)
+    ApiData.cleanDataResponse(profiledata)
+  }
+
   get("/profiles/all") {
     logger.info("---->   return all profiles with id and name     ")
     try {
       val profiles = ProfileDao.getAllProfiles(user.userId)
-      ApiMessages.generalSuccess("profiles", profiles)
+      ApiData.cleanDataResponse(profiles)
     } catch {
       case e: Exception => "Something went wrong" + e.printStackTrace()
         ApiMessages.generalError
     }
   }
 
-  get("/profile/:id") {
-    logger.info(s"---->   return profile with id ${params("id")}     ")
-    ProfileDao.findById(params("id").toInt, user.userId)
-  }
 
   // create a new profile
   post("/profile/:name") {
-    logger.info(s"---->   return profile with id ${params("name")}     ")
+    logger.info(s"---->   return profile with name ${params("name")}     ")
     val profileId = ProfileDao.createProfile(user.userId, params("name"))
 
     val response = profileId match {

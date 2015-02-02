@@ -3,12 +3,31 @@ package gr.gnostix.api.models.plainModels
 import java.sql.Timestamp
 import java.util.Date
 
+
 abstract class Payload
 abstract class DataGraph
 
 
 case class DataLineGraph(msgNum: Int, msgDate: Timestamp) extends DataGraph
 case class SocialData(datasource: String, data: List[DataGraph]) extends Payload
+object ApiData {
+
+  def cleanDataResponse(dashboardData: Option[ApiData]) = {
+    dashboardData match {
+      case Some(dt) => {
+
+        val hasData = dt.dataName match {
+          case "nodata" => ApiMessages.generalSuccessNoData
+          case _ => ApiMessages.generalSuccessOneParam(Map(dt.dataName -> dt.data))
+        }
+
+        hasData
+      }
+      case None => ErrorDataResponse(404, "Error on data")
+    }
+
+  }
+}
 case class ApiData(dataName: String, data: Any) extends Payload
 case class SocialDataSum(datasource: String, data: Int) extends Payload
 case class SocialAccounts(datasource: String, data: List[DataGraph]) extends Payload
