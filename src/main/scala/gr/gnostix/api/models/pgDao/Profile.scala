@@ -90,7 +90,7 @@ object ProfileDao extends DatabaseAccessSupportPg {
           }
 
           if (profiles.size > 0) {
-            Some(ApiData("profile", profiles.head))
+            Some(ApiData("profile", profiles))
           } else Some(ApiData("nodata", profiles))
 
         } catch {
