@@ -149,7 +149,6 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-
   private def getTopMinusMaxReviews(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
     /*      ------------ Test data --------------
     * val li = List(HotelRatingStats("Value", 10), HotelRatingStats("Value", 8),
@@ -218,13 +217,18 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                   case (name, tuple) => (name -> tuple.size)
                 }.toMap*/
 
-        val stayType = Map("couple" -> myData.filter(x => x.stayType.toLowerCase.contains("couple")
-          || x.stayType.toLowerCase.contains("partner")).size, //add also partner
-          "friend" -> myData.filter(_.stayType.toLowerCase.contains("friend")).size,
-          "business" -> myData.filter(_.stayType.toLowerCase.contains("business")).size,
-          "family" -> myData.filter(_.stayType.toLowerCase.contains("famil")).size,
-          "solo" -> myData.filter(x => x.stayType.toLowerCase.contains("solo")
-            || x.stayType.toLowerCase.contains("person")).size)
+
+        val stayType = {
+          if (myData.head.stayType != null) {
+            Map("couple" -> myData.filter(x => x.stayType.toLowerCase.contains("couple")
+              || x.stayType.toLowerCase.contains("partner")).size, //add also partner
+              "friend" -> myData.filter(_.stayType.toLowerCase.contains("friend")).size,
+              "business" -> myData.filter(_.stayType.toLowerCase.contains("business")).size,
+              "family" -> myData.filter(_.stayType.toLowerCase.contains("famil")).size,
+              "solo" -> myData.filter(x => x.stayType.toLowerCase.contains("solo")
+                || x.stayType.toLowerCase.contains("person")).size)
+          } else None
+        }
 
         // geographic data
         val countries = myData.groupBy(_.country).map {
