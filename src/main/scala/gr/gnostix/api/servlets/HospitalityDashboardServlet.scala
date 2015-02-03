@@ -32,7 +32,7 @@ with FutureSupport {
 
   before() {
     contentType = formats("json")
-    //requireLogin()
+    requireLogin()
   }
 
   // mount point /api/user/socialchannels/dashboard/hotel/*

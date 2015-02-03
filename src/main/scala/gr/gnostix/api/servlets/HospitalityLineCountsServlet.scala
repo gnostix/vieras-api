@@ -27,7 +27,7 @@ with CorsSupport {
 
   before() {
     contentType = formats("json")
-    //requireLogin()
+    requireLogin()
   }
 
   // mount point /api/user/socialchannels/hotel/line/*

@@ -30,7 +30,7 @@ with FutureSupport {
   before() {
     //contentType = formats("json")
     //contentType = "application/octet-stream"
-    //requireLogin()
+    requireLogin()
   }
 
   // mount point /api/user/dashboard/report/*
