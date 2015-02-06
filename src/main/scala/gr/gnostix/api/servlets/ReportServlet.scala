@@ -45,7 +45,7 @@ with FutureSupport {
 //
 //            response.redirect("/api/reports/" + file.getName)
 
-      Map("usersNum4" -> UserDao.getUsers)
+      Map("usersNum5" -> UserDao.getUsers)
 
     } catch {
       case e: Exception => e.printStackTrace()
