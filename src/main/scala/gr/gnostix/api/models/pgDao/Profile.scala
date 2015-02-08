@@ -85,7 +85,9 @@ object ProfileDao extends DatabaseAccessSupportPg {
 	          and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_profile_id=${x.profileId})
            """).list()
 
-              BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+              if (rating.size > 0) {
+                BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+              } else 0
             }
           }
 
