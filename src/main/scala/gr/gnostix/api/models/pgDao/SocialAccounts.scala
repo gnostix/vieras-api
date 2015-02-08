@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.io.Source
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
+import Q.interpolation
 
 /**
  * Created by rebel on 4/8/14.
@@ -730,15 +731,23 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
     def deleteSocialAccount(profileId: Int, credId: Int, datasource: String) = Option[Int] {
       try {
-        getConnection withSession {
-          implicit session =>
-            datasource match {
-              case "hotel" => (Q.u + s"""{call vieras.delete_social_credential($profileId, $credId)}""").execute()
-              case "twitter" | "facebook" | "youtube" | "ganalytics" =>
-                (Q.u + s"""{call vieras.delete_hotel_credential($profileId, $credId)}""").execute()
-            }
 
+        val sql = datasource match {
+          case "hotel" => "{call vieras.delete_hotel_credential(?, ?)}"
+          case "twitter" | "facebook" | "youtube" | "ganalytics" => "{call vieras.delete_social_credential(?, ?)}"
         }
+
+        val connection = getConnection.createConnection()
+        val callableStatement: CallableStatement = connection.prepareCall(sql)
+        callableStatement.setInt(1, profileId)
+        callableStatement.setInt(2, credId)
+
+        callableStatement.executeUpdate()
+
+        callableStatement.close()
+        //connection.commit()
+        connection.close()
+
         val status: Int = 200
         status
 
