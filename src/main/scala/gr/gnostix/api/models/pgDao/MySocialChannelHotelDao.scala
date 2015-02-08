@@ -219,15 +219,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
         val stayType = {
-          if (myData.head.stayType != null) {
-            Map("couple" -> myData.filter(x => x.stayType.toLowerCase.contains("couple")
+            val cleanData = myData.filter(x => !x.stayType.isEmpty || x.stayType != null)
+
+            Map("couple" -> cleanData.filter(x => x.stayType.toLowerCase.contains("couple")
               || x.stayType.toLowerCase.contains("partner")).size, //add also partner
-              "friend" -> myData.filter(_.stayType.toLowerCase.contains("friend")).size,
-              "business" -> myData.filter(_.stayType.toLowerCase.contains("business")).size,
-              "family" -> myData.filter(_.stayType.toLowerCase.contains("famil")).size,
-              "solo" -> myData.filter(x => x.stayType.toLowerCase.contains("solo")
+              "friend" -> cleanData.filter(_.stayType.toLowerCase.contains("friend")).size,
+              "business" -> cleanData.filter(_.stayType.toLowerCase.contains("business")).size,
+              "family" -> cleanData.filter(_.stayType.toLowerCase.contains("famil")).size,
+              "solo" -> cleanData.filter(x => x.stayType.toLowerCase.contains("solo")
                 || x.stayType.toLowerCase.contains("person")).size)
-          } else None
         }
 
         // geographic data
