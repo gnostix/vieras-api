@@ -96,7 +96,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
       }
 
       if (myData.size > 0) {
-        logger.info(" -------------> we have hotel rating stats ")
+        logger.info(" -------------> we have hotel rating stats " + myData)
 
         val (neg, pos) = getTopMinusMaxReviews(myData)
 
@@ -219,7 +219,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
         val stayType = {
-            val cleanData = myData.filter(x => !x.stayType.isEmpty || x.stayType != null)
+            val cleanData = myData.filter(x => x.stayType != null)
 
             Map("couple" -> cleanData.filter(x => x.stayType.toLowerCase.contains("couple")
               || x.stayType.toLowerCase.contains("partner")).size, //add also partner
