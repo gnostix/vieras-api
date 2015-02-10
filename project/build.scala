@@ -10,7 +10,7 @@ object ScalatraoraBuild extends Build {
   val Name = "GnostixAPI"
   val Version = "0.1.0"
   val ScalaVersion = "2.10.3"
-  val ScalatraVersion = "2.2.2"
+  val ScalatraVersion = "2.3.0"
 
   lazy val project = Project(
     "GnostixAPI",
@@ -27,15 +27,15 @@ object ScalatraoraBuild extends Build {
         "org.scalatra" %% "scalatra" % ScalatraVersion withJavadoc(),
         "org.scalatra" %% "scalatra-scalate" % ScalatraVersion withJavadoc(),
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test" withJavadoc(),
+        "org.scalatra" %% "scalatra-json" % ScalatraVersion withJavadoc(),
+        "org.scalatra" %% "scalatra-auth" % ScalatraVersion withJavadoc(),
         "ch.qos.logback" % "logback-classic" % "1.0.6" % "runtime" withJavadoc(),
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.10.v20130312" % "container;compile" withJavadoc(),
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar")),
         "c3p0" % "c3p0" % "0.9.1.2" withJavadoc(),
-        "org.scalatra" %% "scalatra-json" % "2.2.2" withJavadoc(),
         "org.json4s" %% "json4s-jackson" % "3.2.6" withJavadoc(),
         "com.typesafe.slick" %% "slick" % "2.0.2" withJavadoc(),
         "com.typesafe.slick" %% "slick-extensions" % "2.0.2" withJavadoc(),
-        "org.scalatra" %% "scalatra-auth" % ScalatraVersion withJavadoc(),
         "com.typesafe.akka" %% "akka-actor" % "2.3.4",
         "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
         "com.restfb" % "restfb" % "1.6.16",
