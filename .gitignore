@@ -74,6 +74,10 @@ deploy-jetty.rb
 # webapp files
 webapp/
 
+# ruby capistrano bundle files
+vendor/
+.ruby-version
+
 # Alex files
 src/main/scala/gr/gnostix/api/tmp/*
 oraDao/
