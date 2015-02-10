@@ -16,7 +16,7 @@ class TheBasicAuthStrategy(protected override val app: ScalatraBase, realm: Stri
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  override protected def getUserId(user: User)(implicit request: HttpServletRequest, response: HttpServletResponse): String = "10"
+  override protected def getUserId(user: User)(implicit request: HttpServletRequest, response: HttpServletResponse): String = user.userId.toString
 
   override def isValid(implicit request: HttpServletRequest) = {
     logger.info("-----------> TheBasicAuthStrategy: isValid " + app.request.isBasicAuth +" " + app.request.providesAuth)
