@@ -41,4 +41,13 @@ class TheBasicAuthStrategy(protected override val app: ScalatraBase, realm: Stri
       }
     }
   }
+
+  /**
+   * What should happen if the user is currently not authenticated?
+   */
+  override def unauthenticated()(implicit request: HttpServletRequest, response: HttpServletResponse) {
+    //app.redirect("/sessions/new")
+    logger.info("---------> TheBasicAuthStrategy: login unauthenticated, was redirected")
+    //app.redirect("/login")
+  }
 }
