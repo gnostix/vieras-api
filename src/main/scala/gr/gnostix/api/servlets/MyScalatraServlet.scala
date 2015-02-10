@@ -4,6 +4,7 @@ import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.pgDao.{UserDao, UserRegistration}
 import gr.gnostix.api.models.plainModels.{ApiMessages, AllDataResponse}
+import gr.gnostix.api.utilities.EmailUtils
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -82,13 +83,22 @@ with CorsSupport {
       validateEmail match {
         case true => {
           UserDao.findByUsername(email) match {
-            case Some(x) => ApiMessages.generalSuccessWithMessage("Reminding the user password. Email send...")
+            case Some(x) => {
+
+              UserDao.resetPassword(x) match {
+                case Some(a) => ApiMessages.generalSuccessWithMessage("Reminding the user password. Email send...")
+                case None => ApiMessages.generalErrorWithMessage("error on reseting user's password ")
+              }
+
+            }
             case None => ApiMessages.generalErrorWithMessage("user doesn't exists!")
           }
 
         }
         case false => ApiMessages.generalErrorWithMessage("invalid email!")
       }
+
+
     } catch {
       case e: Exception => ApiMessages.generalErrorWithMessage("error on data ")
     }

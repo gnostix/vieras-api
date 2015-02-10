@@ -4,7 +4,8 @@ package gr.gnostix.api.models.pgDao
 import java.sql.{CallableStatement, Timestamp}
 
 import gr.gnostix.api.db.plainsql.{DatabaseAccessSupportPg}
-import gr.gnostix.api.models.plainModels.Payload
+import gr.gnostix.api.models.plainModels.{ApiMessages, Payload}
+import gr.gnostix.api.utilities.{EmailUtils, HelperFunctions}
 import org.slf4j.LoggerFactory
 
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
@@ -79,6 +80,38 @@ object UserDao extends DatabaseAccessSupportPg {
         records.first
     }
   }
+
+  def resetPassword(user: User): Option[Int] = {
+
+    try {
+      // generate new password
+      val newPassword = HelperFunctions.randomAlphaNumericString(10)
+      val hashedPassword = HelperFunctions.sha1Hash(user.username + newPassword)
+
+      //update password in database for this username/email
+      getConnection withSession {
+        implicit session =>
+          Q.updateNA(
+            s""" update vieras.users set password = '$hashedPassword'
+             where  username = '${user.username}'
+               and id = ${user.userId}""").execute()
+      }
+
+      val message = s""" You temporary password is ${newPassword}. \r\nPlease change it in your next Login"""
+      val subject = "Gnostix Vieras support"
+      //send email to the user with the new password
+      EmailUtils.sendMailOneRecipient(user.userDetails.email, message, subject)
+
+
+      Some(200)
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+  }
+
 
   def createUser(userReg: UserRegistration): Int = {
     try {

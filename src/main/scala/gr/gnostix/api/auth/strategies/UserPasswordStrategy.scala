@@ -3,6 +3,7 @@ package gr.gnostix.api.auth.strategies
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gr.gnostix.api.models.pgDao.{User, UserDao}
+import gr.gnostix.api.utilities.HelperFunctions
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.ScentryStrategy
 import org.slf4j.LoggerFactory
@@ -66,16 +67,15 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
   }
 
   def checkUserPassword(username: String, password: String, userDbPassword: String): Boolean = {
-    //logger.info (s"---------> UserPasswordStrategy checkUserPassword :  $username $password")
-    logger.info (s"---------> UserPasswordStrategy userDbPassword : $userDbPassword")
-    logger.info (s"---------> UserPasswordStrategy Password :  ${md5Hash (username + password)}")
-    if (md5Hash(username + password) == userDbPassword.toLowerCase) true else false
+//    logger.info ("---------> UserPasswordStrategy checkUserPassword :"  + username + ":" + password + ":" )
+//    logger.info (s"---------> UserPasswordStrategy userDbPassword : $userDbPassword")
+//
+//    logger.info (s"---------> UserPasswordStrategy checkUserPassword :  " + (username.concat(password) ) )
+//    logger.info (s"---------> UserPasswordStrategy Password :  ${HelperFunctions.sha1Hash(username.concat(password)) }")
+
+
+    if (HelperFunctions.sha1Hash(username + password) == userDbPassword) true else false
   }
 
-  // create a md5 hash from a string
-  def md5Hash(text: String): String = java.security.MessageDigest.getInstance("MD5").digest(text.getBytes()).map(0xFF & _).map {
-    "%02x".format(_)
-  }.foldLeft("") {
-    _ + _
-  }
+
 }
