@@ -1,7 +1,7 @@
 package gr.gnostix.api.models.pgDao
 
 
-import java.sql.Timestamp
+import java.sql.{CallableStatement, Timestamp}
 
 import gr.gnostix.api.db.plainsql.{DatabaseAccessSupportPg}
 import gr.gnostix.api.models.plainModels.Payload
@@ -26,6 +26,8 @@ case class UserTotals(totalCounts: Int, totalKeywords: Int,
                       enabled: Int, totalProfiles: Int,
                       totalTopicProfiles: Int, totalSocialAccounts: Int,
                       totalHotelAccounts: Int)
+
+case class UserRegistration(username: String, password: String, name: String, lastname: String, email: String, token: String)
 
 object UserDao extends DatabaseAccessSupportPg {
 
@@ -70,14 +72,46 @@ object UserDao extends DatabaseAccessSupportPg {
     }
   }
 
-    def getUsers = {
-      getConnection withSession {
-        implicit session =>
-          val records = Q.queryNA[Int]( """select count(*) from vieras.users""")
-          records.first
+  def getUsers = {
+    getConnection withSession {
+      implicit session =>
+        val records = Q.queryNA[Int]( """select count(*) from vieras.users""")
+        records.first
+    }
+  }
+
+  def createUser(userReg: UserRegistration): Int = {
+    try {
+
+      val sql = "{call vieras.create_user(?, ?, ?, ?,  ?,?, ?)}"
+
+      val connection = getConnection.createConnection()
+      val callableStatement: CallableStatement = connection.prepareCall(sql)
+      callableStatement.setNull(1, java.sql.Types.INTEGER);
+      callableStatement.setString(2, userReg.email);
+      callableStatement.setString(3, userReg.name);
+      callableStatement.setString(4, userReg.lastname);
+      callableStatement.setString(5, userReg.password);
+      callableStatement.setInt(6, 2);
+      callableStatement.setString(7, userReg.username);
+
+      callableStatement.executeUpdate()
+
+      callableStatement.close()
+      //connection.commit()
+      connection.close()
+
+      val status: Int = 200
+      status
+
+    } catch {
+      case e: Exception => {
+        logger.error("---------->  error on account creation " + e.printStackTrace())
+        val status: Int = 400
+        status
       }
     }
-
-
   }
+
+}
 

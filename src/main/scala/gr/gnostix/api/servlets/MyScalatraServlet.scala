@@ -2,7 +2,8 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.plainModels.AllDataResponse
+import gr.gnostix.api.models.pgDao.{UserDao, UserRegistration}
+import gr.gnostix.api.models.plainModels.{ApiMessages, AllDataResponse}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -31,7 +32,7 @@ with CorsSupport {
       logger.info("--------------> /login: successful Id: " + user.userId)
       user.password = ""
       user
-      AllDataResponse(200,"all good",List(user))
+      AllDataResponse(200, "all good", List(user))
     } else {
       logger.info("-----------------------> /login: NOT successful")
       halt(401)
@@ -40,15 +41,83 @@ with CorsSupport {
 
   post("/logout") {
     scentry.logout()
-    //redirect("/login")
   }
 
   get("/getUserInfo") {
     requireLogin()
     user.password = ""
     user
-    AllDataResponse(200,"all good",List(user))
+    AllDataResponse(200, "all good", List(user))
   }
+
+  post("/register") {
+    logger.info("-----------------------> /register")
+    try {
+      val regUser = parsedBody.extract[UserRegistration]
+      val existingUser = UserDao.findByUsername(regUser.username)
+
+      existingUser match {
+        case Some(x) => ApiMessages.generalErrorWithMessage("user already exists!")
+        case None => {
+          if (regUser.email.matches(emailRegex.toString()))
+            UserDao.createUser(regUser)
+          else
+            ApiMessages.generalErrorWithMessage("invalid email!")
+        }
+      }
+    } catch {
+      case e: Exception => ApiMessages.generalErrorWithMessage("error on data ")
+    }
+
+  }
+
+
+  post("/reminder") {
+    logger.info("-----------------------> /reminder")
+    try {
+      val email: String = parsedBody.extract[String]
+
+      val validateEmail = email.matches(emailRegex.toString())
+
+      validateEmail match {
+        case true => {
+          UserDao.findByUsername(email) match {
+            case Some(x) => ApiMessages.generalSuccessWithMessage("Reminding the user password. Email send...")
+            case None => ApiMessages.generalErrorWithMessage("user doesn't exists!")
+          }
+
+        }
+        case false => ApiMessages.generalErrorWithMessage("invalid email!")
+      }
+    } catch {
+      case e: Exception => ApiMessages.generalErrorWithMessage("error on data ")
+    }
+
+  }
+
+
+  post("/checksignupemail") {
+    try {
+      val email: String = parsedBody.extract[String]
+      val validateEmail = email.matches(emailRegex.toString())
+
+      validateEmail match {
+        case true => {
+          UserDao.findByUsername(email) match {
+            case Some(x) => ApiMessages.generalSuccessWithMessage("user exists")
+            case None => ApiMessages.generalErrorWithMessage("user doesn't exists!")
+          }
+        }
+        case false => ApiMessages.generalErrorWithMessage("invalid email!")
+
+      }
+    } catch {
+      case e: Exception => ApiMessages.generalErrorWithMessage("error on data ")
+    }
+  }
+
+
+  private val emailRegex = """^(?!\.)("([^"\r\\]|\\["\r\\])*"|([-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$""".r
 
 }
 

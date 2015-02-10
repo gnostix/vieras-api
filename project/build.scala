@@ -40,7 +40,8 @@ object ScalatraoraBuild extends Build {
         "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
         "com.restfb" % "restfb" % "1.6.16",
         "org.twitter4j" % "twitter4j-core" % "4.0.2",
-        "postgresql" % "postgresql" % "9.1-901.jdbc4"
+        "postgresql" % "postgresql" % "9.1-901.jdbc4",
+        "javax.mail" % "mail" % "1.4.1"
         //"org.joda" %% "joda-time" % "2.2"  ,
         //"org.joda" %% "joda-convert" % "1.6"
       ),
