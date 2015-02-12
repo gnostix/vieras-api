@@ -125,6 +125,7 @@ with CorsSupport {
           UserDao.findByUsername(email) match {
             case Some(x) => ApiMessages.generalSuccessWithMessage("user exists")
             case None => ApiMessages.generalErrorWithMessage("user doesn't exists!")
+            response.sendError(444)
           }
         }
         case false => ApiMessages.generalErrorWithMessage("invalid email!")

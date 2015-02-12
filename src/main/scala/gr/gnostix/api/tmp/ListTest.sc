@@ -51,3 +51,5 @@ dtd.groupBy(x => x.created).map{
   })
 }.toList
 
+val l = List(1,2,3,4,5,6,7,8,7,5,4,4,4,3,33,3)
+10.min(5)
