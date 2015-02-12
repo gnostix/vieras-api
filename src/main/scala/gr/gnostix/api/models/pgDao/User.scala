@@ -113,7 +113,7 @@ object UserDao extends DatabaseAccessSupportPg {
   }
 
 
-  def createUser(userReg: UserRegistration): Int = {
+  def createUser(userReg: UserRegistration): Option[Int] = {
     try {
 
       val sql = "{call vieras.create_user(?, ?, ?, ?,  ?,?, ?)}"
@@ -135,13 +135,13 @@ object UserDao extends DatabaseAccessSupportPg {
       connection.close()
 
       val status: Int = 200
-      status
+      Some(status)
 
     } catch {
       case e: Exception => {
         logger.error("---------->  error on account creation " + e.printStackTrace())
         val status: Int = 400
-        status
+        None
       }
     }
   }

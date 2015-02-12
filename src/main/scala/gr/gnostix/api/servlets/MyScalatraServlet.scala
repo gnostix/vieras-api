@@ -61,8 +61,14 @@ with CorsSupport {
         case Some(x) => ApiMessages.generalErrorWithMessage("user already exists!")
         case None => {
           if (regUser.email.matches(emailRegex.toString())) {
-            UserDao.createUser(regUser)
-            ApiMessages.generalSuccessWithMessage("Account created ...")
+            val status = UserDao.createUser(regUser)
+
+            status match {
+              case Some(x) => ApiMessages.generalSuccessWithMessage("Account created ...")
+              case None => ApiMessages.generalErrorWithMessage("error on account creation ")
+            }
+
+
           }
           else {
             ApiMessages.generalErrorWithMessage("invalid email!")
