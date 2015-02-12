@@ -79,7 +79,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
           case (x, y) => (x -> Map("positive" -> y.filter(a => a.ratingValue >= 7).size,
             "negative" -> y.filter(a => a.ratingValue <= 4).size,
             "neutral" -> y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size,
-            "score" -> (y.filter(a => a.ratingValue >= 7).size).min(y.filter(a => a.ratingValue <= 4).size)
+            "score" -> (y.filter(a => a.ratingValue >= 7).size - y.filter(a => a.ratingValue <= 4).size)
           ))
         } ))
       } else {
