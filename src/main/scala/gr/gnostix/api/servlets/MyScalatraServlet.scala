@@ -62,8 +62,9 @@ with CorsSupport {
         case None => {
           if (regUser.email.matches(emailRegex.toString()))
             UserDao.createUser(regUser)
+          ApiMessages.generalSuccessWithMessage("Account created ...")
           else
-            ApiMessages.generalErrorWithMessage("invalid email!")
+          ApiMessages.generalErrorWithMessage("invalid email!")
         }
       }
     } catch {
