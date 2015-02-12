@@ -66,5 +66,9 @@ object HelperFunctions {
   }.foldLeft("") {
     _ + _
   }
-  
+
+
+  def doublePrecision1(num: Double): Double = {
+    BigDecimal(num).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
+  }
 }

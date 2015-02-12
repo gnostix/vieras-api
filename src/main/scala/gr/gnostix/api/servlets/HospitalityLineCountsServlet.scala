@@ -4,11 +4,12 @@ import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.pgDao.MySocialChannelHotelDao
 import gr.gnostix.api.models.plainModels.{DataResponse, ErrorDataResponse}
+import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.JacksonJsonSupport
-import org.scalatra.{CorsSupport, ScalatraServlet}
+import org.scalatra.{FutureSupport, AsyncResult, CorsSupport, ScalatraServlet}
 
 import scala.concurrent.ExecutionContext
 
@@ -16,7 +17,8 @@ import scala.concurrent.ExecutionContext
 trait HospitalityLineCountsRoutes extends ScalatraServlet
 with JacksonJsonSupport
 with AuthenticationSupport
-with CorsSupport {
+with CorsSupport
+with FutureSupport {
   options("/*") {
     response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
   }
@@ -158,6 +160,72 @@ with CorsSupport {
     }
   }
 
+  // get all data for hotel for one profile
+  get("/profile/:profileId/services/sentiment/:fromDate/:toDate") {
+    logger.info(s"----> get services sentiment for hotel for  one profile " +
+      s"  /api/user/socialchannels/hotel/line/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+
+      // "line" for line data per day , week ect..
+      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, profileId, None)
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawData
+          } yield HelperFunctions.f2(a1)
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+  // get all data for hotel for one profile
+  get("/profile/:profileId/services/sentiment/datasource/:datasourceId/:fromDate/:toDate") {
+    logger.info(s"----> get services sentiment for hotel for  one profile " +
+      s"  /api/user/socialchannels/hotel/line/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val datasourceId = params("datasourceId").toInt
+
+      // "line" for line data per day , week ect..
+      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, profileId, Some(datasourceId))
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawData
+          } yield HelperFunctions.f2(a1)
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
 
 
 }

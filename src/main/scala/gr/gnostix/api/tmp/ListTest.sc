@@ -1,4 +1,4 @@
-
+case class HotelServicesLineTest(rating: String, value: Double, created: String)
 
 val k1 = List(("positive", 23), ("negative", 56), ("neutral", 89))
 val k2 = List(("positive", 123), ("negative", 156), ("neutral", 189))
@@ -34,4 +34,20 @@ val d = t1 :+ t2
 
 val grp = d
 
+val dtd = List(HotelServicesLineTest("Value", 5.6, "21-01-2015"),
+  HotelServicesLineTest("Value", 5.6, "21-01-2015"),
+  HotelServicesLineTest("Location", 5.6, "21-01-2015"),
+  HotelServicesLineTest("Sleep", 5, "21-01-2015"),
+  HotelServicesLineTest("Sleep", 5, "21-01-2015"),
+  HotelServicesLineTest("Value", 5.6, "21-01-2015"),
+  HotelServicesLineTest("Value", 5.6, "21-01-2015"),
+  HotelServicesLineTest("Value", 5.6, "22-01-2015"),
+  HotelServicesLineTest("Value", 5.6, "22-01-2015"),
+  HotelServicesLineTest("Value", 5.6, "21-01-2015"))
+
+dtd.groupBy(x => x.created).map{
+  case (x,y) => (x, y.groupBy(r => r.rating).map{
+    case (w,s) => (w, (s.map(_.value).sum/s.size))
+  })
+}.toList
 

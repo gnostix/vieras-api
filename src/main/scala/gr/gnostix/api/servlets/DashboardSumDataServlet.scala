@@ -2,8 +2,9 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.pgDao.{MySocialChannelDaoFB, MySocialChannelDaoTw}
+import gr.gnostix.api.models.pgDao.{MySocialChannelHotelDao, MySocialChannelDaoFB, MySocialChannelDaoTw}
 import gr.gnostix.api.models.plainModels.{ApiMessages, DataLineGraph, SocialData}
+import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
@@ -97,6 +98,54 @@ with FutureSupport {
     else
       ApiMessages.generalSuccess("data", theData )
 
+  }
+
+
+  get("/profile/:profileId/social/messages/text/:fromDate/:toDate") {
+    logger.info(s"---->   sentiment /sentiment/comments/ TOTAL from all sources in two groups (social media and hospitality)  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+
+      val mentions = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "mention", None)
+      val retweets = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "retweet", None)
+      val favorites = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "favorite", None)
+      val posts = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, "post", None)
+      val comments = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, "comment", None)
+      val reviews = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, profileId, None)
+
+
+      val theData =
+        new AsyncResult() {
+          override val is =
+            for {
+              a1 <- mentions
+              a2 <- retweets
+              a3 <- favorites
+              a4 <- posts
+              a5 <- comments
+              a6 <- reviews
+            } yield HelperFunctions.f3(Some(List(a1.get, a2.get, a3.get, a4.get, a5.get, a6.get)))
+        }
+
+      // return the data
+      theData
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss ")
+        logger.info(s"-----> ${e.printStackTrace()}")
+        ApiMessages.generalError
+      }
+    }
   }
 
 }

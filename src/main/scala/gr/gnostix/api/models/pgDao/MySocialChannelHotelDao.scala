@@ -1,7 +1,7 @@
 package gr.gnostix.api.models.pgDao
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
-import gr.gnostix.api.models.plainModels.{ApiData, DataLineGraph, HotelRatingStats, HotelReviewStats, MsgNum, Payload, RevStat, SocialData, SocialDataSum}
+import gr.gnostix.api.models.plainModels._
 import gr.gnostix.api.utilities.DateUtils
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
@@ -18,6 +18,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getReviewStats = GetResult(r => HotelReviewStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getRatingStats = GetResult(r => HotelRatingStats(r.<<, r.<<))
+  implicit val getServicesLine = GetResult(r => HotelServicesLine(r.<<, r.<<, r.<<))
+  implicit val getHotelTextData = GetResult(r => HotelTextData(r.<<, r.<<, r.<<, r.<<, r.<<))
+
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -37,6 +40,18 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     }
   }
 
+  def getServicesLineCountsAverageSentiment(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,
+                                            profileId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryServicesLineSentiment(fromDate, toDate, profileId, datasourceId)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getDataServicesLineSentiment(mySqlDynamic))
+    }
+    prom.future
+  }
+
   def getReviewStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,
                      datasourceId: Option[Int]): Future[Option[List[ApiData]]] = {
     val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, datasourceId)
@@ -45,6 +60,18 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     Future {
       prom.success(getDataStats(mySqlDynamic))
+    }
+    prom.future
+  }
+
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,
+                  datasourceId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryTextData(fromDate, toDate, profileId, datasourceId)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getTextDataRaw(mySqlDynamic))
     }
     prom.future
   }
@@ -84,6 +111,39 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     }
     prom.future
   }
+
+  private def getDataServicesLineSentiment(sql: String): Option[ApiData] = {
+    try {
+      var myData = List[HotelServicesLine]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get services sentiment line ------------->" + sql)
+          val records = Q.queryNA[HotelServicesLine](sql)
+          myData = records.list()
+      }
+
+      if (myData.size > 0) {
+        logger.info(" -------------> data services sentiment line ")
+        val cleanData = myData.groupBy(x => x.created.toString).map {
+          case (x, y) => (x, y.groupBy(r => r.ratingName).map {
+            case (w, s) => (w, (BigDecimal(s.map(_.ratingValue).sum / s.size).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble))
+          })
+        }
+
+        Some(ApiData("services_line", cleanData.toList.sortBy(_._1)))
+      } else {
+        logger.info(" -------------> nodata ")
+        Some(ApiData("nodata", None))
+      }
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+  }
+
 
   private def getDataRatingStats(sql: String): Option[List[ApiData]] = {
     try {
@@ -190,6 +250,31 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     (neg, pos)
   }
 
+  private def getTextDataRaw(sql: String): Option[ApiData] = {
+    try {
+      var myData = List[HotelTextData]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my hotel HotelTextData ------------->" + sql)
+          val records = Q.queryNA[HotelTextData](sql)
+          myData = records.list()
+      }
+
+      if (myData.size > 0) {
+        logger.info(" -------------> we have hotel text data ")
+        Some(ApiData("hotel_messages", myData))
+      } else {
+        logger.info(" -------------> nodata ")
+        Some(ApiData("nodata", None))
+      }
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+  }
 
   private def getDataStats(sql: String): Option[List[ApiData]] = {
 
@@ -219,15 +304,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
         val stayType = {
-            val cleanData = myData.filter(x => x.stayType != null)
+          val cleanData = myData.filter(x => x.stayType != null)
 
-            Map("couple" -> cleanData.filter(x => x.stayType.toLowerCase.contains("couple")
-              || x.stayType.toLowerCase.contains("partner")).size, //add also partner
-              "friend" -> cleanData.filter(_.stayType.toLowerCase.contains("friend")).size,
-              "business" -> cleanData.filter(_.stayType.toLowerCase.contains("business")).size,
-              "family" -> cleanData.filter(_.stayType.toLowerCase.contains("famil")).size,
-              "solo" -> cleanData.filter(x => x.stayType.toLowerCase.contains("solo")
-                || x.stayType.toLowerCase.contains("person")).size)
+          Map("couple" -> cleanData.filter(x => x.stayType.toLowerCase.contains("couple")
+            || x.stayType.toLowerCase.contains("partner")).size, //add also partner
+            "friend" -> cleanData.filter(_.stayType.toLowerCase.contains("friend")).size,
+            "business" -> cleanData.filter(_.stayType.toLowerCase.contains("business")).size,
+            "family" -> cleanData.filter(_.stayType.toLowerCase.contains("famil")).size,
+            "solo" -> cleanData.filter(x => x.stayType.toLowerCase.contains("solo")
+              || x.stayType.toLowerCase.contains("person")).size)
         }
 
         // geographic data
@@ -329,6 +414,90 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     sql
   }
+
+  private def buildQueryTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Option[Int]): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+
+    val sql = datasourceId match {
+      case Some(x) =>
+        s"""
+        select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created
+                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
+                   where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x} )
+                      and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and r.FK_HOTEL_ID = h.ID
+                      and h.id = cr.fk_hotel_id
+                      and cr.fk_datasource_id = dt.id
+        """
+      case None =>
+        // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
+        s"""
+        select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created
+                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
+                   where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} )
+                      and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and r.FK_HOTEL_ID = h.ID
+                      and h.id = cr.fk_hotel_id
+                      and cr.fk_datasource_id = dt.id
+         """
+    }
+
+
+    //logger.info("------------->" + sql + "-----------")
+
+    sql
+  }
+
+  private def buildQueryServicesLineSentiment(fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Option[Int]): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+    val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
+
+    val sql = datasourceId match {
+      case Some(x) =>
+        s"""
+        select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created::timestamp without time zone)
+          from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
+          where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id and f.fk_profile_id=${profileId}  and FK_DATASOURCE_ID=${x}
+                      and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
+                      and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
+                      and vieras_rating_name is not null
+                      group by vieras_rating_name,vieras_rating_value, date_trunc('${grouBydate}',r.created::timestamp without time zone)
+                      order by date_trunc('${grouBydate}',r.created::timestamp without time zone);
+        """
+      case None =>
+        s"""
+        select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created::timestamp without time zone)
+          from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
+          where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id and f.fk_profile_id=${profileId}
+                      and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
+                      and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
+                      and vieras_rating_name is not null
+                      group by vieras_rating_name,vieras_rating_value, date_trunc('${grouBydate}',r.created::timestamp without time zone)
+                      order by date_trunc('${grouBydate}',r.created::timestamp without time zone);
+         """
+    }
+
+
+    //logger.info("------------->" + sql + "-----------")
+
+    sql
+  }
+
 
   private def buildQueryRatingStats(fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Option[Int]): String = {
 

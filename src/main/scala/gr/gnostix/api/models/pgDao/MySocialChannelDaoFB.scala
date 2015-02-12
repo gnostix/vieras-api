@@ -116,7 +116,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
       }
 
       if (myData.size > 0) {
-        logger.info(" -------------> nodata fb post ")
+        logger.info(" -------------> data fb post ")
         Some(ApiData("facebook_posts", myData))
       } else {
         logger.info(" -------------> nodata ")
