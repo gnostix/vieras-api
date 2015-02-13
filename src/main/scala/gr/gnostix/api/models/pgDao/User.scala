@@ -158,8 +158,8 @@ object UserDao extends DatabaseAccessSupportPg {
           implicit session =>
             Q.updateNA(
               s""" update vieras.users set password = '$hashedPassword',  user_firstname = '${account.firstName}',
-                       user_lastname = '${account.lastName}',  company = '${account.company}',
-                       street_address = '${account.address}'
+                       user_lastname = '${account.lastName}',  company = '${account.companyName}',
+                       street_address = '${account.streetAddress}'
              where  username = '${account.email}'
                and id = ${userId}""").execute()
         }
@@ -170,8 +170,8 @@ object UserDao extends DatabaseAccessSupportPg {
           implicit session =>
             Q.updateNA(
               s""" update vieras.users set user_firstname = '${account.firstName}',
-                       user_lastname = '${account.lastName}',  company = '${account.company}',
-                      street_address = '${account.address}'
+                       user_lastname = '${account.lastName}',  company = '${account.companyName}',
+                      street_address = '${account.streetAddress}'
              where  username = '${account.email}'
                and id = ${userId}""").execute()
         }

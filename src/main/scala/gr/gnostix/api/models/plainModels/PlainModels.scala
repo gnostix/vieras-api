@@ -132,4 +132,4 @@ case class HotelRatingStats(ratingName: String, ratingValue: Int)
 case class HotelServicesLine(ratingName: String, ratingValue: Double, created: Timestamp)
 case class HotelTextData(text: String, rating: Double, dsId: Int, daName: String, created: Timestamp)
 
-case class UserAccount(company: String, firstName: String, lastName: String, email:String, address: String, password: String)
+case class UserAccount(companyName: String, firstName: String, lastName: String, email:String, streetAddress: String, password: String)
