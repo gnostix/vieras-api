@@ -45,7 +45,7 @@ object DatabaseAccessPg {
   def createDatasource :ComboPooledDataSource = {
     val ds = new ComboPooledDataSource
     ds.setDriverClass("org.postgresql.Driver")
-    ds.setJdbcUrl("jdbc:postgresql://api.vieras.eu:5432/vieras")
+    ds.setJdbcUrl("jdbc:postgresql://db.vieras.eu:5432/vieras")
     ds.setUser("vierasdev")
     ds.setPassword("11031977vieras")
     ds.setMinPoolSize(5)
