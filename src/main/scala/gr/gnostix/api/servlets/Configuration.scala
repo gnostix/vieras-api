@@ -104,9 +104,33 @@ with FutureSupport {
     response
   }
 
+  put("/profile/:id/account"){
+    try {
+      val profileId = params("id").toInt
+      val account = parsedBody.extract[UserAccount]
+
+      UserDao.updateUserAccount(account, user.userId) match {
+        case Some(x) => ApiMessages.generalSuccessWithMessage("Account updated")
+        case None => ApiMessages.generalError
+      }
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        ApiMessages.generalErrorOnData
+      }
+    }
+
+
+
+
+  }
+
   delete("/profiles/:id") {
     // not implemented
   }
+
+
 
 
 

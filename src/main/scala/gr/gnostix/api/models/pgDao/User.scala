@@ -4,7 +4,7 @@ package gr.gnostix.api.models.pgDao
 import java.sql.{CallableStatement, Timestamp}
 
 import gr.gnostix.api.db.plainsql.{DatabaseAccessSupportPg}
-import gr.gnostix.api.models.plainModels.{ApiMessages, Payload}
+import gr.gnostix.api.models.plainModels.{UserAccount, ApiMessages, Payload}
 import gr.gnostix.api.utilities.{EmailUtils, HelperFunctions}
 import org.slf4j.LoggerFactory
 
@@ -146,5 +146,45 @@ object UserDao extends DatabaseAccessSupportPg {
     }
   }
 
+  def updateUserAccount(account: UserAccount, userId: Int): Option[Int] = {
+    try {
+
+      if (account.password != null) {
+        // generate new password
+        val hashedPassword = HelperFunctions.sha1Hash(account.email + account.password)
+        logger.info("---------->  account update with password " + account.password)
+        //update password in database for this username/email
+        getConnection withSession {
+          implicit session =>
+            Q.updateNA(
+              s""" update vieras.users set password = '$hashedPassword',  user_firstname = '${account.firstName}',
+                       user_lastname = '${account.lastName}',  company = '${account.company}',
+                       street_address = '${account.address}'
+             where  username = '${account.email}'
+               and id = ${userId}""").execute()
+        }
+
+      } else {
+        logger.info("---------->  account update with password")
+        getConnection withSession {
+          implicit session =>
+            Q.updateNA(
+              s""" update vieras.users set user_firstname = '${account.firstName}',
+                       user_lastname = '${account.lastName}',  company = '${account.company}',
+                      street_address = '${account.address}'
+             where  username = '${account.email}'
+               and id = ${userId}""").execute()
+        }
+
+      }
+
+      Some(200)
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+  }
 }
 
