@@ -21,14 +21,24 @@ task :sbt_package do
   end
   after :sbt_package, :copy_war
 
-  desc "restart jetty"
-  task :restart_jetty do
+  desc "stop jetty"
+  task :stop_jetty do
       on roles(:app), in: :sequence, wait: 5 do
         within release_path do
-          sudo '/usr/sbin/service', 'jetty', 'restart'
+          sudo '/usr/sbin/service', 'jetty', 'stop'
         end
       end
     end
-    after :published, :restart_jetty
+    after :published, :stop_jetty
+
+  desc "start jetty"
+  task :start_jetty do
+      on roles(:app), in: :sequence, wait: 5 do
+        within release_path do
+           sudo '/usr/sbin/service', 'jetty', 'start'
+        end
+      end
+   end
+   after :published, :start_jetty
 
   end
