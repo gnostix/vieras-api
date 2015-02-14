@@ -112,6 +112,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
+
   private def getDataServicesLineSentiment(sql: String): Option[ApiData] = {
     try {
       var myData = List[HotelServicesLine]()
@@ -123,7 +124,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
       }
 
       if (myData.size > 0) {
-        logger.info(" -------------> data services sentiment line ")
+        logger.info(" -------------> data services sentiment line " )
         val cleanData = myData.groupBy(x => x.created.toString).map {
           case (x, y) => (x, y.groupBy(r => r.ratingName).map {
             case (w, s) => (w, (BigDecimal(s.map(_.ratingValue).sum / s.size).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble))
@@ -470,25 +471,25 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val sql = datasourceId match {
       case Some(x) =>
         s"""
-        select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created::timestamp without time zone)
+        select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created)
           from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
           where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id and f.fk_profile_id=${profileId}  and FK_DATASOURCE_ID=${x}
                       and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and vieras_rating_name is not null
-                      group by vieras_rating_name,vieras_rating_value, date_trunc('${grouBydate}',r.created::timestamp without time zone)
-                      order by date_trunc('${grouBydate}',r.created::timestamp without time zone);
+                      group by vieras_rating_name,vieras_rating_value, date_trunc('${grouBydate}',r.created)
+                      order by date_trunc('${grouBydate}',r.created)
         """
       case None =>
         s"""
-        select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created::timestamp without time zone)
+        select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created)
           from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
           where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id and f.fk_profile_id=${profileId}
                       and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and vieras_rating_name is not null
-                      group by vieras_rating_name,vieras_rating_value, date_trunc('${grouBydate}',r.created::timestamp without time zone)
-                      order by date_trunc('${grouBydate}',r.created::timestamp without time zone);
+                      group by vieras_rating_name,vieras_rating_value, date_trunc('${grouBydate}',r.created)
+                      order by date_trunc('${grouBydate}',r.created)
          """
     }
 
