@@ -166,7 +166,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
         val tips = Map("positive_tips" -> positive_tips, "negative_tips" -> negative_tips)
         // geographic data
-        val value = myData.filter(x => x.ratingName.equalsIgnoreCase("value")).groupBy(_.ratingValue)
+ /*       val value = myData.filter(x => x.ratingName.equalsIgnoreCase("value")).groupBy(_.ratingValue)
           .map {
           case (a, s) => (a -> s.size)
         }.toList
@@ -178,11 +178,12 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         val sleep = myData.groupBy(_.ratingName).filter(_._1 contains "sleep")
         val location = myData.groupBy(_.ratingName).filter(_._1 contains "location")
 
-        val ratingTips = Map("value" -> value, "staff" -> staff, "room" -> room, "cleanliness" -> cleanliness, "sleep" -> sleep, "location" -> location)
 
+        val ratingTips = Map("value" -> value, "staff" -> staff, "room" -> room, "cleanliness" -> cleanliness, "sleep" -> sleep, "location" -> location)
+*/
         val servicesStats = getServicesAverageRating(myData)
 
-        Some(List(ApiData("servicesStats", servicesStats), ApiData("tips", tips), ApiData("rating_tips_data_test", ratingTips)))
+        Some(List(ApiData("servicesStats", servicesStats), ApiData("tips", tips)))
 
       } else {
         logger.info(" -------------> nodata ")
