@@ -24,7 +24,7 @@ public class GoogleAnalyticsAuth {
     private static GoogleAuthorizationCodeFlow flow = null;
     private final static String CLIENT_ID = "332673681072-n2tlr81uuslailaecolv4nbhlv13ljjl.apps.googleusercontent.com";
     private final static String CLIENT_SECRET = "83cqMzOwjmtZ-Cn7UhxZayg7";
-    private static final String CALLBACK_URL = "http://app.vieras.eu:8080/api/user/account/profile/3/ga/code45y634ghfhfghfg";
+    private static final String CALLBACK_URL = "http://app.vieras.eu:8080/api/ga";
     private static final String BASE_URL = "https://accounts.google.com/o/oauth2/auth?";
     private static final String BASE_URL_TOKEN = "https://accounts.google.com/o/oauth2/token";
     private static final String ERROR_ACCESS = "access_denied";
@@ -34,12 +34,12 @@ public class GoogleAnalyticsAuth {
      *
      * @return
      */
-    public boolean getGaAuthToken() {
+    public boolean getGaAuthToken(String code) {
         boolean itWorks = false;
         String tokenUrl = new String(BASE_URL_TOKEN);
 
         try {
-            StringBuffer params = getUrlParameters();
+            StringBuffer params = getUrlParameters(code);
 
             // Send data
             URL url = new URL(tokenUrl.toString());
@@ -79,11 +79,11 @@ public class GoogleAnalyticsAuth {
      * @return
      * @throws UnsupportedEncodingException
      */
-    public StringBuffer getUrlParameters() throws UnsupportedEncodingException {
+    public StringBuffer getUrlParameters(String code) throws UnsupportedEncodingException {
 
         StringBuffer params = new StringBuffer("");
         try {
-            params.append("code=" + URLEncoder.encode("4/02kqVbexX4xOZ6ws3qnhuoSpqTvJIeiD-VSqZIlk-zk.Imggz-yMxtcQYFZr95uygvVhCZU5lwI", "UTF-8"));
+            params.append("code=" + URLEncoder.encode(code, "UTF-8"));
         } catch (UnsupportedEncodingException e1) {
             e1.printStackTrace();
         }
@@ -172,7 +172,8 @@ public class GoogleAnalyticsAuth {
 //        return flow;
 //    }
 
-    public static void requestAccessToken(String code) throws IOException {
+    public static int requestAccessToken(String code) throws IOException {
+        int status = 0;
         try {
             GoogleTokenResponse response =
                     new GoogleAuthorizationCodeTokenRequest(new NetHttpTransport(), new JacksonFactory(),
@@ -182,6 +183,9 @@ public class GoogleAnalyticsAuth {
 
             System.out.println("Access token: " + response.getAccessToken());
             System.out.println("Access refresh token: " + response.getRefreshToken());
+
+            status = 200;
+
         } catch (TokenResponseException e) {
             if (e.getDetails() != null) {
                 System.err.println("Error: " + e.getDetails().getError());
@@ -195,10 +199,11 @@ public class GoogleAnalyticsAuth {
             } else {
                 System.err.println(e.getMessage());
             }
+
+            status = 400;
         }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        return status;
+
     }
 
     public void printCode(String code){

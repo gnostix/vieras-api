@@ -139,7 +139,16 @@ with CorsSupport {
 
     val code = params("code")
     logger.info(s"---->  google analytics auth code $code  ")
-    GoogleAnalyticsAuth.requestAccessToken(code)
+    val status = GoogleAnalyticsAuth.requestAccessToken(code)
+
+    status match {
+      case 200 => {
+        <h1>Authorization ok! Please close this window and return to Vieras app.</h1>
+      }
+      case 400 => {
+        <h1>Error on Google Authentication</h1>
+      }
+    }
   }
 
   private val emailRegex = """^(?!\.)("([^"\r\\]|\\["\r\\])*"|([-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$""".r
