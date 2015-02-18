@@ -455,13 +455,9 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
   // change the data for Google Analytics
   def addAccount(profileId: Int, cred: SocialCredentialsGa): Option[SocialCredentialsSimple] = {
     try {
-      //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
-      //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
-      //I_TWITTERHANDLE in VARCHAR2,I_YOUTUBE_USER in VARCHAR2,I_YOUTUBE_CHANNELID IN VARCHAR2,
-      //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
-      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -488,13 +484,13 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
       connection.close()
 
       println("---------------------> " + credId)
-      logger.info("---------->  addAccount youtube account " + credId)
+      logger.info("---------->  addAccount ganalytics account " + credId)
 
       Some(SocialCredentialsSimple(credId, cred.gaName))
 
     } catch {
       case e: Exception => {
-        logger.error("---------->  addAccount youtube account" + e.printStackTrace())
+        logger.error("---------->  addAccount ganalytics account" + e.printStackTrace())
         None
       }
     }

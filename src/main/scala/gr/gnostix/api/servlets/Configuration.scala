@@ -6,7 +6,7 @@ import gr.gnostix.api.models.pgDao.SocialAccountsHotelDao.SocialAccountsQueriesD
 import gr.gnostix.api.models.pgDao._
 import gr.gnostix.api.models.plainModels._
 import gr.gnostix.api.models.publicSearch.{Keyword, KeywordDao, Topic, TopicDao}
-import gr.gnostix.api.utilities.{FbExtendedToken, TwOauth}
+import gr.gnostix.api.utilities.{GoogleAnalyticsAuth, FbExtendedToken, TwOauth}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -34,7 +34,7 @@ with FutureSupport {
 
   before() {
     contentType = formats("json")
-    requireLogin()
+    //requireLogin()
   }
 
 
@@ -208,6 +208,12 @@ with FutureSupport {
       KeywordDao.deleteKeyword(keywordIds)
   }
 
+get("/profile/:id/ga/:code"){
+
+  val code = params("code")
+  logger.info(s"---->  google analytics auth code $code  ")
+  GoogleAnalyticsAuth.requestAccessToken(code)
+}
 
   // facebook auth
   post("/profile/:id/fb/pages") {

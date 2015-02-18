@@ -41,7 +41,11 @@ object ScalatraoraBuild extends Build {
         "com.restfb" % "restfb" % "1.6.16",
         "org.twitter4j" % "twitter4j-core" % "4.0.2",
         "postgresql" % "postgresql" % "9.1-901.jdbc4",
-        "javax.mail" % "mail" % "1.4.1"
+        "javax.mail" % "mail" % "1.4.1",
+        "com.google.api-client" % "google-api-client" % "1.19.1",
+        "com.google.code.gson" % "gson" % "2.3.1",
+        "com.google.oauth-client" % "google-oauth-client" % "1.19.0",
+        "com.google.http-client" % "google-http-client-gson" % "1.19.0"
         //"org.joda" %% "joda-time" % "2.2"  ,
         //"org.joda" %% "joda-convert" % "1.6"
       ),

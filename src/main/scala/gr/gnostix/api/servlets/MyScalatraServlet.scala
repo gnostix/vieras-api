@@ -4,7 +4,7 @@ import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.pgDao.{UserDao, UserRegistration}
 import gr.gnostix.api.models.plainModels.{ApiMessages, AllDataResponse}
-import gr.gnostix.api.utilities.EmailUtils
+import gr.gnostix.api.utilities.{GoogleAnalyticsAuth, EmailUtils}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -135,6 +135,12 @@ with CorsSupport {
     }
   }
 
+  get("/ga/:code"){
+
+    val code = params("code")
+    logger.info(s"---->  google analytics auth code $code  ")
+    GoogleAnalyticsAuth.requestAccessToken(code)
+  }
 
   private val emailRegex = """^(?!\.)("([^"\r\\]|\\["\r\\])*"|([-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$""".r
 
