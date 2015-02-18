@@ -181,7 +181,7 @@ public class GoogleAnalyticsAuth {
                             .execute();
 
             System.out.println("Access token: " + response.getAccessToken());
-            System.out.println("Access token: " + response.getRefreshToken());
+            System.out.println("Access refresh token: " + response.getRefreshToken());
         } catch (TokenResponseException e) {
             if (e.getDetails() != null) {
                 System.err.println("Error: " + e.getDetails().getError());

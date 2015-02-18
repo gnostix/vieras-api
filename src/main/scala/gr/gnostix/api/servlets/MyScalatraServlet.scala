@@ -135,7 +135,7 @@ with CorsSupport {
     }
   }
 
-  get("/ga/:code"){
+  get("/ga"){
 
     val code = params("code")
     logger.info(s"---->  google analytics auth code $code  ")
