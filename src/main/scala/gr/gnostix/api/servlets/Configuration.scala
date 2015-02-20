@@ -209,7 +209,6 @@ with FutureSupport {
 
   get("/profile/:id/ga/sites") {
 
-    val code = params("code")
     val profileId = params("id")
 
     val sitesToMonitor = session.getAttribute("sites_for_monitor")
