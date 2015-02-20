@@ -211,7 +211,7 @@ with FutureSupport {
 
     val profileId = params("id")
 
-    val sitesToMonitor = session.getAttribute("sites_for_monitor")
+    val sitesToMonitor: List[GoogleAnalyticsProfiles] = session.getAttribute("sites_for_monitor").asInstanceOf[List[GoogleAnalyticsProfiles]]
     val status: Int = session.getAttribute("status_ga").asInstanceOf[Int]
 
     status match {
