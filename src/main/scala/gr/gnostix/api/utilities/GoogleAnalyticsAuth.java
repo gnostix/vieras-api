@@ -41,7 +41,7 @@ public class GoogleAnalyticsAuth {
             GoogleTokenResponse response =
                     new GoogleAuthorizationCodeTokenRequest(new NetHttpTransport(), new JacksonFactory(),
                             CLIENT_ID, CLIENT_SECRET,
-                            code, CALLBACK_URL)
+                            code, "")
                             .execute();
 
             System.out.println("Access token: " + response.getAccessToken());
