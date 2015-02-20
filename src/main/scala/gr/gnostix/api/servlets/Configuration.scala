@@ -226,7 +226,6 @@ with FutureSupport {
     }
 
 
-
   }
 
   // facebook auth

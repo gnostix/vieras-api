@@ -9,8 +9,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.analytics.Analytics;
 import com.google.api.services.analytics.model.*;
-import gr.gnostix.api.models.javaModels.GoogleAnalyticsProfiles;
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsTokens;
+import gr.gnostix.api.models.plainModels.GoogleAnalyticsProfiles;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -88,8 +88,8 @@ public class GoogleAnalyticsAuth {
         try {
             accounts = analytics.management().accounts().list().execute();
             for(Account account : accounts.getItems()){
-                GoogleAnalyticsProfiles gaProfile = new GoogleAnalyticsProfiles();
-                gaProfile.setAccountId(account.getId());
+                GoogleAnalyticsProfiles gaProfile = null;
+                gaProfile.accountId_$eq(account.getId());
 
                 System.out.println("account.getName: " + account.getName() + " account.getId: " + account.getId());
                 Webproperties webproperties = analytics.management()
@@ -100,7 +100,7 @@ public class GoogleAnalyticsAuth {
                 } else {
                     for (Webproperty webProp : webproperties.getItems()) {
                         String webpropertyId = webProp.getId();
-                        gaProfile.setWebpropertyId(webProp.getId());
+                        gaProfile.profileid_$eq(webProp.getId());
 
                         System.out.println("WebpropertyId: " + webpropertyId);
                         // Query profiles collection.
@@ -111,8 +111,8 @@ public class GoogleAnalyticsAuth {
                             System.err.println("No profiles found for webpropertyId: " + webpropertyId);
                         } else {
 							for(Profile profile : profiles.getItems()){
-                                gaProfile.setProfileName(profile.getName());
-                                gaProfile.setProfileid(profile.getId());
+                                gaProfile.profileName_$eq(profile.getName());
+                                gaProfile.profileid_$eq(profile.getId());
 
                                 System.err.println("ProfileId: " + profile.getId() + " profilename: " + profile.getName());
                             }
