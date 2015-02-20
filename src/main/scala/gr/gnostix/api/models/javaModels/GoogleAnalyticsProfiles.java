@@ -1,6 +1,7 @@
 package gr.gnostix.api.models.javaModels;
 
-import scala.Serializable;
+
+import java.io.Serializable;
 
 /**
  * Created by rebel on 20/2/15.
