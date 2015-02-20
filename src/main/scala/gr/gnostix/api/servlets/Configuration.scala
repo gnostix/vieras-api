@@ -211,16 +211,18 @@ with FutureSupport {
 
     val code = params("code")
     val profileId = params("id")
-    val gAuth: GoogleAnalyticsAuth = new GoogleAnalyticsAuth()
-    val tokens: GoogleAnalyticsTokens = gAuth.requestAccessToken(code)
 
-    val token: String = tokens.getToken
-    val refreshToken: String = tokens.getRefreshToken
-    val sitesToMonitor = gAuth.getUserSitesToMonitor(tokens.getToken, tokens.getRefreshToken)
+    val sitesToMonitor = session.getAttribute("sites_for_monitor")
+    val status = session.getAttribute("status_ga")
 
-    logger.info(s"---->  sites " + sitesToMonitor.get(0).getProfileName)
+    status match {
+      case 200 => {
+        logger.info(s"---->  sites " + sitesToMonitor.toString)
+        ApiMessages.generalSuccess("sites", sitesToMonitor)
+      }
+      case _ => ApiMessages.pending
+    }
 
-    ApiMessages.generalSuccess("sites", sitesToMonitor)
 
 
   }
