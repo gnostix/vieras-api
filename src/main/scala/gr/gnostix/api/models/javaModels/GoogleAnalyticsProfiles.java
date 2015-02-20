@@ -1,9 +1,11 @@
 package gr.gnostix.api.models.javaModels;
 
+import scala.Serializable;
+
 /**
  * Created by rebel on 20/2/15.
  */
-public class GoogleAnalyticsProfiles {
+public class GoogleAnalyticsProfiles implements Serializable {
     private String accountId;
     private String webpropertyId;
     private String profileid;
