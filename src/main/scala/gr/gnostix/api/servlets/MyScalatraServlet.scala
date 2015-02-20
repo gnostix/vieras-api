@@ -144,7 +144,7 @@ with CorsSupport {
     //val gAuth: GoogleAnalyticsAuth = new GoogleAnalyticsAuth()
     //val tokens: GoogleAnalyticsTokens = gAuth.requestAccessToken(code)
 
-    redirect("/ga/withsession;jsessionid="+state)
+    redirect("/api/ga/withsession;jsessionid="+state)
 /*    tokens.getStatus match {
       case 200 => {
         session.setAttribute("ga_token", tokens.getToken)
@@ -178,6 +178,7 @@ with CorsSupport {
   get("/ga/withsession*") {
     logger.info("the user session name: " + user.username)
     logger.info("the user session details: " + user.userDetails)
+    logger.info("the user session id: " + session.getId)
   }
 
   private val emailRegex = """^(?!\.)("([^"\r\\]|\\["\r\\])*"|([-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$""".r
