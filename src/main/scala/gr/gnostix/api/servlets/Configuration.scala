@@ -210,11 +210,11 @@ with FutureSupport {
   get("/profile/:id/ga/sites") {
 
     val code = params("id")
-    logger.info(s"---->  google analytics auth code $code  ")
     val token: String = session.getAttribute("ga_token").asInstanceOf[String]
     val refreshToken: String = session.getAttribute("ga_refresh_token").asInstanceOf[String]
 
     val gaStatus = session.getAttribute("ga_status").asInstanceOf[Int]
+    logger.info(s"---->  ga_status " + gaStatus)
 
     gaStatus match {
       case 200 => {
