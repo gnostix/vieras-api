@@ -12,7 +12,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
 import twitter4j.auth.AccessToken
-
+import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Future, ExecutionContext}
@@ -211,13 +211,13 @@ with FutureSupport {
 
     val profileId = params("id")
 
-    val sitesToMonitor: List[GoogleAnalyticsProfiles] = session.getAttribute("sites_for_monitor").asInstanceOf[List[GoogleAnalyticsProfiles]]
+    val sitesToMonitor: java.util.List[GoogleAnalyticsProfiles] = session.getAttribute("sites_for_monitor").asInstanceOf[java.util.List[GoogleAnalyticsProfiles]]
     val status: Int = session.getAttribute("status_ga").asInstanceOf[Int]
 
     status match {
       case 200 => {
         logger.info(s"---->  sites " + sitesToMonitor.toString)
-        ApiMessages.generalSuccess("sites", sitesToMonitor.toList)
+        ApiMessages.generalSuccess("sites", sitesToMonitor.asScala)
       }
       case _ => ApiMessages.pending
     }
