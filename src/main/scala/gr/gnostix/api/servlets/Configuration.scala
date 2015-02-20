@@ -2,7 +2,6 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.javaModels.{GoogleAnalyticsProfiles, GoogleAnalyticsTokens}
 import gr.gnostix.api.models.pgDao.SocialAccountsHotelDao.SocialAccountsQueriesDao
 import gr.gnostix.api.models.pgDao._
 import gr.gnostix.api.models.plainModels._
