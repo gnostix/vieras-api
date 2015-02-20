@@ -20,4 +20,6 @@ object ApiMessages {
   
   def generalSuccessWithMessage(message: String) = Map("status" -> 200, "message" -> message)
 
+  def pending = Map("status" -> 255, "message" -> "operation pending..")
+
 }

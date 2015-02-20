@@ -2,6 +2,7 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
+import gr.gnostix.api.models.javaModels.{GoogleAnalyticsProfiles, GoogleAnalyticsTokens}
 import gr.gnostix.api.models.pgDao.SocialAccountsHotelDao.SocialAccountsQueriesDao
 import gr.gnostix.api.models.pgDao._
 import gr.gnostix.api.models.plainModels._
@@ -14,7 +15,7 @@ import twitter4j.auth.AccessToken
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 
 
 trait ConfigApiRoutes extends ScalatraServlet
@@ -104,7 +105,7 @@ with FutureSupport {
     response
   }
 
-  put("/profile/:id/account"){
+  put("/profile/:id/account") {
     try {
       val profileId = params("id").toInt
       val account = parsedBody.extract[UserAccount]
@@ -120,8 +121,6 @@ with FutureSupport {
         ApiMessages.generalErrorOnData
       }
     }
-
-
 
 
   }
@@ -208,12 +207,24 @@ with FutureSupport {
       KeywordDao.deleteKeyword(keywordIds)
   }
 
-get("/profile/:id/ga/:code"){
+  get("/profile/:id/ga/sites") {
 
-  val code = params("code")
-  logger.info(s"---->  google analytics auth code $code  ")
-  GoogleAnalyticsAuth.requestAccessToken(code)
-}
+    val code = params("id")
+    logger.info(s"---->  google analytics auth code $code  ")
+    val token: String = session.getAttribute("ga_token").asInstanceOf[String]
+    val refreshToken: String = session.getAttribute("ga_refresh_token").asInstanceOf[String]
+
+    val gaStatus = session.getAttribute("ga_status").asInstanceOf[Int]
+
+    gaStatus match {
+      case 200 => {
+        val sitesToMonitor = session.getAttribute("sites_for_monitor")
+        ApiMessages.generalSuccess("sites", sitesToMonitor)
+      }
+      case _ => ApiMessages.pending
+    }
+
+  }
 
   // facebook auth
   post("/profile/:id/fb/pages") {
@@ -311,7 +322,7 @@ get("/profile/:id/ga/:code"){
     }
   }
 
-  def f1( socialAccounts: List[Option[SocialAccounts]] ) = {
+  def f1(socialAccounts: List[Option[SocialAccounts]]) = {
     logger.info(s"---->   socialAccounts ?? ${socialAccounts.isEmpty} ")
     val sent = ArrayBuffer[SocialAccounts]()
     for (a <- socialAccounts) {
@@ -322,7 +333,6 @@ get("/profile/:id/ga/:code"){
     }
     Map("status" -> 200, "message" -> "all good", "payload" -> sent)
   }
-
 
 
   //i need to refactor these

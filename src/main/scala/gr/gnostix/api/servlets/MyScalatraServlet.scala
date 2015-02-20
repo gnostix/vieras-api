@@ -2,6 +2,7 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
+import gr.gnostix.api.models.javaModels.GoogleAnalyticsTokens
 import gr.gnostix.api.models.pgDao.{UserDao, UserRegistration}
 import gr.gnostix.api.models.plainModels.{ApiMessages, AllDataResponse}
 import gr.gnostix.api.utilities.{GoogleAnalyticsAuth, EmailUtils}
@@ -135,21 +136,42 @@ with CorsSupport {
     }
   }
 
-  get("/ga"){
-
+  get("/ga") {
     val code = params("code")
     logger.info(s"---->  google analytics auth code $code  ")
-    val status = GoogleAnalyticsAuth.requestAccessToken(code)
+    val gAuth: GoogleAnalyticsAuth = new GoogleAnalyticsAuth()
+    val tokens: GoogleAnalyticsTokens = gAuth.requestAccessToken(code)
 
-    status match {
+    tokens.getStatus match {
       case 200 => {
-        <h1>Authorization ok! Please close this window and return to Vieras app.</h1>
+        session.setAttribute("ga_token", tokens.getToken)
+        session.setAttribute("ga_refresh_token", tokens.getRefreshToken)
+
+        val gAuth: GoogleAnalyticsAuth = new GoogleAnalyticsAuth()
+        val sitesToMonitor = gAuth.getUserSitesToMonitor(tokens.getToken, tokens.getRefreshToken)
+        session.setAttribute("sites_for_monitor", sitesToMonitor)
+        session.setAttribute("status_ga", 200)
+
+
+
+        <html>
+          <body>
+            <h1>Authorization ok! Please close this window and return to Vieras app.</h1>
+          </body>
+        </html>
+
       }
       case 400 => {
-        <h1>Error on Google Authentication</h1>
+        <html>
+          <body>
+            <h1>Error on Google Authentication</h1>
+          </body>
+        </html>
       }
+
     }
   }
+
 
   private val emailRegex = """^(?!\.)("([^"\r\\]|\\["\r\\])*"|([-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$""".r
 
