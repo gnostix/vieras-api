@@ -217,7 +217,10 @@ with FutureSupport {
       case 200 => {
         val sitesToMonitor: java.util.List[GoogleAnalyticsProfiles] = session.getAttribute("sites_for_monitor").asInstanceOf[java.util.List[GoogleAnalyticsProfiles]]
         logger.info(s"---->  sites " + sitesToMonitor.toString)
-        logger.info(s"---->  site " + GoogleAnalyticsProfiles("fgfgf", "gggggg", "llllllll", "ggggggg").toString)
+
+        val site = GoogleAnalyticsProfiles("fgfgf", "gggggg", "llllllll", "ggggggg")
+        logger.info(s"---->  site " + site)
+        logger.info(s"---->  siteString " + site.toString)
         ApiMessages.generalSuccess("sites", sitesToMonitor.asScala)
       }
       case _ => ApiMessages.pending
