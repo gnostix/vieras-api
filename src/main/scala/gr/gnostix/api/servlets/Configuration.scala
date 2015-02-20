@@ -207,22 +207,21 @@ with FutureSupport {
       KeywordDao.deleteKeyword(keywordIds)
   }
 
-  get("/profile/:id/ga/sites") {
+  get("/profile/:id/ga/sites/:code") {
 
-    val code = params("id")
-    val token: String = session.getAttribute("ga_token").asInstanceOf[String]
-    val refreshToken: String = session.getAttribute("ga_refresh_token").asInstanceOf[String]
+    val code = params("code")
+    val profileId = params("id")
+    val gAuth: GoogleAnalyticsAuth = new GoogleAnalyticsAuth()
+    val tokens: GoogleAnalyticsTokens = gAuth.requestAccessToken(code)
 
-    val gaStatus = session.getAttribute("ga_status").asInstanceOf[Int]
-    logger.info(s"---->  ga_status " + gaStatus)
+    val token: String = tokens.getToken
+    val refreshToken: String = tokens.getRefreshToken
+    val sitesToMonitor = gAuth.getUserSitesToMonitor(tokens.getToken, tokens.getRefreshToken)
 
-    gaStatus match {
-      case 200 => {
-        val sitesToMonitor = session.getAttribute("sites_for_monitor")
-        ApiMessages.generalSuccess("sites", sitesToMonitor)
-      }
-      case _ => ApiMessages.pending
-    }
+    logger.info(s"---->  sites " + sitesToMonitor.get(0).getProfileName)
+
+    ApiMessages.generalSuccess("sites", sitesToMonitor)
+
 
   }
 
