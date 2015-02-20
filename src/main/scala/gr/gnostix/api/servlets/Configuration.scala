@@ -211,12 +211,13 @@ with FutureSupport {
 
     val profileId = params("id")
 
-    val sitesToMonitor: java.util.List[GoogleAnalyticsProfiles] = session.getAttribute("sites_for_monitor").asInstanceOf[java.util.List[GoogleAnalyticsProfiles]]
     val status: Int = session.getAttribute("status_ga").asInstanceOf[Int]
 
     status match {
       case 200 => {
+        val sitesToMonitor: java.util.List[GoogleAnalyticsProfiles] = session.getAttribute("sites_for_monitor").asInstanceOf[java.util.List[GoogleAnalyticsProfiles]]
         logger.info(s"---->  sites " + sitesToMonitor.toString)
+        logger.info(s"---->  site " + GoogleAnalyticsProfiles("fgfgf", "gggggg", "llllllll", "ggggggg").toString)
         ApiMessages.generalSuccess("sites", sitesToMonitor.asScala)
       }
       case _ => ApiMessages.pending
