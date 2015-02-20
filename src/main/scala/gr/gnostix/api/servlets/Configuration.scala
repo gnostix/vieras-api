@@ -213,7 +213,7 @@ with FutureSupport {
     val profileId = params("id")
 
     val sitesToMonitor = session.getAttribute("sites_for_monitor")
-    val status: String = session.getAttribute("status_ga").toString
+    val status: Int = session.getAttribute("status_ga").asInstanceOf[Int]
 
     status match {
       case 200 => {
