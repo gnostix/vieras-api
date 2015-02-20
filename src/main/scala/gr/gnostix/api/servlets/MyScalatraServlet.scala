@@ -141,21 +141,24 @@ with CorsSupport {
     val state = params("state")
     logger.info(s"---->  google analytics auth code $code  ")
     logger.info(s"---->  google analytics auth state $state  ")
-    //val gAuth: GoogleAnalyticsAuth = new GoogleAnalyticsAuth()
-    //val tokens: GoogleAnalyticsTokens = gAuth.requestAccessToken(code)
 
-    redirect("/api/ga/withsession;jsessionid=" + state)
+
+    redirect("/api/ga/withsession;jsessionid=" + state +"?code=" + code)
 
   }
 
 
   get("/ga/withsession*") {
     requireLogin()
+    val code = params("code")
     logger.info("the user session name: " + user.username)
     logger.info("the user session details: " + user.userDetails)
     logger.info("the user session id: " + session.getId)
 
-/*    tokens.getStatus match {
+    val gAuth: GoogleAnalyticsAuth = new GoogleAnalyticsAuth()
+    val tokens: GoogleAnalyticsTokens = gAuth.requestAccessToken(code)
+
+    tokens.getStatus match {
       case 200 => {
         session.setAttribute("ga_token", tokens.getToken)
         session.setAttribute("ga_refresh_token", tokens.getRefreshToken)
@@ -181,7 +184,7 @@ with CorsSupport {
         </html>
       }
 
-    }*/
+    }
   }
 
   private val emailRegex = """^(?!\.)("([^"\r\\]|\\["\r\\])*"|([-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$""".r
