@@ -217,7 +217,7 @@ with FutureSupport {
     status match {
       case 200 => {
         logger.info(s"---->  sites " + sitesToMonitor.toString)
-        ApiMessages.generalSuccess("sites", sitesToMonitor)
+        ApiMessages.generalSuccess("sites", sitesToMonitor.toList)
       }
       case _ => ApiMessages.pending
     }
