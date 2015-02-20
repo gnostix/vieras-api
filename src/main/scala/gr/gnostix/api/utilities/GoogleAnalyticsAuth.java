@@ -12,11 +12,7 @@ import com.google.api.services.analytics.model.*;
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsProfiles;
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsTokens;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 

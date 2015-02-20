@@ -133,3 +133,4 @@ case class HotelServicesLine(ratingName: String, ratingValue: Double, created: S
 case class HotelTextData(text: String, rating: Double, dsId: Int, daName: String, created: Timestamp)
 
 case class UserAccount(companyName: String, firstName: String, lastName: String, email:String, streetAddress: String, password: String)
+case class GoogleAnalyticsProfiles(accountId: String, webpropertyId: String, profileid: String, profileName: String)
