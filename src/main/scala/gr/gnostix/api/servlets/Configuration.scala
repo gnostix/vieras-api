@@ -207,7 +207,7 @@ with FutureSupport {
       KeywordDao.deleteKeyword(keywordIds)
   }
 
-  get("/profile/:id/ga/sites/:code") {
+  get("/profile/:id/ga/sites") {
 
     val code = params("code")
     val profileId = params("id")
