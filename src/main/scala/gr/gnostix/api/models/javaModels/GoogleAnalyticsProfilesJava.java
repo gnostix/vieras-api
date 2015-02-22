@@ -6,12 +6,14 @@ import java.io.Serializable;
 /**
  * Created by rebel on 20/2/15.
  */
-public class GoogleAnalyticsProfiles implements Serializable {
+public class GoogleAnalyticsProfilesJava implements Serializable {
 
     private String accountId;
     private String webpropertyId;
     private String profileid;
     private String profileName;
+    private static final long serialVersionUID = 7526471155622776147L;
+
 
     public String getAccountId() {
         return accountId;

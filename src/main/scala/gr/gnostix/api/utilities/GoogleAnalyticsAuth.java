@@ -9,6 +9,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.analytics.Analytics;
 import com.google.api.services.analytics.model.*;
+import gr.gnostix.api.models.javaModels.GoogleAnalyticsProfilesJava;
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsTokens;
 import gr.gnostix.api.models.plainModels.GoogleAnalyticsProfiles;
 
@@ -70,8 +71,8 @@ public class GoogleAnalyticsAuth {
 
     }
 
-    public List<GoogleAnalyticsProfiles> getUserSitesToMonitor(String token, String refreshToken){
-        List<GoogleAnalyticsProfiles> profList = new ArrayList<>();
+    public List<GoogleAnalyticsProfilesJava> getUserSitesToMonitor(String token, String refreshToken){
+        List<GoogleAnalyticsProfilesJava> profList = new ArrayList<>();
         try {
             Analytics analytics = initializeAnalytics(token, refreshToken);
             profList = getAccounts(analytics);
@@ -82,14 +83,16 @@ public class GoogleAnalyticsAuth {
         return profList;
     }
 
-    public List<GoogleAnalyticsProfiles> getAccounts(Analytics analytics) {
+
+
+    public List<GoogleAnalyticsProfilesJava> getAccounts(Analytics analytics) {
         Accounts accounts = null;
-        List<GoogleAnalyticsProfiles> profList = new ArrayList<>();
+        List<GoogleAnalyticsProfilesJava> profList = new ArrayList<>();
         try {
             accounts = analytics.management().accounts().list().execute();
             for(Account account : accounts.getItems()){
-                GoogleAnalyticsProfiles gaProfile = null;
-                gaProfile.accountId_$eq(account.getId());
+                GoogleAnalyticsProfilesJava gaProfile = new GoogleAnalyticsProfilesJava();
+                gaProfile.setAccountId(account.getId());
 
                 System.out.println("account.getName: " + account.getName() + " account.getId: " + account.getId());
                 Webproperties webproperties = analytics.management()
@@ -100,7 +103,7 @@ public class GoogleAnalyticsAuth {
                 } else {
                     for (Webproperty webProp : webproperties.getItems()) {
                         String webpropertyId = webProp.getId();
-                        gaProfile.profileid_$eq(webProp.getId());
+                        gaProfile.setWebpropertyId(webProp.getId());
 
                         System.out.println("WebpropertyId: " + webpropertyId);
                         // Query profiles collection.
@@ -111,8 +114,8 @@ public class GoogleAnalyticsAuth {
                             System.err.println("No profiles found for webpropertyId: " + webpropertyId);
                         } else {
 							for(Profile profile : profiles.getItems()){
-                                gaProfile.profileName_$eq(profile.getName());
-                                gaProfile.profileid_$eq(profile.getId());
+                                gaProfile.setProfileid(profile.getName());
+                                gaProfile.setProfileName(profile.getId());
 
                                 System.err.println("ProfileId: " + profile.getId() + " profilename: " + profile.getName());
                             }

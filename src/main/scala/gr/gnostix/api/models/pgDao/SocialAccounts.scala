@@ -4,7 +4,7 @@ import java.sql.CallableStatement
 import java.util.Calendar
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
-import gr.gnostix.api.models.plainModels.{DataGraph, SocialAccounts}
+import gr.gnostix.api.models.plainModels.{GoogleAnalyticsProfiles, DataGraph, SocialAccounts}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -38,7 +38,7 @@ case class SocialCredentialsFb(token: String, fanpage: String, fanpageId: String
 
 case class SocialCredentialsYt(channelname: String, channelId: String, token: String)
 
-case class SocialCredentialsGa(gaAuthKey: String, gaName: String)
+//case class SocialCredentialsGa(gaAuthKey: String, gaName: String)
 
 case class SocialCredentialsHotel(hotelUrl: String, dsId: Int)
 
@@ -453,7 +453,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
   }
 
   // change the data for Google Analytics
-  def addAccount(profileId: Int, cred: SocialCredentialsGa): Option[SocialCredentialsSimple] = {
+  def addAccount(profileId: Int, token: String, refreshToken: String, cred: GoogleAnalyticsProfiles): Option[SocialCredentialsSimple] = {
     try {
 
       val date = new java.util.Date();
@@ -462,16 +462,16 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
       callableStatement.setString(2, "GOOGLEANALYTICS")
-      callableStatement.setString(3, "")
-      callableStatement.setString(4, "")
+      callableStatement.setString(3, token)
+      callableStatement.setString(4, refreshToken)
       callableStatement.setString(5, "")
       callableStatement.setInt(6, 0)
       callableStatement.setDate(7, new java.sql.Date(date.getTime))
       callableStatement.setString(8, "")
-      callableStatement.setString(9, "")
-      callableStatement.setString(10, "")
-      callableStatement.setString(11, cred.gaAuthKey)
-      callableStatement.setString(12, cred.gaName)
+      callableStatement.setString(9, cred.accountId)
+      callableStatement.setString(10, cred.webpropertyId)
+      callableStatement.setString(11, cred.profileid)
+      callableStatement.setString(12, cred.profileName)
       callableStatement.setString(13, "")
 
       callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
@@ -486,7 +486,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
       println("---------------------> " + credId)
       logger.info("---------->  addAccount ganalytics account " + credId)
 
-      Some(SocialCredentialsSimple(credId, cred.gaName))
+      Some(SocialCredentialsSimple(credId, cred.profileName))
 
     } catch {
       case e: Exception => {

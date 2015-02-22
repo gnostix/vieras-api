@@ -4,11 +4,13 @@ import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsTokens
 import gr.gnostix.api.models.pgDao.{UserDao, UserRegistration}
-import gr.gnostix.api.models.plainModels.{ApiMessages, AllDataResponse}
+import gr.gnostix.api.models.plainModels.{GoogleAnalyticsProfiles, ApiMessages, AllDataResponse}
 import gr.gnostix.api.utilities.{GoogleAnalyticsAuth, EmailUtils}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 
 trait RestApiRoutes extends ScalatraServlet
@@ -143,10 +145,24 @@ with CorsSupport {
     logger.info(s"---->  google analytics auth state $state  ")
 
 
-    redirect("/api/ga/withsession;jsessionid=" + state +"?code=" + code)
+    redirect("/api/ga/withsession;jsessionid=" + state + "?code=" + code)
 
   }
 
+  get("/gatest") {
+    contentType = "text/html"
+    <html>
+      <script type="text/javascript">
+      function winClose() {
+     // window.close()
+      }
+    </script>
+
+      <body onLoad="setTimeout('close_popup()', 3000)">
+        <h1>Authorization ok! Please close this window and return to Vieras app :)</h1>
+      </body>
+    </html>
+  }
 
   get("/ga/withsession*") {
     requireLogin()
@@ -168,15 +184,17 @@ with CorsSupport {
         session.setAttribute("sites_for_monitor", sitesToMonitor)
         session.setAttribute("status_ga", 200)
 
-
+        contentType = "text/html"
         <html>
           <body>
-            <h1>Authorization ok! Please close this window and return to Vieras app.</h1>
+            <h1>Authorization ok!</h1>
+            <p>Please close this window and return to Vieras app.</p>
           </body>
         </html>
 
       }
       case 400 => {
+        contentType = "text/html"
         <html>
           <body>
             <h1>Error on Google Authentication</h1>

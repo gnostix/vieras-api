@@ -2,6 +2,7 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
+import gr.gnostix.api.models.javaModels.GoogleAnalyticsProfilesJava
 import gr.gnostix.api.models.pgDao.SocialAccountsHotelDao.SocialAccountsQueriesDao
 import gr.gnostix.api.models.pgDao._
 import gr.gnostix.api.models.plainModels._
@@ -206,21 +207,17 @@ with FutureSupport {
       KeywordDao.deleteKeyword(keywordIds)
   }
 
-  get("/profile/:id/ga/sites") {
-
-    val profileId = params("id")
+  get("/profile/ga/sites") {
 
     val status: Int = session.getAttribute("status_ga").asInstanceOf[Int]
 
     status match {
       case 200 => {
-        val sitesToMonitor: java.util.List[GoogleAnalyticsProfiles] = session.getAttribute("sites_for_monitor").asInstanceOf[java.util.List[GoogleAnalyticsProfiles]]
+        val sitesToMonitor = session.getAttribute("sites_for_monitor").asInstanceOf[java.util.List[GoogleAnalyticsProfilesJava]]
         logger.info(s"---->  sites " + sitesToMonitor.toString)
 
-        val site = GoogleAnalyticsProfiles("fgfgf", "gggggg", "llllllll", "ggggggg")
-        logger.info(s"---->  site " + site)
-        logger.info(s"---->  siteString " + site.toString)
-        ApiMessages.generalSuccess("sites", sitesToMonitor.asScala)
+        ApiMessages.generalSuccess("sites", sitesToMonitor.asScala.toList.map(x =>
+          GoogleAnalyticsProfiles(x.getAccountId, x.getWebpropertyId, x.getProfileid, x.getProfileName)))
       }
       case _ => ApiMessages.pending
     }
@@ -394,12 +391,29 @@ with FutureSupport {
         }
       }
       case "ganalytics" => {
-        val account = parsedBody.extract[SocialCredentialsGa]
-        logger.info(s"---->   add a new account ${account}    ")
-        val data = SocialAccountsGAnalyticsDao.addAccount(params("profileId").toInt, account)
-        data match {
-          case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
-          case None => Map("status" -> 400, "message" -> "Error")
+        // for testing only tokens
+//        session.setAttribute("ga_token", "ya29.HgGVxRg4jX5Ij7eFh1N0-BYAQY9yQoa41X8aCTkkzDwJoUtibE1KXmjwvV6s0tTRnjC5T3QfPz_7-A")
+//        session.setAttribute("ga_refresh_token", "1/hVJUYAY_y7ssEOb2Vo_2pkW-QSzo6rd4MKU0ji_P97s")
+
+
+        val account = parsedBody.extract[GoogleAnalyticsProfiles]
+        val token = session.getAttribute("ga_token").toString
+        val refreshToken = session.getAttribute("ga_refresh_token").toString
+
+        if (token != null && refreshToken != null) {
+
+          logger.info(s"---->   add a new account ${account}    ")
+          val data = SocialAccountsGAnalyticsDao.addAccount(params("profileId").toInt, token, refreshToken, account)
+
+          // clean session from ga tokens
+          session.removeAttribute("ga_token")
+          session.removeAttribute("ga_refresh_token")
+          data match {
+            case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
+            case None => Map("status" -> 400, "message" -> "Error")
+          }
+        } else {
+          Map("status" -> 400, "message" -> "Error")
         }
       }
       case "hotel" => {
