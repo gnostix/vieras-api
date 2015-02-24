@@ -114,8 +114,8 @@ public class GoogleAnalyticsAuth {
                             System.err.println("No profiles found for webpropertyId: " + webpropertyId);
                         } else {
 							for(Profile profile : profiles.getItems()){
-                                gaProfile.setProfileid(profile.getName());
-                                gaProfile.setProfileName(profile.getId());
+                                gaProfile.setProfileid(profile.getId());
+                                gaProfile.setProfileName(profile.getName());
 
                                 System.err.println("ProfileId: " + profile.getId() + " profilename: " + profile.getName());
                             }
