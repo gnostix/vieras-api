@@ -152,20 +152,25 @@ with CorsSupport {
   get("/gatest") {
     contentType = "text/html"
     <html>
-      <script type="text/javascript">
-      function winClose() {
-     // window.close()
-      }
-    </script>
-
-      <body onLoad="setTimeout('close_popup()', 3000)">
-        <h1>Authorization ok! Please close this window and return to Vieras app :)</h1>
-      </body>
+      <head>
+        <script language="javascript" type="text/javascript">
+          function windowClose()
+          {"window.open('', '_self', ''); window.close();"}
+        </script>
+    </head>
+    <body onLoad="setTimeout('windowClose()', 3000)">
+      <h1>Authorization ok! Please close this window and return to Vieras app.</h1>
+    </body>
     </html>
   }
 
   get("/ga/withsession*") {
     requireLogin()
+
+    // initialise the following properties
+    session.setAttribute("ga_token", null)
+    session.setAttribute("ga_refresh_token", null)
+
     val code = params("code")
     logger.info("the user session name: " + user.username)
     logger.info("the user session details: " + user.userDetails)
