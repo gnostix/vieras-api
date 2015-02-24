@@ -207,7 +207,7 @@ with FutureSupport {
       KeywordDao.deleteKeyword(keywordIds)
   }
 
-  get("/profile/ga/sites") {
+  get("/profile/:profileId/ga/sites") {
 
     val status: Int = session.getAttribute("status_ga").asInstanceOf[Int]
 
