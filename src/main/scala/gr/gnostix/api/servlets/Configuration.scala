@@ -391,10 +391,6 @@ with FutureSupport {
         }
       }
       case "ganalytics" => {
-        // for testing only tokens
-//        session.setAttribute("ga_token", "ya29.HgGVxRg4jX5Ij7eFh1N0-BYAQY9yQoa41X8aCTkkzDwJoUtibE1KXmjwvV6s0tTRnjC5T3QfPz_7-A")
-//        session.setAttribute("ga_refresh_token", "1/hVJUYAY_y7ssEOb2Vo_2pkW-QSzo6rd4MKU0ji_P97s")
-
 
         val account = parsedBody.extract[GoogleAnalyticsProfiles]
         val token = session.getAttribute("ga_token").toString
