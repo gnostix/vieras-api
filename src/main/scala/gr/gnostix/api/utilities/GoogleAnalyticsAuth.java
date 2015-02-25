@@ -25,13 +25,14 @@ public class GoogleAnalyticsAuth {
     private GoogleAuthorizationCodeFlow flow = null;
     private final static String CLIENT_ID = "332673681072-n2tlr81uuslailaecolv4nbhlv13ljjl.apps.googleusercontent.com";
     private final static String CLIENT_SECRET = "83cqMzOwjmtZ-Cn7UhxZayg7";
-    private static final String CALLBACK_URL = "http://app.vieras.eu:8282/api/ga";
+    private static final String CALLBACK_URL = "https://app.vieras.eu:8443/api/ga";
     private static JsonFactory JSON_FACTORY = new JacksonFactory();
     private static HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
     private static String APPLICATION_NAME = "Gnostix";
 
     public GoogleAnalyticsTokens requestAccessToken(String code) {
         GoogleAnalyticsTokens tokens = new GoogleAnalyticsTokens();
+        System.out.println("-----------> GoogleAnalyticsTokens requestAccessToken(String code) " + code);
 
         int status = 0;
         try {
