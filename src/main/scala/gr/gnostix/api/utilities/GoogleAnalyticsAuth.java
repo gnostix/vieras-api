@@ -25,12 +25,12 @@ public class GoogleAnalyticsAuth {
     private GoogleAuthorizationCodeFlow flow = null;
     private final static String CLIENT_ID = "332673681072-n2tlr81uuslailaecolv4nbhlv13ljjl.apps.googleusercontent.com";
     private final static String CLIENT_SECRET = "83cqMzOwjmtZ-Cn7UhxZayg7";
-    private static final String CALLBACK_URL = "http://app.vieras.eu:8080/api/ga";
+    private static final String CALLBACK_URL = "http://app.vieras.eu:8282/api/ga";
     private static JsonFactory JSON_FACTORY = new JacksonFactory();
     private static HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
     private static String APPLICATION_NAME = "Gnostix";
 
-    public GoogleAnalyticsTokens requestAccessToken(String code) throws IOException {
+    public GoogleAnalyticsTokens requestAccessToken(String code) {
         GoogleAnalyticsTokens tokens = new GoogleAnalyticsTokens();
 
         int status = 0;
@@ -52,7 +52,6 @@ public class GoogleAnalyticsAuth {
         } catch (TokenResponseException e) {
             if (e.getDetails() != null) {
                 System.err.println("Error: " + e.getDetails().getError());
-                System.err.println("Error: " + e.getDetails().toPrettyString());
                 if (e.getDetails().getErrorDescription() != null) {
                     System.err.println("Description: " + e.getDetails().getErrorDescription());
                 }
@@ -66,6 +65,10 @@ public class GoogleAnalyticsAuth {
             status = 400;
             tokens.setStatus(status);
 
+        } catch (Exception e) {
+            status = 400;
+            tokens.setStatus(status);
+            e.printStackTrace();
         }
         return tokens;
 
