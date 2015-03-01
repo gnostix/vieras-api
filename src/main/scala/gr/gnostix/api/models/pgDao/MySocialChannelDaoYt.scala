@@ -191,10 +191,18 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
    * @return
    */
   def dataMinus(li: List[YoutubeLineData]): List[YoutubeLineData] = {
-    val buf = new ListBuffer[YoutubeLineData]
 
+    li match {
+      case Nil => Nil
+      case x :: Nil => li
+      case x :: xs => go(li)
+    }
+
+    
     @annotation.tailrec
     def go(li: List[YoutubeLineData]): List[YoutubeLineData] = {
+      val buf = new ListBuffer[YoutubeLineData]
+
       li match {
         case Nil => Nil
         case x :: Nil => {
@@ -222,7 +230,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
       }
     }
 
-    go(li)
+
   }
 
   private def buildCredentialsQuery(profileId: Int, credId: Option[Int]): String = {
