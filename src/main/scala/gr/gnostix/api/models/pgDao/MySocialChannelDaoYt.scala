@@ -200,7 +200,8 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
         case Nil => Nil
         case x :: Nil => {
           buf += x
-          List(buf.toList: _*)
+          val mLi = List(buf.toList: _*)
+          mLi.take(mLi.size -1)
         }
         case x :: y :: Nil => buf += YoutubeLineData(
           y.subscribers - x.subscribers,
