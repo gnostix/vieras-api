@@ -196,10 +196,13 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
 
     Future {
       prom.success(
-        getConnection withSession {
-          implicit session =>
-            val records = Q.queryNA[SocialAccountsFacebook](
-              s"""
+        try {
+
+          getConnection withSession {
+            implicit session =>
+
+              val records = Q.queryNA[SocialAccountsFacebook](
+                s"""
           select FK_PROFILE_SOCIAL_ENG_ID ,max(fanpage_fans) , max(talking_about_count),max(talking_about_sixdays),
                  max(checkins), max(reach), max(views), max(engaged), max(fanpage)
           from vieras.eng_fb_stats ,vieras.eng_engagement_data_queries i
@@ -210,13 +213,19 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
            and fk_eng_engagement_data_quer_id=i.id
           group by FK_PROFILE_SOCIAL_ENG_ID
               """)
-            val accounts = records.list()
+              val accounts = records.list()
 
-            if (accounts.isEmpty) {
-              None
-            } else {
-              Some(SocialAccounts("facebook", accounts))
-            }
+              if (accounts.isEmpty) {
+                None
+              } else {
+                Some(SocialAccounts("facebook", accounts))
+              }
+          }
+        } catch {
+          case e: Exception => {
+            e.printStackTrace()
+            None
+          }
         })
     }
     prom.future
@@ -317,10 +326,11 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
 
     Future {
       prom.success(
-        getConnection withSession {
-          implicit session =>
-            val records = Q.queryNA[SocialAccountsYoutube](
-              s"""
+        try {
+          getConnection withSession {
+            implicit session =>
+              val records = Q.queryNA[SocialAccountsYoutube](
+                s"""
             select FK_PROFILE_SOCIAL_ENG_ID , max(subscribers) , max(video_views) , max(total_views), max(channel_name)
                from vieras.ENG_YT_STATS ,vieras.eng_engagement_data_queries i
                where fk_eng_engagement_data_quer_id in
@@ -330,14 +340,21 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 9)) and fk_eng_engagement_data_quer_id=i.id
               group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id
               """)
-            val accounts = records.list()
+              val accounts = records.list()
 
-            if (accounts.isEmpty) {
-              None
-            } else {
-              Some(SocialAccounts("youtube", accounts))
-            }
-        })
+              if (accounts.isEmpty) {
+                None
+              } else {
+                Some(SocialAccounts("youtube", accounts))
+              }
+          }
+        } catch {
+          case e: Exception => {
+            e.printStackTrace()
+            None
+          }
+        }
+      )
     }
     prom.future
   }
@@ -401,10 +418,12 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
   // Here we should bring data by browser or Operating system as extra analysis data
 
   def findById(profileId: Int, credId: Int) = {
-    getConnection withSession {
-      implicit session =>
-        val records = Q.queryNA[SocialAccountsGAnalytics](
-          s"""
+
+    try {
+      getConnection withSession {
+        implicit session =>
+          val records = Q.queryNA[SocialAccountsGAnalytics](
+            s"""
                 select FK_PROFILE_SOCIAL_ENG_ID, profile_name, max(visits),max(avgtimeonsite), max(newvisits)
                 from vieras.eng_ga_stats, vieras.eng_engagement_data_queries i
                 where  fk_eng_engagement_data_quer_id in (
@@ -415,10 +434,17 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 15)) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID, profile_name
                 """)
-        val accounts = records.list()
-        SocialAccounts("ganalytics", accounts)
+          val accounts = records.list()
+          SocialAccounts("ganalytics", accounts)
+      }
 
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
     }
+
   }
 
   // this needs refactor
@@ -432,7 +458,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
             implicit session =>
               val records = Q.queryNA[SocialAccountsGAnalytics](
                 s"""
-                select FK_PROFILE_SOCIAL_ENG_ID, profile_name, max(visits),max(avgtimeonsite), max(newvisits)
+                select FK_PROFILE_SOCIAL_ENG_ID, profile_name, max(users),max(avg_session_duration), max(new_users)
                 from vieras.eng_ga_stats, vieras.eng_engagement_data_queries i
                 where  fk_eng_engagement_data_quer_id in (
                 select q.id from vieras.eng_engagement_data_queries q
@@ -515,10 +541,11 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
 
   def findById(profileId: Int, credId: Int) = {
-    getConnection withSession {
-      implicit session =>
-        val records = Q.queryNA[SocialAccountsHotel](
-          s"""
+    try {
+      getConnection withSession {
+        implicit session =>
+          val records = Q.queryNA[SocialAccountsHotel](
+            s"""
           select c.id, h.ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
                      h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL, h.VIERAS_TOTAL_RATING
                    from vieras.eng_hotels h, vieras.ENG_PROFILE_HOTEL_CREDENTIALS c
@@ -527,10 +554,17 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
                       and c.id = ${credId}
                    order by h.TOTAL_RATING desc
                    """)
-        val accounts = records.list()
-        SocialAccounts("hotel", accounts)
+          val accounts = records.list()
+          SocialAccounts("hotel", accounts)
 
+      }
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
     }
+
   }
 
   def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int): Future[Option[SocialAccounts]] = {
@@ -538,10 +572,11 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
     Future {
       prom.success(
-        getConnection withSession {
-          implicit session =>
-            val records = Q.queryNA[SocialAccountsHotel](
-              s"""
+        try {
+          getConnection withSession {
+            implicit session =>
+              val records = Q.queryNA[SocialAccountsHotel](
+                s"""
           select c.id, h.ID, h.TOTAL_RATING, h.HOTEL_NAME, h.HOTEL_ADDRESS,
                      h.HOTEL_STARS, h.TOTAL_REVIEWS, h.HOTEL_URL, h.VIERAS_TOTAL_RATING
                    from vieras.eng_hotels h, vieras.ENG_PROFILE_HOTEL_CREDENTIALS c
@@ -549,14 +584,21 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
                       and c.FK_PROFILE_id = ${profileId}
                    order by h.TOTAL_RATING desc
                    """)
-            val accounts = records.list()
+              val accounts = records.list()
 
-            if (accounts.isEmpty) {
-              None
-            } else {
-              Some(SocialAccounts("hotel", accounts))
-            }
-        })
+              if (accounts.isEmpty) {
+                None
+              } else {
+                Some(SocialAccounts("hotel", accounts))
+              }
+          }
+        } catch {
+          case e: Exception => {
+            e.printStackTrace()
+            None
+          }
+        }
+      )
     }
     prom.future
   }
