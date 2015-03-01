@@ -46,6 +46,16 @@ object HelperFunctions {
 
   }
 
+  def f4(dashboardData: Option[List[ApiData]]) = {
+
+    dashboardData match {
+      case Some(dt) => ApiMessages.generalSuccessOneParam(dashboardData)
+      case None => ErrorDataResponse(404, "Error on data")
+    }
+
+  }
+
+
   def randomAlphaNumericString(length: Int): String = {
     val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
     randomStringFromCharList(length, chars)

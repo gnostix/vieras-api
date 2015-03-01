@@ -212,7 +212,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
               """)
             val accounts = records.list()
 
-            if (accounts.isEmpty){
+            if (accounts.isEmpty) {
               None
             } else {
               Some(SocialAccounts("facebook", accounts))
@@ -332,7 +332,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
               """)
             val accounts = records.list()
 
-            if(accounts.isEmpty){
+            if (accounts.isEmpty) {
               None
             } else {
               Some(SocialAccounts("youtube", accounts))
@@ -427,10 +427,11 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
 
     Future {
       prom.success(
-        getConnection withSession {
-          implicit session =>
-            val records = Q.queryNA[SocialAccountsGAnalytics](
-              s"""
+        try {
+          getConnection withSession {
+            implicit session =>
+              val records = Q.queryNA[SocialAccountsGAnalytics](
+                s"""
                 select FK_PROFILE_SOCIAL_ENG_ID, profile_name, max(visits),max(avgtimeonsite), max(newvisits)
                 from vieras.eng_ga_stats, vieras.eng_engagement_data_queries i
                 where  fk_eng_engagement_data_quer_id in (
@@ -440,13 +441,19 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
                          where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 15)) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID, profile_name
                 """)
-            val accounts = records.list()
+              val accounts = records.list()
 
-            if(accounts.isEmpty){
-              None
-            } else {
-              Some(SocialAccounts("ganalytics", accounts))
-            }
+              if (accounts.isEmpty) {
+                None
+              } else {
+                Some(SocialAccounts("ganalytics", accounts))
+              }
+          }
+        } catch {
+          case e: Exception => {
+            e.printStackTrace()
+            None
+          }
         })
     }
     prom.future
@@ -544,7 +551,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
                    """)
             val accounts = records.list()
 
-            if(accounts.isEmpty){
+            if (accounts.isEmpty) {
               None
             } else {
               Some(SocialAccounts("hotel", accounts))
@@ -723,7 +730,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
     }
   }
 
-  object SocialAccountsQueriesDao extends DatabaseAccessSupportPg{
+  object SocialAccountsQueriesDao extends DatabaseAccessSupportPg {
 
     def deleteSocialAccount(profileId: Int, credId: Int, datasource: String) = Option[Int] {
       try {
