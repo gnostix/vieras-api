@@ -191,17 +191,10 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
    * @return
    */
   def dataMinus(li: List[YoutubeLineData]): List[YoutubeLineData] = {
+    val buf = new ListBuffer[YoutubeLineData]
 
-    li match {
-      case Nil => Nil
-      case x :: Nil => li
-      case x :: xs => go(li)
-    }
-
-    
     @annotation.tailrec
     def go(li: List[YoutubeLineData]): List[YoutubeLineData] = {
-      val buf = new ListBuffer[YoutubeLineData]
 
       li match {
         case Nil => Nil
@@ -228,6 +221,12 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
           y.created);
           go(y :: xs)
       }
+    }
+
+    li match {
+      case Nil => Nil
+      case x :: Nil => li
+      case x :: xs => go(li)
     }
 
 
