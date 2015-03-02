@@ -134,7 +134,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         Some(ApiData("services_line", cleanData.toList.sortBy(_._1)))
       } else {
         logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
+        Some(ApiData("services_line", List()))
       }
 
     } catch {
@@ -187,7 +187,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
       } else {
         logger.info(" -------------> nodata ")
-        Some(List(ApiData("nodata", None)))
+        Some(List(ApiData("servicesStats", List()), ApiData("tips", List())))
       }
 
     } catch {
@@ -262,13 +262,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      if (myData.size > 0) {
-        logger.info(" -------------> we have hotel text data ")
-        Some(ApiData("hotel_messages", myData))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
+      Some(ApiData("hotel_messages", myData))
 
     } catch {
       case e: Exception => {
@@ -293,8 +287,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         logger.info(" -------------> we have hotel stats ")
 
         // top boxes stats
-        val stats = Map("score" -> myData.head.datasourceHotelRating,
-          "outOf" -> myData.head.maxHotelScore,
+        val stats = Map("score" -> myData.map(x => x.datasourceHotelRating).max,
+          "outOf" -> myData.map(x => x.maxHotelScore).max,
           "reviewsNum" -> myData.size,
           "positive" -> myData.filter(x => x.vierasReviewRating >= 8).size,
           "negative" -> myData.filter(x => x.vierasReviewRating <= 4).size)
@@ -326,7 +320,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
       } else {
         logger.info(" -------------> nodata ")
-        Some(List(ApiData("nodata", None)))
+        Some(List(ApiData("stats", List()), ApiData("countries", List()), ApiData("stayType", List())))
       }
 
     } catch {

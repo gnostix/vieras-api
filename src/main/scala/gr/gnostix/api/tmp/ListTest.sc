@@ -42,7 +42,7 @@ val dtd = List(HotelServicesLineTest("Value", 5.6, "21-01-2015"),
   HotelServicesLineTest("Value", 5.6, "21-01-2015"),
   HotelServicesLineTest("Value", 5.6, "21-01-2015"),
   HotelServicesLineTest("Value", 5.6, "22-01-2015"),
-  HotelServicesLineTest("Value", 5.6, "22-01-2015"),
+  HotelServicesLineTest("Value", 9, "22-01-2015"),
   HotelServicesLineTest("Value", 5.6, "21-01-2015"))
 
 dtd.groupBy(x => x.created).map{
@@ -53,3 +53,6 @@ dtd.groupBy(x => x.created).map{
 
 val l = List(1,2,3,4,5,6,7,8,7,5,4,4,4,3,33,3)
 10.min(5)
+
+dtd.map(x => x.value).max
+

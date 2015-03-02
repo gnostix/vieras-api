@@ -88,7 +88,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
         Some(ApiData("stats", myData.head))
       } else {
         logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
+        Some(ApiData("stats", myData))
       }
 
     } catch {
@@ -117,7 +117,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
         Some(ApiData("video_stats", myData.head))
       } else {
         logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
+        Some(ApiData("video_stats", myData))
       }
     } catch {
       case e: Exception => {
@@ -139,13 +139,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      if (myData.size > 0) {
-        logger.info(" -------------> we have video stats ")
-        Some(ApiData("video_data", myData))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
+      Some(ApiData("video_data", myData))
     } catch {
       case e: Exception => {
         e.printStackTrace()
@@ -172,7 +166,7 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
         Some(ApiData("video_data", dataMinus(myData) ))
       } else {
         logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
+        Some(ApiData("video_data", List() ))
       }
     } catch {
       case e: Exception => {
@@ -224,6 +218,9 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
       }
     }
 
+    /*
+    * if we have only one item then we just return this items, else we proceed to fix the data
+    * */
     li match {
       case Nil => Nil
       case x :: Nil => li

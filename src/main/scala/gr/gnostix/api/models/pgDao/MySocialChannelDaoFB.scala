@@ -115,14 +115,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      if (myData.size > 0) {
-        logger.info(" -------------> data fb post ")
-        Some(ApiData("facebook_posts", myData))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
-
+      Some(ApiData("facebook_posts", myData))
     } catch {
       case e: Exception => {
         e.printStackTrace()
@@ -143,14 +136,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      if (myData.size > 0) {
-        logger.info(" -------------> nodata fb comments ")
-        Some(ApiData("facebook_comments", myData))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
-
+      Some(ApiData("facebook_comments", myData))
     } catch {
       case e: Exception => {
         e.printStackTrace()
@@ -188,7 +174,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
         Some(ApiData("demographics", DemographicsDataFB(female, male, age, myData)))
       } else {
-        Some(ApiData("nodata", None))
+        Some(ApiData("demographics", List()))
       }
 
     } catch {
@@ -224,7 +210,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
         Some(ApiData("stats", FacebookStatsApi(FacebookStatsTop(reach, views, engaged, talkingAbout, newLikes, shares), myData)))
       } else {
         logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
+        Some(ApiData("stats", List()))
       }
 
     } catch {

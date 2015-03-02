@@ -83,7 +83,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
           ))
         } ))
       } else {
-        Some(ApiData("nodata", None))
+        Some(ApiData("Services", List()))
       }
 
     }

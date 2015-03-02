@@ -108,14 +108,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      if (myData.size > 0) {
-        logger.info(" -------------> nodata tw  " + dataTypeTw)
-        Some(ApiData(dataTypeTw, myData))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
-
+      Some(ApiData(dataTypeTw, myData))
     } catch {
       case e: Exception => {
         e.printStackTrace()
@@ -136,13 +129,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      if (myData.size > 0) {
-        logger.info(" -------------> nodata tw retweets ")
-        Some(ApiData("twitter_retweets", myData))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
+      Some(ApiData("twitter_retweets", myData))
 
     } catch {
       case e: Exception => {
@@ -164,13 +151,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      if (myData.size > 0) {
-        logger.info(" -------------> we have data stats ")
-        Some(ApiData("stats", myData.head))
-      } else {
-        logger.info(" -------------> nodata ")
-        Some(ApiData("nodata", None))
-      }
+      Some(ApiData("stats", myData.head))
     } catch {
       case e: Exception => {
         e.printStackTrace()
