@@ -9,15 +9,7 @@ object HelperFunctions {
 
   def f2(dashboardData: Option[ApiData]) = {
     dashboardData match {
-      case Some(dt) => {
-
-        val hasData = dt.dataName match {
-          case "nodata" => ApiMessages.generalSuccessNoData
-          case _ => ApiMessages.generalSuccessOneParam( Map(dt.dataName -> dt.data))
-        }
-
-        hasData
-      }
+      case Some(dt) => ApiMessages.generalSuccessOneParam(Map(dt.dataName -> dt.data))
       case None => ErrorDataResponse(404, "Error on data")
     }
 
@@ -28,15 +20,15 @@ object HelperFunctions {
     dashboardData match {
       case Some(dt) => {
 
-        val existData = dt.filter(_.dataName != "nodata")
+        //val existData = dt.filter(_.dataName != "nodata")
 
-        val myData = existData.map{
+        val myData = dt.map {
           case (x) => (x.dataName -> x.data)
         }.toMap
 
-        val hasData = existData.size match {
-          case x if( x > 0 ) => ApiMessages.generalSuccessOneParam(myData)
-          case x if( x == 0) => ApiMessages.generalSuccessNoData
+        val hasData = dt.size match {
+          case x if (x > 0) => ApiMessages.generalSuccessOneParam(myData)
+          case x if (x == 0) => ApiMessages.generalSuccessNoData
         }
 
         hasData
@@ -45,6 +37,8 @@ object HelperFunctions {
     }
 
   }
+
+
 
   def f4(dashboardData: Option[List[ApiData]]) = {
 

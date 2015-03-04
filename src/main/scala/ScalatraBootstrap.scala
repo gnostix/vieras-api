@@ -68,6 +68,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new TwitterDashboardServlet(executor), "/api/user/socialchannels/dashboard/twitter/*")
     context.mount(new YoutubeDashboardServlet(executor), "/api/user/socialchannels/dashboard/youtube/*")
     context.mount(new HospitalityDashboardServlet(executor), "/api/user/socialchannels/dashboard/hotel/*")
+    context.mount(new GoogleAnalyticsDashboardServlet(executor), "/api/user/socialchannels/dashboard/ganalytics/*")
 
     context.mount(new ReportServlet(executor), "/api/user/dashboard/report/*")
 

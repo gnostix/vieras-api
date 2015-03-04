@@ -54,6 +54,7 @@ with CorsSupport {
     AllDataResponse(200, "all good", List(user))
   }
 
+
   post("/register") {
     logger.info("-----------------------> /register")
     try {
@@ -157,10 +158,10 @@ with CorsSupport {
           function windowClose()
           {"window.open('', '_self', ''); window.close();"}
         </script>
-    </head>
-    <body onLoad="setTimeout('windowClose()', 3000)">
-      <h1>Authorization ok! Please close this window and return to Vieras app.</h1>
-    </body>
+      </head>
+      <body onLoad="setTimeout('windowClose()', 3000)">
+        <h1>Authorization ok! Please close this window and return to Vieras app.</h1>
+      </body>
     </html>
   }
 

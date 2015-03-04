@@ -8,7 +8,8 @@ package gr.gnostix.api.servlets
   import gr.gnostix.api.auth.AuthenticationSupport
   import gr.gnostix.api.models.pgDao.MySocialChannelDaoYt
   import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, ErrorDataResponse}
-  import org.joda.time.DateTime
+import gr.gnostix.api.utilities.HelperFunctions
+import org.joda.time.DateTime
   import org.joda.time.format.DateTimeFormat
   import org.json4s.{DefaultFormats, Formats}
   import org.scalatra.json.JacksonJsonSupport
@@ -57,7 +58,7 @@ import scala.concurrent.ExecutionContext
           override val is =
             for {
               a1 <- rawData
-            } yield f2(a1)
+            } yield HelperFunctions.f2(a1)
         }
 
 
@@ -91,7 +92,7 @@ import scala.concurrent.ExecutionContext
           override val is =
             for {
               a1 <- rawData
-            } yield f2(a1)
+            } yield HelperFunctions.f2(a1)
         }
 
 
@@ -105,21 +106,6 @@ import scala.concurrent.ExecutionContext
     }
 
 
-    def f2(dashboardData: Option[ApiData]) = {
-      dashboardData match {
-        case Some(dt) => {
-
-          val hasData = dt.dataName match {
-            case "nodata" => ApiMessages.generalSuccessNoData
-            case _ => ApiMessages.generalSuccessOneParam(dt)
-          }
-
-          hasData
-        }
-        case None => ErrorDataResponse(404, "Error on data")
-      }
-
-    }
   }
 
   case class SocialChannelsYoutubeLineServlet(executor: ExecutionContext) extends GnostixAPIStack with RestSocialChannelsYtLineDataRoutes
