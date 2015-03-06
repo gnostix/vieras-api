@@ -27,6 +27,7 @@ class ScalatraBootstrap extends LifeCycle {
   //
   override def init(context: ServletContext) {
 
+
     val db = DatabaseAccessPg.database
     logger.info("-->  create a Database")
     //val db = Database.forDataSource(cpds)  // create a Database which uses the DataSource

@@ -55,7 +55,7 @@ trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User] {
   }
 
   override protected def registerAuthStrategies = {
-    scentry.register("Bill", app => new TheBasicAuthStrategy(app, realm))
+    scentry.register("TheBasicAuth", app => new TheBasicAuthStrategy(app, realm))
     scentry.register("UserPassword", app => new UserPasswordStrategy(app))
     //scentry.register("RememberMe", app => new RememberMeStrategy(app))
   }

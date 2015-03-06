@@ -2,6 +2,7 @@ package gr.gnostix.api
 
 import javax.servlet.http.HttpServletRequest
 
+import gr.gnostix.api.models.pgDao.AppVersionDao
 import org.fusesource.scalate.TemplateEngine
 import org.fusesource.scalate.layout.DefaultLayoutStrategy
 import org.scalatra._
@@ -10,6 +11,10 @@ import org.scalatra.scalate.ScalateSupport
 import scala.collection.mutable
 
 trait GnostixAPIStack extends ScalatraServlet with ScalateSupport {
+
+  after(){
+    response.addHeader(AppVersionDao.webVersionHeader, session.getOrElse("webversion","").toString)
+  }
 
   /* wire up the precompiled templates */
   override protected def defaultTemplatePath: List[String] = List("/WEB-INF/templates/views")

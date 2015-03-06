@@ -141,3 +141,4 @@ case class GoogleAnalyticsData(country: String ,browser: String , operatingSyste
                                ,pageViews: Int, sessionDuration: Int, users: Int, newUsers: Int, bounces: Int, bounceRate: Double)
 
 case class GoogleAnalyticsStats(users: Int, newUsers: Int, bounces: Int, bounceRate: Double, avgSessionDuration: Int, pageViews: Int)
+case class GaLineData(created: Timestamp, users: Int, newUsers: Int, bounceRate: Double, avrSessionDuration: Int)

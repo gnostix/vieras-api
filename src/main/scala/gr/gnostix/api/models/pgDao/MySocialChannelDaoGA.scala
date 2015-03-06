@@ -1,5 +1,7 @@
 package gr.gnostix.api.models.pgDao
 
+import java.sql.Timestamp
+
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.pgDao.MySocialChannelDaoYt._
 import gr.gnostix.api.models.plainModels._
@@ -60,14 +62,19 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
         // get hits by Country
         val countryHits = getHitsByCountry(myData)
 
+        // get all line graphs
+        val gaLineGraph = getLineGraphAll(myData)
+
         logger.info(" -------------> we have  G analytics ")
         Some(List(ApiData("ga_stats", gaStats), ApiData("source_hits", sourceHits),
-          ApiData("os_hits", osHits), ApiData("browser_hits", browserHits), ApiData("country_hits", countryHits), ApiData("ga_data", myData)))
+          ApiData("os_hits", osHits), ApiData("browser_hits", browserHits),
+          ApiData("country_hits", countryHits), ApiData("ga_line_graph", gaLineGraph), ApiData("ga_data", myData)))
 
       } else {
         logger.info(" -------------> nodata ")
         Some(List(ApiData("ga_stats", List()), ApiData("source_hits", List()),
-          ApiData("os_hits", List()), ApiData("browser_hits", List()), ApiData("country_hits", List()), ApiData("ga_data", myData)))
+          ApiData("os_hits", List()), ApiData("browser_hits", List()), ApiData("country_hits", List()),
+          ApiData("ga_line_graph", List()), ApiData("ga_data", myData)))
       }
     } catch {
       case e: Exception => {
@@ -78,6 +85,12 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
   }
 
+  private def getLineGraphAll(li: List[GoogleAnalyticsData]): List[GaLineData] = {
+    li.groupBy(x => x.created).map {
+      case (x, y) => GaLineData(x, y.map(u => u.users).sum, y.map(nu => nu.newUsers).sum,
+        y.map(b => b.bounceRate).sum / y.size, y.map(a => a.avgSessionDuration).sum / y.size)
+    }.toList
+  }
 
   private def getHitsByCountry(li: List[GoogleAnalyticsData]): Map[String, Int] = {
     li.groupBy(x => x.country).map {

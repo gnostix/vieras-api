@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 class TheBasicAuthStrategy(protected override val app: ScalatraBase, realm: String)
   extends BasicAuthStrategy[User](app, realm) {
 
-  override def name: String = "Bill"
+  override def name: String = "TheBasicAuth"
 
   val logger = LoggerFactory.getLogger(getClass)
 

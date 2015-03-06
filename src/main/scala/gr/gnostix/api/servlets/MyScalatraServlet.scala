@@ -3,7 +3,7 @@ package gr.gnostix.api.servlets
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsTokens
-import gr.gnostix.api.models.pgDao.{UserDao, UserRegistration}
+import gr.gnostix.api.models.pgDao.{AppVersionDao, UserDao, UserRegistration}
 import gr.gnostix.api.models.plainModels.{GoogleAnalyticsProfiles, ApiMessages, AllDataResponse}
 import gr.gnostix.api.utilities.{GoogleAnalyticsAuth, EmailUtils}
 import org.json4s.{DefaultFormats, Formats}
@@ -30,10 +30,18 @@ with CorsSupport {
     contentType = formats("json")
   }
 
+//  after(){
+//    response.addHeader(AppVersionDao.webVersionHeader, session.getOrElse("webversion","").toString)
+//  }
+
   post("/login") {
     scentry.authenticate()
     if (isAuthenticated) {
       logger.info("--------------> /login: successful Id: " + user.userId)
+      // set web app version on session
+      val webVersion = AppVersionDao.getWebAppVersion
+      session.setAttribute("webversion", webVersion)
+
       user.password = ""
       user
       AllDataResponse(200, "all good", List(user))
@@ -43,12 +51,14 @@ with CorsSupport {
     }
   }
 
+
   post("/logout") {
     scentry.logout()
   }
 
   get("/getUserInfo") {
     requireLogin()
+
     user.password = ""
     user
     AllDataResponse(200, "all good", List(user))
