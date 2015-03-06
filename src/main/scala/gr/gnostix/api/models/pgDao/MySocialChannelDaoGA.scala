@@ -16,7 +16,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
  */
 object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
-  implicit val getGaDataData = GetResult(r => GoogleAnalyticsData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<))
+  implicit val getGaDataData = GetResult(r => GoogleAnalyticsData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -46,14 +46,28 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
       if (myData.size > 0) {
 
         // create the stats object  GoogleAnalyticsStats
-       val gaStats = getStats(myData)
+        val gaStats = getStats(myData)
 
+        // get hits by source
+        val sourceHits = getSourceHits(myData)
+
+        // get hits by operating system
+        val osHits = getHitsByOS(myData)
+
+        // get hits by browser
+        val browserHits = getHitsByBrowser(myData)
+
+        // get hits by Country
+        val countryHits = getHitsByCountry(myData)
 
         logger.info(" -------------> we have  G analytics ")
-        Some(List(ApiData("ga_stats", gaStats),ApiData("ga_data", myData)))
+        Some(List(ApiData("ga_stats", gaStats), ApiData("source_hits", sourceHits),
+          ApiData("os_hits", osHits), ApiData("browser_hits", browserHits), ApiData("country_hits", countryHits), ApiData("ga_data", myData)))
+
       } else {
         logger.info(" -------------> nodata ")
-        Some(List(ApiData("ga_stats", List()), ApiData("ga_data", myData)))
+        Some(List(ApiData("ga_stats", List()), ApiData("source_hits", List()),
+          ApiData("os_hits", List()), ApiData("browser_hits", List()), ApiData("country_hits", List()), ApiData("ga_data", myData)))
       }
     } catch {
       case e: Exception => {
@@ -64,10 +78,36 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
   }
 
+
+  private def getHitsByCountry(li: List[GoogleAnalyticsData]): Map[String, Int] = {
+    li.groupBy(x => x.country).map {
+      case (x, y) => (x -> y.map(i => i.users).sum)
+    }
+  }
+
+  private def getHitsByBrowser(li: List[GoogleAnalyticsData]): Map[String, Int] = {
+    li.groupBy(x => x.browser).map {
+      case (x, y) => (x -> y.map(i => i.users).sum)
+    }
+  }
+
+  private def getHitsByOS(li: List[GoogleAnalyticsData]): Map[String, Int] = {
+    li.groupBy(x => x.operatingSystem).map {
+      case (x, y) => (x -> y.map(i => i.users).sum)
+    }
+  }
+
+  private def getSourceHits(li: List[GoogleAnalyticsData]): Map[String, Int] = {
+    li.groupBy(x => x.source).map {
+      case (x, y) => (x -> y.map(i => i.users).sum)
+    }
+  }
+
+
   private def getStats(li: List[GoogleAnalyticsData]): GoogleAnalyticsStats = {
     val users = li.map(x => x.users).sum
     val newUsers = li.map(x => x.newUsers).sum
-    val avgSessionDuration = li.map(x => x.avgSessionDuration).sum / li.size
+    val avgSessionDuration = li.map(x => x.avgSessionDuration).sum / li.filter(x => x.avgSessionDuration != 0).size
     val pageViews = li.map(x => x.pageViews).sum
     val bounces = li.map(x => x.bounces).sum
     val bounceRate = li.map(x => x.bounceRate).sum / li.size

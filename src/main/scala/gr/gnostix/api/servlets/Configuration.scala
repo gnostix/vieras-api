@@ -35,7 +35,7 @@ with FutureSupport {
 
   before() {
     contentType = formats("json")
-    //requireLogin()
+    requireLogin()
   }
 
 
@@ -66,7 +66,7 @@ with FutureSupport {
   }
 
   get("/profiles/all") {
-    logger.info("---->   return all profiles with id and name     ")
+    logger.info("---->   return all profiles with id and name     " + user.userId)
     try {
       val profiles = ProfileDao.getAllProfiles(user.userId)
       ApiData.cleanDataResponse(profiles)
