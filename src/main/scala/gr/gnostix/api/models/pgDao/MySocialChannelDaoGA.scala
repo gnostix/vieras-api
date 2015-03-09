@@ -89,7 +89,7 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     li.groupBy(x => x.created).map {
       case (x, y) => GaLineData(x, y.map(u => u.users).sum, y.map(nu => nu.newUsers).sum,
         y.map(b => b.bounceRate).sum / y.size, y.map(a => a.avgSessionDuration).sum / y.size)
-    }.toList
+    }.toList.sortWith( (a,b) => a.created.before(b.created))
   }
 
   private def getHitsByCountry(li: List[GoogleAnalyticsData]): Map[String, Int] = {
@@ -140,7 +140,7 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     val sql =
       s"""
         select country ,browser , operating_system,sessions,avg_session_duration, profileid
-          ,profile_name ,created, source,search_used , session_count,
+          ,profile_name ,created::date, source,search_used , session_count,
             page_views, session_duration, users, new_users, bounces, bounce_rate
             from vieras.eng_ga_stats
             where fk_eng_engagement_data_quer_id in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'GA_STATS'

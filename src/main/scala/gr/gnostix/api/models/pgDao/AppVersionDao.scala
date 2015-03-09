@@ -32,6 +32,6 @@ object AppVersionDao extends DatabaseAccessSupportPg {
 
   }
 
-  val webVersionHeader = "WEB_VERSION"
+  val webVersionHeader = "Web-Version"
 
 }
