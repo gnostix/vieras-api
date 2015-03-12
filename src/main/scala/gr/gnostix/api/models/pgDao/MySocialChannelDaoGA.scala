@@ -87,8 +87,8 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
   private def getLineGraphAll(li: List[GoogleAnalyticsData]): List[GaLineData] = {
     li.groupBy(x => x.created).map {
-      case (x, y) => GaLineData(x, y.map(u => u.users).sum, y.map(nu => nu.newUsers).sum,
-        y.map(b => b.bounceRate).sum / y.size, y.map(a => a.avgSessionDuration).sum / y.size)
+      case (x, y) => GaLineData(x, y.map(u => u.users).sum, y.map(nu => nu.newUsers).sum, y.map(nu => nu.bounces).sum,
+        y.map(b => b.bounceRate).sum / y.size, y.map(a => a.avgSessionDuration).sum / y.size, y.map(nu => nu.pageViews).sum)
     }.toList.sortWith( (a,b) => a.created.before(b.created))
   }
 
