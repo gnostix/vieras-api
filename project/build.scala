@@ -9,7 +9,7 @@ object ScalatraoraBuild extends Build {
   val Organization = "gr.gnostix"
   val Name = "GnostixAPI"
   val Version = "0.1.0"
-  val ScalaVersion = "2.10.3"
+  val ScalaVersion = "2.10.4"
   val ScalatraVersion = "2.3.0"
 
   lazy val project = Project(
