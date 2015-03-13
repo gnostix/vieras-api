@@ -130,7 +130,7 @@ case class HotelReviewStats(reviewId: Int, reviewer: String,  stayType: String, 
 case class RevStat(service_name: String, score: Int, numMsg: Int)
 case class HotelRatingStats(ratingName: String, ratingValue: Int)
 case class HotelServicesLine(ratingName: String, ratingValue: Double, created: String)
-case class HotelTextData(text: String, rating: Double, dsId: Int, daName: String, created: Timestamp)
+case class HotelTextData(text: String, rating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String)
 
 case class UserAccount(companyName: String, firstName: String, lastName: String, email:String, streetAddress: String, password: String)
 

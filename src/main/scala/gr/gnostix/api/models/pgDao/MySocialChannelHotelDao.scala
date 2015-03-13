@@ -19,7 +19,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   implicit val getReviewStats = GetResult(r => HotelReviewStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getRatingStats = GetResult(r => HotelRatingStats(r.<<, r.<<))
   implicit val getServicesLine = GetResult(r => HotelServicesLine(r.<<, r.<<, r.<<))
-  implicit val getHotelTextData = GetResult(r => HotelTextData(r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getHotelTextData = GetResult(r => HotelTextData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
 
   val logger = LoggerFactory.getLogger(getClass)
@@ -423,7 +423,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
       case Some(x) =>
         s"""
         select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
                    where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x} )
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -436,7 +436,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
         s"""
         select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
                    where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} )
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
