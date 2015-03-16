@@ -161,8 +161,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
         val (neg, pos) = getTopMinusMaxReviews(myData)
 
-        val negative_tips = neg.map(x => s""" ${x.numMsg} reviews mentioned negative your hotel ${x.service_name}""")
-        val positive_tips = pos.map(x => s"""Based on ${x.numMsg} reviews, your hotel ${x.service_name} is mentioned positively""")
+        val negative_tips = neg.map(x => s""" ${x.numMsg} reviews mentioned negative the hotel ${x.service_name}""")
+        val positive_tips = pos.map(x => s"""Based on ${x.numMsg} reviews, the hotel ${x.service_name} is mentioned positively""")
 
         val tips = Map("positive_tips" -> positive_tips, "negative_tips" -> negative_tips)
         // geographic data
@@ -245,8 +245,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val massagedData =
       secondStep.toList.flatten.sortBy(n => (n.score, n.numMsg))
 
-    val neg = massagedData.take(5).toList
-    val pos = massagedData.reverse.take(5).toList
+    val neg = massagedData.take(5).toList.sortBy(x => x.service_name)
+    val pos = massagedData.reverse.take(5).toList.sortBy(x => x.service_name)
 
 
     (neg, pos)
