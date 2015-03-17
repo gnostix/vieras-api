@@ -127,8 +127,8 @@ case class YoutubeLineData(subscribers: Int, totalViews: Int, videoViews: Int, l
 // hotels
 case class HotelAddUrl(dsId: Int, hotelUrl: String)
 case class HotelReviewStats(reviewId: Int, reviewer: String,  stayType: String, country: String, vierasReviewRating: Double, datasourceHotelRating: Double, maxHotelScore: Int)
-case class RevStat(service_name: String, score: Int, numMsg: Int)
-case class HotelRatingStats(ratingName: String, ratingValue: Int)
+case class RevStat(service_name: String, score: Double, numMsg: Int)
+case class HotelRatingStats(ratingName: String, ratingValue: Double)
 case class HotelServicesLine(ratingName: String, ratingValue: Double, created: String)
 case class HotelTextData(text: String, rating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String)
 

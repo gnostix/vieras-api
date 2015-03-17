@@ -203,7 +203,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
    * @param li
    * @return
    */
-  private def getServicesAverageRating(li: List[HotelRatingStats]): Map[String, Int] = {
+  private def getServicesAverageRating(li: List[HotelRatingStats]): Map[String, Double] = {
 
     li.groupBy(_.ratingName).map {
       case (x, y) => (x, y.map(_.ratingValue).sum / y.size)
