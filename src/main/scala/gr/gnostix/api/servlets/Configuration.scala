@@ -418,7 +418,7 @@ with FutureSupport {
         logger.info(s"---->   validUrl $validUrl ")
         if (validUrl._2) {
           // save hotel in db
-          val credId = SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel)
+          val credId = SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel, validUrl._3)
 
           credId match {
             case Some(x) => {

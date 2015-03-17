@@ -604,10 +604,10 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def addAccount(profileId: Int, cred: SocialCredentialsHotel): Option[Int] = {
+  def addAccount(profileId: Int, cred: SocialCredentialsHotel, datasourceName: String): Option[Int] = {
     try {
 
-      val sql: String = "{call vieras.insert_hotel_credential(?,?,?,?)}"
+      val sql: String = "{call vieras.insert_hotel_credential(?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, profileId)
@@ -617,11 +617,12 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
       } else {
         callableStatement.setString(3, "http://" + cred.hotelUrl)
       }
-      callableStatement.registerOutParameter(4, java.sql.Types.INTEGER)
+      callableStatement.setString(4, datasourceName)
+      callableStatement.registerOutParameter(5, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val hotelId: Int = callableStatement.getInt(4)
+      val hotelId: Int = callableStatement.getInt(5)
       callableStatement.close()
       //connection.commit()
       connection.close()
@@ -641,28 +642,39 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def checkHotelUrl(url: String): (String, Boolean) = {
+  def checkHotelUrl(url: String): (String, Boolean, String) = {
 
     // check if the url is real
     if (!checkIfUrlIsvalid(url)) {
-      ("bad url", false)
+      ("bad url", false, "")
     } else {
 
       // check if the user has already entered this url
       if (checkUrlInDatabase(url)) {
-        ("You have already entered this url", false)
+        ("You have already entered this url", false, "")
       } else {
 
         // check if the url source contains the supported datasources
         if (!checkUrlForSupportedHospitalityUrl(url)) {
-          ("This url is not supported", false)
+          ("This url is not supported", false, "")
         } else {
-          ("Good url", true)
+          ("Good url", true, getUrlDomain(url))
         }
 
       }
 
     }
+
+  }
+
+  private def getUrlDomain(url: String): String ={
+    if(url.startsWith("http://www."))
+      url.split("\\.").toList.tail.head.capitalize
+    else if (url.startsWith("http://"))
+      url.drop(7).split("\\.").toList.head.capitalize
+    else if (url.startsWith("www."))
+      url.split("\\.").toList.tail.head.capitalize
+    else ""
 
   }
 
