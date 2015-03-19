@@ -1,14 +1,12 @@
 package gr.gnostix.api.models.pgDao
 
 import java.sql.Timestamp
-import java.text.DecimalFormat
-
-import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
-import gr.gnostix.api.models.plainModels.{ApiMessages, ApiData}
-import org.slf4j.LoggerFactory
 
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
+import gr.gnostix.api.models.plainModels.ApiData
+import org.slf4j.LoggerFactory
 
 case class Profile(profileId: Int,
                    profileName: String,
@@ -33,10 +31,11 @@ object ProfileDao extends DatabaseAccessSupportPg {
     getConnection withSession {
       implicit session =>
 
+        // total_keywords is fake  we use to so we can fill it with the myCompanyId data
         try {
           val records = Q.queryNA[Profile]( s"""
                 select c.id, c.profile_firstname,c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,
-                    c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
+                    c.total_keywords,c.language,c.VIERAS_TOTAL_RATING, c.total_keywords
                    from vieras.profiles c  where c.id = $profileId  and c.fk_user_id = $userId
           """)
           val profiles = records.list()
