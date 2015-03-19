@@ -35,7 +35,7 @@ with FutureSupport {
 
   // mount point /api/user/socialchannels/dashboard/ganalytics/*
 
-  get("/profile/:profileId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:fromDate/:toDate") {
     logger.info(s"----> get all data for ganalytics for  one account " +
       s"  /api/user/socialchannels/dashboard/ganalytics/*  ")
     try {
@@ -48,8 +48,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawData = MySocialChannelDaoGA.getGoogleAnalytics(executor, fromDate, toDate, profileId, None)
+
+      val rawData = MySocialChannelDaoGA.getGoogleAnalytics(executor, fromDate, toDate, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -68,7 +70,7 @@ with FutureSupport {
     }
   }
 
-  get("/profile/:profileId/:credId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:credId/:fromDate/:toDate") {
     logger.info(s"----> get all data for ganalytics for  one account  " +
       s"  /api/user/socialchannels/dashboard/ganalytics/*  ")
     try {
@@ -81,9 +83,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoGA.getGoogleAnalytics(executor, fromDate, toDate, profileId, Some(credId))
+      val rawData = MySocialChannelDaoGA.getGoogleAnalytics(executor, fromDate, toDate, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =

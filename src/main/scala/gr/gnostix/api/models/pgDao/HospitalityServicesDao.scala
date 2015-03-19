@@ -3,6 +3,7 @@ package gr.gnostix.api.models.pgDao
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{ApiData, RevStat, HotelRatingStats}
+import gr.gnostix.api.utilities.SqlUtils
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -22,8 +23,10 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
   implicit val getServicesStatsResult = GetResult(r => HotelRatingStats(r.<<, r.<<))
 
 
-  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryRatingSentiment(fromDate, toDate, profileId)
+  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int): Future[Option[ApiData]] = {
+    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+
+    val mySqlDynamic = buildQueryRatingSentiment(fromDate, toDate, sqlEngAccount)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -33,10 +36,13 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getDataServiceByName(implicit ctx: ExecutionContext, serviceName: String, profileId: Int, fromDate: DateTime, toDate: DateTime): Future[Option[ApiData]] = {
+  def getDataServiceByName(implicit ctx: ExecutionContext, serviceName: String, profileId: Int, companyId: Int,
+                           fromDate: DateTime, toDate: DateTime): Future[Option[ApiData]] = {
     implicit val getHospitalitySentimentResult = GetResult(r => Sentiment(r.<<, r.<<, r.<<))
 
-    val mySqlDynamic = buildQueryRatingSentimentByName(fromDate, toDate, profileId, serviceName: String)
+    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+
+    val mySqlDynamic = buildQueryRatingSentimentByName(fromDate, toDate, serviceName: String, sqlEngAccount)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -91,7 +97,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
 
   }
 
-  private def buildQueryRatingSentiment(fromDate: DateTime, toDate: DateTime, profileId: Int): String = {
+  private def buildQueryRatingSentiment(fromDate: DateTime, toDate: DateTime, sqlEngAccount: String ): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -102,7 +108,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
     val sql =
         s"""
             select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
-                 where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} )
+                 where FK_HOTEL_ID IN ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and r.ID = hr.FK_PID
@@ -116,7 +122,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryRatingSentimentByName(fromDate: DateTime, toDate: DateTime, profileId: Int, serviceName: String): String = {
+  private def buildQueryRatingSentimentByName(fromDate: DateTime, toDate: DateTime, serviceName: String, sqlEngAccount: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -127,7 +133,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
     val sql =
       s"""
             select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
-                 where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} )
+                 where FK_HOTEL_ID IN  ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and r.ID = hr.FK_PID

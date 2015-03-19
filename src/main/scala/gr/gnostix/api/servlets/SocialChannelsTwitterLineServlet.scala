@@ -33,7 +33,7 @@ import scala.concurrent.ExecutionContext
     // mount point /api/user/socialchannels/twitter/line/*
 
     // get all data for twitter for one profile datatype = (post or comment)
-    get("/profile/:profileId/:dataType/:fromDate/:toDate") {
+    get("/profile/:profileId/company/:companyId/:dataType/:fromDate/:toDate") {
       logger.info(s"----> get all data for twitter for  one account datatype = (mention , retweet)" +
         s"  /api/user/socialchannels/twitter/line/* ${params("dataType")} ")
       try {
@@ -46,8 +46,9 @@ import scala.concurrent.ExecutionContext
         logger.info(s"---->   parsed date ---> ${toDate}    ")
 
         val profileId = params("profileId").toInt
+        val companyId = params("companyId").toInt
 
-        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, params("dataType"), None)
+        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, companyId, params("dataType"), None)
         rawData match {
           case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
           case None => ErrorDataResponse(404, "Error on data")
@@ -63,7 +64,7 @@ import scala.concurrent.ExecutionContext
     }
 
     // get all data for twitter for one account datatype = (post or comment)
-    get("/profile/:profileId/:dataType/:credId/:fromDate/:toDate") {
+    get("/profile/:profileId/company/:companyId/:dataType/:credId/:fromDate/:toDate") {
       logger.info(s"----> get all data for twitter for  one account datatype = (mention , retweet) " +
         s"  /api/user/socialchannels/twitter/line/*  ${params("dataType")} ")
       try {
@@ -76,9 +77,10 @@ import scala.concurrent.ExecutionContext
         logger.info(s"---->   parsed date ---> ${toDate}    ")
 
         val profileId = params("profileId").toInt
+        val companyId = params("companyId").toInt
         val credId = params("credId").toInt
 
-        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, params("dataType"), Some(credId))
+        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, companyId, params("dataType"), Some(credId))
         rawData match {
           case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
           case None => ErrorDataResponse(404, "Error on data")
@@ -94,7 +96,7 @@ import scala.concurrent.ExecutionContext
     }
 
     // get all data for twitter for  all accounts datatype = (all, post, comment)
-    get("/profile/:profileId/:fromDate/:toDate/all") {
+    get("/profile/:profileId/company/:companyId/:fromDate/:toDate/all") {
       logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("profileId")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -106,10 +108,11 @@ import scala.concurrent.ExecutionContext
         logger.info(s"---->   parsed date ---> ${toDate}    ")
 
         val profileId = params("profileId").toInt
+        val companyId = params("companyId").toInt
 
 
-        val mention = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "mention", None)
-        val retweet = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "retweet", None)
+        val mention = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "mention", None)
+        val retweet = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
 
         val theData =
           new AsyncResult() {
@@ -152,7 +155,7 @@ import scala.concurrent.ExecutionContext
     }
 
     // get SUM data for twitter for  all accounts datatype = (all, post, comment)
-    get("/profile/:profileId/:fromDate/:toDate/total/all") {
+    get("/profile/:profileId/company/:companyId/:fromDate/:toDate/total/all") {
       logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("profileId")} ")
 
       try {
@@ -165,9 +168,10 @@ import scala.concurrent.ExecutionContext
         logger.info(s"---->   parsed date ---> ${toDate}    ")
 
         val profileId = params("profileId").toInt
+        val companyId = params("companyId").toInt
 
-        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalmention", None)
-        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalretweet", None)
+        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalmention", None)
+        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalretweet", None)
 
         val theData =
           new AsyncResult() {
@@ -199,7 +203,7 @@ import scala.concurrent.ExecutionContext
     }
 
     // get all data for twitter for  one account datatype = (all, post, comment)
-    get("/profile/:profileId/:engId/:fromDate/:toDate/total/all") {
+    get("/profile/:profileId/company/:companyId/:engId/:fromDate/:toDate/total/all") {
       logger.info(s"---->   /api/user/socialchannels/twitter/line/* ${params("engId")} ")
       try {
         val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -211,10 +215,11 @@ import scala.concurrent.ExecutionContext
         logger.info(s"---->   parsed date ---> ${toDate}    ")
 
         val profileId = params("profileId").toInt
+        val companyId = params("companyId").toInt
         val engId = params("engId").toInt
 
-        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalmention", Some(engId))
-        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalretweet", Some(engId))
+        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalmention", Some(engId))
+        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalretweet", Some(engId))
 
         val theData =
           new AsyncResult() {

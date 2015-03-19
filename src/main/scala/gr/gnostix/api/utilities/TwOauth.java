@@ -21,7 +21,7 @@ public class TwOauth {
     private RequestToken requestToken = null;
     private Twitter twitter = null;
 
-    public AccessToken getUserToken(String pin, int profileId) {
+    public AccessToken getUserToken(String pin) {
         AccessToken accessToken = null;
         SocialCredentialsSimple twAccount = null;
 

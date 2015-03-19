@@ -35,7 +35,7 @@ with FutureSupport {
   // mount point /api/user/socialchannels/facebook/line/*
 
   // get all data for facebook for one profile datatype = (post or comment)
-  get("/profile/:profileId/:dataType/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:dataType/:fromDate/:toDate") {
     logger.info(s"----> get all data for facebook for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/facebook/line/* ${params("dataType")} ")
     try {
@@ -48,8 +48,9 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, params("dataType"), None)
+      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, companyId, params("dataType"), None)
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -65,7 +66,7 @@ with FutureSupport {
   }
 
   // get all data for facebook for one channel account datatype = (post or comment)
-  get("/profile/:profileId/:dataType/:engId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:dataType/:engId/:fromDate/:toDate") {
     logger.info(s"----> get all data for facebook for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/facebook/line/* ${params("dataType")} ")
     try {
@@ -78,9 +79,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val engId = params("engId").toInt
 
-      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, params("dataType"), Some(engId))
+      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, companyId, params("dataType"), Some(engId))
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -96,7 +98,7 @@ with FutureSupport {
   }
 
   // get all data for facebook for  all accounts datatype = (all, post, comment)
-  get("/profile/:profileId/:fromDate/:toDate/all") {
+  get("/profile/:profileId/company/:companyId/:fromDate/:toDate/all") {
     logger.info(s"---->   /api/user/socialchannels/facebook/line/* ${params("profileId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -108,10 +110,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
 
-      val post = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "post", None)
-      val comment = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "comment", None)
+      val post = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, companyId, "post", None)
+      val comment = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, companyId, "comment", None)
 
       val theData =
         new AsyncResult() {
@@ -154,7 +157,7 @@ with FutureSupport {
   }
 
   // get SUM data for facebook for  all accounts datatype = (all, post, comment)
-  get("/profile/:profileId/:fromDate/:toDate/total/all") {
+  get("/profile/:profileId/company/:companyId/:fromDate/:toDate/total/all") {
     logger.info(s"---->   /api/user/socialchannels/facebook/line/* ${params("profileId")} ")
 
     try {
@@ -167,9 +170,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", None)
-      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", None)
+      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalpost", None)
+      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalcomment", None)
 
       val theData =
         new AsyncResult() {
@@ -201,7 +205,7 @@ with FutureSupport {
   }
 
   // get all data for facebook for  one account datatype = (all, post, comment)
-  get("/profile/:profileId/:engId/:fromDate/:toDate/total/all") {
+  get("/profile/:profileId/company/:companyId/:engId/:fromDate/:toDate/total/all") {
     logger.info(s"---->   /api/user/socialchannels/facebook/line/* ${params("engId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -213,10 +217,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val engId = params("engId").toInt
 
-      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalpost", Some(engId))
-      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, "totalcomment", Some(engId))
+      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalpost", Some(engId))
+      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalcomment", Some(engId))
 
       val theData =
         new AsyncResult() {

@@ -38,7 +38,7 @@ import scala.concurrent.ExecutionContext
 
     // mount point /api/user/socialchannels/youtube/line/*
 
-    get("/profile/:profileId/:fromDate/:toDate") {
+    get("/profile/:profileId/company/:companyId/:fromDate/:toDate") {
       logger.info(s"----> get all data for youtube for  one account " +
         s"  /api/user/socialchannels/youtube/line/*  ")
       try {
@@ -51,8 +51,9 @@ import scala.concurrent.ExecutionContext
         logger.info(s"---->   parsed date ---> ${toDate}    ")
 
         val profileId = params("profileId").toInt
+        val companyId = params("companyId").toInt
 
-        val rawData = MySocialChannelDaoYt.getLineCounts(executor, fromDate, toDate, profileId,  None)
+        val rawData = MySocialChannelDaoYt.getLineCounts(executor, fromDate, toDate, profileId, companyId,  None)
 
         new AsyncResult() {
           override val is =
@@ -71,7 +72,7 @@ import scala.concurrent.ExecutionContext
       }
     }
 
-     get("/profile/:profileId/:credId/:fromDate/:toDate") {
+     get("/profile/:profileId/company/:companyId/:credId/:fromDate/:toDate") {
       logger.info(s"----> get all data for youtube for  one account  " +
         s"  /api/user/socialchannels/youtube/line/*   ")
       try {
@@ -84,9 +85,10 @@ import scala.concurrent.ExecutionContext
         logger.info(s"---->   parsed date ---> ${toDate}    ")
 
         val profileId = params("profileId").toInt
+        val companyId = params("companyId").toInt
         val credId = params("credId").toInt
 
-        val rawData = MySocialChannelDaoYt.getLineCounts(executor, fromDate, toDate, profileId, Some(credId))
+        val rawData = MySocialChannelDaoYt.getLineCounts(executor, fromDate, toDate, profileId, companyId, Some(credId))
 
         new AsyncResult() {
           override val is =

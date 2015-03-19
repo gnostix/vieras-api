@@ -61,7 +61,7 @@ with FutureSupport {
 
   get("/profile/:id") {
     logger.info(s"---->   return profile with id ${params("id")}     ")
-    val profiledata = ProfileDao.findById(params("id").toInt, user.userId)
+    val profiledata = ProfileDao.findById(user.userId, params("id").toInt)
     ApiData.cleanDataResponse(profiledata)
   }
 
@@ -75,7 +75,6 @@ with FutureSupport {
         ApiMessages.generalError
     }
   }
-
 
   // create a new profile
   post("/profile/:name") {
@@ -129,6 +128,81 @@ with FutureSupport {
     // not implemented
   }
 
+
+
+// COMPANIES
+
+  get("/profile/:profileId/company/:companyId") {
+    logger.info(s"---->   return company with id ${params("id")}     ")
+    val profileId = params("profileId").toInt
+    val companyId = params("companyId").toInt
+    val companyData = CompanyDao.findById(user.userId, profileId, companyId)
+    ApiData.cleanDataResponse(companyData)
+  }
+
+  get("/profile/:profileId/company/mycompany") {
+    logger.info(s"---->   return company with id ${params("id")}     ")
+    val profileId = params("profileId").toInt
+
+    val companyData = CompanyDao.getMyCompany(user.userId, profileId)
+    ApiData.cleanDataResponse(companyData)
+  }
+
+  get("/profiles/:profileId/company/all") {
+    logger.info("---->   return all profiles with id and name     " + user.userId)
+    try {
+      val profileId = params("profileId").toInt
+      val company = CompanyDao.findAllCompanies(user.userId,profileId)
+      ApiData.cleanDataResponse(company)
+    } catch {
+      case e: Exception => "Something went wrong" + e.printStackTrace()
+        ApiMessages.generalError
+    }
+  }
+
+  // create a new Company
+  post("/profile/:profileId/company") {
+    logger.info(s"---->   return company with name ${params("name")}     ")
+    val profileId = params("profileId").toInt
+    val company = parsedBody.extract[CompanyGroup]
+    val companyId = CompanyDao.createCompany(profileId, company)
+
+    val response = companyId match {
+      case Some(x) => ApiMessages.generalSuccess("companyId", companyId)
+      case None => ApiMessages.generalError
+    }
+
+    response
+  }
+
+  // update the profile name
+  put("/profile/:profileId/company/:companyId/:name") {
+
+    val profileId = params("id").toInt
+    val companyName = params("name")
+    val companyId = params("companyId").toInt
+    val result = CompanyDao.updateName(user.userId, profileId, companyId, companyName)
+
+    val response = result match {
+      case Some(x) => Map("status" -> 200, "message" -> "All good", "payload" -> "")
+      case None => ApiMessages.generalError
+    }
+
+    response
+  }
+
+  delete("/profiles/:id/company/:companyId") {
+    val profileId = params("id").toInt
+    val companyId = params("companyId").toInt
+    val result = CompanyDao.deleteCompany(user.userId, profileId, companyId)
+
+    val response = result match {
+      case Some(x) => Map("status" -> 200, "message" -> "All good", "payload" -> "")
+      case None => ApiMessages.generalError
+    }
+
+    response
+  }
 
 
 
@@ -263,15 +337,15 @@ with FutureSupport {
   }
 
   // 2. Step - Get the authorization of Twitter and save the account
-  post("/profile/:id/tw/auth/:pin") {
+  post("/profile/:id/company/:companyId/tw/auth/:pin") {
     logger.info("---->   Twitter PIN !!!!    ")
     var twAuth: TwOauth = session.getAttribute("twitter_auth").asInstanceOf[TwOauth]
 
     val profileId = params("id").toInt
-
+    val companyId = params("companyId").toInt
     // add twitter account and then return the twitter handle
-    val accessToken: AccessToken = twAuth.getUserToken(params("pin"), profileId)
-    val account = SocialAccountsTwitterDao.addAccount(profileId, accessToken.getToken(), accessToken.getTokenSecret(),
+    val accessToken: AccessToken = twAuth.getUserToken(params("pin"))
+    val account = SocialAccountsTwitterDao.addAccount(profileId, companyId, accessToken.getToken(), accessToken.getTokenSecret(),
       accessToken.getScreenName())
 
     // reset token so user can get more accounts
@@ -293,22 +367,27 @@ with FutureSupport {
   }
 
   // get customer hotel sites
-  get("/profile/:profileId/socialchannel/hospitality/hotel/all") {
-    val custId = params("profileId").toInt
-    val hotelUrls = SocialAccountsHotelDao.getHotelUrls(custId)
+  get("/profile/:profileId/company/:companyId/socialchannel/hospitality/hotel/all") {
+    val profileId = params("profileId").toInt
+    val companyId = params("companyId").toInt
+
+    val hotelUrls = SocialAccountsHotelDao.getHotelUrls(profileId, companyId)
     logger.info(s"---->   get customer hotel sites ")
     Map("status" -> 200, "message" -> "all good", "payload" -> hotelUrls)
   }
 
   // ====================== Social accounts ====================================
 
-  get("/profile/:profileId/socialchannels/all") {
+  get("/profile/:profileId/company/:companyId/socialchannels/all") {
 
-    val tw = SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
-    val fb = SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
-    val yt = SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
-    val ga = SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
-    val ho = SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
+    val profileId = params("profileId").toInt
+    val companyId = params("companyId").toInt
+
+    val tw = SocialAccountsTwitterDao.getAllAccounts(executor, profileId, companyId)
+    val fb = SocialAccountsFacebookDao.getAllAccounts(executor, profileId, companyId)
+    val yt = SocialAccountsYoutubeDao.getAllAccounts(executor, profileId, companyId)
+    val ga = SocialAccountsGAnalyticsDao.getAllAccounts(executor, profileId, companyId)
+    val ho = SocialAccountsHotelDao.getAllAccounts(executor, profileId, companyId)
     new AsyncResult {
       val is =
         for {
@@ -335,35 +414,48 @@ with FutureSupport {
 
 
   //i need to refactor these
-  get("/profile/:profileId/socialchannel/:datasource/:credId") {
+  get("/profile/:profileId/company/:companyId/socialchannel/:datasource/:credId") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+
+    val profileId = params("profileId").toInt
+    val companyId = params("companyId").toInt
+    val credId = params("credId").toInt
+
     params("datasource") match {
-      case "twitter" => SocialAccountsTwitterDao.findById(params("profileId").toInt, params("credId").toInt)
-      case "facebook" => SocialAccountsFacebookDao.findById(params("profileId").toInt, params("credId").toInt)
-      case "youtube" => SocialAccountsYoutubeDao.findById(params("profileId").toInt, params("credId").toInt)
-      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(params("profileId").toInt, params("credId").toInt)
-      case "hotel" => SocialAccountsHotelDao.findById(params("profileId").toInt, params("credId").toInt)
+      case "twitter" => SocialAccountsTwitterDao.findById(profileId, companyId, credId)
+      case "facebook" => SocialAccountsFacebookDao.findById(profileId, companyId, credId)
+      case "youtube" => SocialAccountsYoutubeDao.findById(profileId, companyId, credId)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(profileId, companyId, credId)
+      case "hotel" => SocialAccountsHotelDao.findById(profileId, companyId, credId)
     }
 
   }
 
 
-  get("/profile/:profileId/socialchannel/:datasource/all") {
+  get("/profile/:profileId/company/:companyId/socialchannel/:datasource/all") {
     logger.info(s"---->   return all the social channels for this datasource ${params("datasource")} ")
+
+    val profileId = params("profileId").toInt
+    val companyId = params("companyId").toInt
+
     val data = params("datasource") match {
-      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, params("profileId").toInt)
-      case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, params("profileId").toInt)
-      case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, params("profileId").toInt)
+      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, profileId, companyId)
+      case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, profileId, companyId)
+      case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, profileId, companyId)
       // the next route needs refactor !!!!!!!!!!!
-      case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, params("profileId").toInt)
-      case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, params("profileId").toInt)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, profileId, companyId)
+      case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, profileId, companyId)
     }
     ApiMessages.generalSuccessOneParam(data)
   }
 
   // add social and hospitality accounts
-  post("/profile/:profileId/socialchannel/:datasource/account") {
+  post("/profile/:profileId/company/:companyId/socialchannel/:datasource/account") {
     logger.info(s"---->   adds social account for this datasource ${params("datasource")} ")
+
+    val profileId = params("profileId").toInt
+    val companyId = params("companyId").toInt
+
     params("datasource") match {
       case "twitter" => {
         // we add the twitter account on /profile/:id/tw/auth/:pin !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -375,7 +467,7 @@ with FutureSupport {
         logger.info(s"---->   add a new facebook  account ")
         val account = parsedBody.extract[SocialCredentialsFb]
         logger.info(s"---->   add a new account ${account}    ")
-        val data = SocialAccountsFacebookDao.addAccount(params("profileId").toInt, account)
+        val data = SocialAccountsFacebookDao.addAccount(profileId, companyId, account)
         data match {
           case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
           case None => Map("status" -> 400, "message" -> "Error")
@@ -384,7 +476,7 @@ with FutureSupport {
       case "youtube" => {
         val account = parsedBody.extract[SocialCredentialsYt]
         logger.info(s"---->   add a new account ${account}    ")
-        val data = SocialAccountsYoutubeDao.addAccount(params("profileId").toInt, account)
+        val data = SocialAccountsYoutubeDao.addAccount(profileId, companyId, account)
         data match {
           case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
           case None => Map("status" -> 400, "message" -> "Error")
@@ -399,7 +491,7 @@ with FutureSupport {
         if (token != null && refreshToken != null) {
 
           logger.info(s"---->   add a new account ${account}    ")
-          val data = SocialAccountsGAnalyticsDao.addAccount(params("profileId").toInt, token, refreshToken, account)
+          val data = SocialAccountsGAnalyticsDao.addAccount(profileId, companyId, token, refreshToken, account)
 
           // clean session from ga tokens
           session.removeAttribute("ga_token")
@@ -418,7 +510,7 @@ with FutureSupport {
         logger.info(s"---->   validUrl $validUrl ")
         if (validUrl._2) {
           // save hotel in db
-          val credId = SocialAccountsHotelDao.addAccount(params("profileId").toInt, hotel, validUrl._3)
+          val credId = SocialAccountsHotelDao.addAccount(profileId, companyId, hotel, validUrl._3)
 
           credId match {
             case Some(x) => {
@@ -437,16 +529,20 @@ with FutureSupport {
 
   }
 
-  delete("/profile/:profileId/socialchannel/:datasource/:credId") {
+  delete("/profile/:profileId/company/:companyId/socialchannel/:datasource/:credId") {
     logger.info(s"---->   delete social channel for this datasource ${params("datasource")} ")
+
+    val profileId = params("profileId").toInt
+    val companyId = params("companyId").toInt
+
     var status: Int = 100
     val credId = params("credId").toInt
     params("datasource") match {
-      case "hotel" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
-      case "twitter" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
-      case "facebook" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
-      case "youtube" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
-      case "ganalytics" => status = SocialAccountsQueriesDao.deleteSocialAccount(params("profileId").toInt, credId, params("datasource")).get
+      case "hotel" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
+      case "twitter" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
+      case "facebook" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
+      case "youtube" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
+      case "ganalytics" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
     }
     status match {
       case 200 => Map("status" -> 200, "message" -> "all good")

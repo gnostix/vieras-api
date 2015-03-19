@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.pgDao.MySocialChannelDaoYt._
 import gr.gnostix.api.models.plainModels._
-import gr.gnostix.api.utilities.HelperFunctions
+import gr.gnostix.api.utilities.{SqlUtils, HelperFunctions}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -22,8 +22,8 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  def getGoogleAnalytics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[List[ApiData]]] = {
-    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, engId)
+  def getGoogleAnalytics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[List[ApiData]]] = {
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[List[ApiData]]]()
 
@@ -128,14 +128,14 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     GoogleAnalyticsStats(users, newUsers, bounces, HelperFunctions.doublePrecision1(bounceRate), avgSessionDuration, pageViews)
   }
 
-  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 15, credId)
 
     val sql =
       s"""
@@ -153,11 +153,5 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildCredentialsQuery(profileId: Int, credId: Option[Int]): String = {
-    credId match {
-      case Some(x) => x + " )"
-      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 15)"
-    }
-  }
 
 }

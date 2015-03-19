@@ -35,7 +35,7 @@ with FutureSupport {
   // mount point /api/user/socialchannels/hotel/line/*
 
   // get all data for hotel for one profile
-  get("/profile/:profileId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:fromDate/:toDate") {
     logger.info(s"----> get all data for hotel for  one profile " +
       s"  /api/user/socialchannels/hotel/line/*  ")
     try {
@@ -48,9 +48,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
       // "line" for line data per day , week ect..
-      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, "line", None)
+      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, companyId, "line", None)
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -67,7 +68,7 @@ with FutureSupport {
 
 
   // get all data for hotel for one profile SUM
-  get("/profile/:profileId/:fromDate/:toDate/total") {
+  get("/profile/:profileId/company/:companyId/:fromDate/:toDate/total") {
     logger.info(s"----> get all data for hotel for  one profile " +
       s"  /api/user/socialchannels/hotel/line/*  ")
     try {
@@ -80,9 +81,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
       // "total" for the total sum of messages for a period
-      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, "total", None)
+      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, companyId, "total", None)
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", data)
         case None => ErrorDataResponse(404, "Error on data")
@@ -99,7 +101,7 @@ with FutureSupport {
 
 
   // get all data for hotel for one profile hotelSource = (ALL or tripadvisor id, booking id ..klp..klp..)
-  get("/profile/:profileId/datasource/:datasourceId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/datasource/:datasourceId/:fromDate/:toDate") {
     logger.info(s"----> get all data for hotel for  one account datasourceId ID = (ALL, tripadvisor Id, booking Id ..klp..klp..)" +
       s"  /api/user/socialchannels/hotel/line/* ${params("datasourceId")} ")
     try {
@@ -112,9 +114,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val datasourceId = params("datasourceId").toInt
 
-      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, "line", Some(datasourceId))
+      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, companyId, "line", Some(datasourceId))
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -130,7 +133,7 @@ with FutureSupport {
   }
 
   // get all data for hotel for one profile hotelSource = (ALL or tripadvisor id, booking id ..klp..klp..)--- SUM
-  get("/profile/:profileId/datasource/:datasourceId/:fromDate/:toDate/total") {
+  get("/profile/:profileId/company/:companyId/datasource/:datasourceId/:fromDate/:toDate/total") {
     logger.info(s"----> get all data for hotel for  one account datasourceId ID = (ALL, tripadvisor Id, booking Id ..klp..klp..)" +
       s"  /api/user/socialchannels/hotel/line/* ${params("datasourceId")} ")
     try {
@@ -143,9 +146,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val datasourceId = params("datasourceId").toInt
 
-      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, "total", Some(datasourceId))
+      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, companyId, "total", Some(datasourceId))
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -161,7 +165,7 @@ with FutureSupport {
   }
 
   // get all data for hotel for one profile
-  get("/profile/:profileId/services/sentiment/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/services/sentiment/:fromDate/:toDate") {
     logger.info(s"----> get services sentiment for hotel for  one profile " +
       s"  /api/user/socialchannels/hotel/line/*  ")
     try {
@@ -174,9 +178,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
       // "line" for line data per day , week ect..
-      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, profileId, None)
+      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, profileId, companyId, None)
       new AsyncResult() {
         override val is =
           for {
@@ -194,7 +199,7 @@ with FutureSupport {
   }
 
   // get all data for hotel for one profile
-  get("/profile/:profileId/services/sentiment/datasource/:datasourceId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/services/sentiment/datasource/:datasourceId/:fromDate/:toDate") {
     logger.info(s"----> get services sentiment for hotel for  one profile " +
       s"  /api/user/socialchannels/hotel/line/*  ")
     try {
@@ -207,10 +212,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val datasourceId = params("datasourceId").toInt
 
       // "line" for line data per day , week ect..
-      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, profileId, Some(datasourceId))
+      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, profileId, companyId, Some(datasourceId))
       new AsyncResult() {
         override val is =
           for {

@@ -5,6 +5,42 @@ package gr.gnostix.api.utilities
  */
 object SqlUtils {
 
+  def buildHotelCredentialsQuery(profileId: Int, companyId: Int): String = {
+
+        s"""
+          SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS cr, vieras.eng_company co
+            WHERE cr.FK_company_ID = $companyId and cr.FK_company_ID = co.id
+              and co.fk_profile_id=$profileId
+        """
+  }
+
+  def buildHotelDatasourceQuery(profileId: Int, companyId: Int, datasourceId: Int): String = {
+    s"""
+          SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS cr, vieras.eng_company co
+            WHERE cr.FK_company_ID = $companyId and cr.FK_DATASOURCE_ID=${datasourceId} and cr.FK_company_ID = co.id
+              and co.fk_profile_id=$profileId
+        """
+  }
+
+  def buildHotelCredIdQuery(profileId: Int, companyId: Int, credId: Int): String = {
+    s"""
+          SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS cr, vieras.eng_company co
+            WHERE cr.FK_company_ID = $companyId and cr.ID=${credId} and cr.FK_company_ID = co.id
+              and co.fk_profile_id=$profileId
+        """
+  }
+
+
+  def buildSocialCredentialsQuery(profileId: Int, companyId: Int, datasourceId: Int, credId: Option[Int]): String = {
+    credId match {
+      case Some(x) => x + " )"
+      case None =>
+        s"""select s.id from vieras.eng_profile_social_credentials s , vieras.eng_company co
+          where s.fk_company_id in ( $companyId )
+          and s.fk_datasource_id = $datasourceId and s.fk_company_id = co.id and co.fk_profile_id = $profileId
+        """
+    }
+  }
 
   def getDataDefaultObj(profileId: Int): String = {
     val mySqlDyn = s"""fk_k_id in (select k_id from KEYWORDS where fk_TOPIC_id in (select sd_id from TOPICS where fk_profile_id=${profileId}))"""

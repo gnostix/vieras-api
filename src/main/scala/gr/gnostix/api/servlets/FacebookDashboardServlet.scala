@@ -35,7 +35,7 @@ with FutureSupport {
   // mount point /api/user/socialchannels/dashboard/facebook/*
 
   // get all data for facebook for one profile datatype = (post or comment)
-  get("/profile/:profileId/stats/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/facebook/*  ")
     try {
@@ -48,8 +48,9 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, None)
+      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -68,7 +69,7 @@ with FutureSupport {
   }
 
   // get all data for facebook for one profile datatype = (post or comment)
-  get("/profile/:profileId/:credId/stats/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:credId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/facebook/*  ")
     try {
@@ -81,9 +82,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, Some(credId))
+      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =
@@ -106,7 +108,7 @@ with FutureSupport {
 
 
   // get all data for facebook for one profile datatype = (post or comment)
-  get("/profile/:profileId/demographics/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/demographics/:fromDate/:toDate") {
     logger.info(s"----> get demographics  one account " +
       s"  /api/user/socialchannels/dashboard/facebook/*  ")
     try {
@@ -119,8 +121,9 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawData = MySocialChannelDaoFB.getDemographics(executor, fromDate, toDate, profileId, None)
+      val rawData = MySocialChannelDaoFB.getDemographics(executor, fromDate, toDate, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -138,7 +141,7 @@ with FutureSupport {
     }
   }
 
-  get("/profile/:profileId/:credId/demographics/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:credId/demographics/:fromDate/:toDate") {
     logger.info(s"----> get demographics  one account " +
       s"  /api/user/socialchannels/dashboard/facebook/* ")
     try {
@@ -151,9 +154,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, Some(credId))
+      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =
@@ -217,7 +221,7 @@ with FutureSupport {
  // -------------------- DATA --------------------------
 
   // get all data for facebook for one profile datatype = (post or comment)
-  get("/profile/:profileId/message/:dataType/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/message/:dataType/:fromDate/:toDate") {
     logger.info(s"----> get text data for facebook for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/dashboard/facebook/* ${params("dataType")} ")
     try {
@@ -230,11 +234,12 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val dataType = params("dataType").toString
 
       val data = params("dataType") match {
-        case "comment" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, dataType, None)
-        case "post" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, dataType, None)
+        case "comment" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, None)
+        case "post" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, None)
       }
 
         new AsyncResult() {
@@ -256,7 +261,7 @@ with FutureSupport {
 
 
   // get all data for facebook for one channel account datatype = (post or comment)
-  get("/profile/:profileId/message/:dataType/:engId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/message/:dataType/:engId/:fromDate/:toDate") {
     logger.info(s"----> get all data for facebook for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/dashboard/facebook/* ${params("dataType")} ")
     try {
@@ -269,12 +274,13 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val engId = params("engId").toInt
       val dataType = params("dataType").toString
 
       val data = params("dataType") match {
-        case "comment" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, dataType, Some(engId))
-        case "post" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, dataType, Some(engId))
+        case "comment" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, Some(engId))
+        case "post" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, Some(engId))
       }
 
       new AsyncResult() {
@@ -296,7 +302,7 @@ with FutureSupport {
 
 
   // get all data for facebook for  all accounts datatype = (all, post, comment)
-  get("/profile/:profileId/message/:fromDate/:toDate/all") {
+  get("/profile/:profileId/company/:companyId/message/:fromDate/:toDate/all") {
     logger.info(s"---->  /api/user/socialchannels/dashboard/facebook/* ${params("profileId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -308,9 +314,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val post = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, "post", None)
-      val comment = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, "comment", None)
+      val post = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "post", None)
+      val comment = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "comment", None)
 
       val theData =
         new AsyncResult() {
@@ -332,7 +339,7 @@ with FutureSupport {
   }
 
   // get all data for facebook for  one accounts datatype = (all, post, comment)
-  get("/profile/:profileId/message/:credId/:fromDate/:toDate/all") {
+  get("/profile/:profileId/company/:companyId/message/:credId/:fromDate/:toDate/all") {
     logger.info(s"----> " +
       s"/api/user/socialchannels/dashboard/facebook/profile/:profileId/message/:credId/:fromDate/:toDate/all ${params("profileId")} ")
     try {
@@ -345,10 +352,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val engId = params("credId").toInt
 
-      val post = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, "post", Some(engId))
-      val comment = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, "comment", Some(engId))
+      val post = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "post", Some(engId))
+      val comment = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "comment", Some(engId))
 
       val theData =
         new AsyncResult() {
@@ -368,8 +376,6 @@ with FutureSupport {
       }
     }
   }
-
-
 
 
 }

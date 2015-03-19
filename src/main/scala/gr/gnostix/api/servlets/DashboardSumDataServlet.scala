@@ -37,9 +37,12 @@ with FutureSupport {
 
   //mount point /api/user/account/dashboard/services/*
 
-  get("/profile/:profileId/social/messages/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/social/messages/:fromDate/:toDate") {
     logger.info(s"---->   sentiment /sentiment/comments/ TOTAL from all sources in two groups (social media and hospitality)  ")
     try {
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
       logger.info(s"---->   parsed date ---> ${fromDate}    ")
@@ -48,12 +51,10 @@ with FutureSupport {
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
-      val profileId = params("profileId").toInt
-
-      val mentions = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "mention", None)
-      val retweets = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, "retweet", None)
-      val posts = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "post", None)
-      val comments = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, "comment", None)
+      val mentions = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "mention", None)
+      val retweets = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
+      val posts = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, companyId, "post", None)
+      val comments = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, companyId, "comment", None)
       //val reviews = MySocialChannelHotelDao.getDataCountsFuture(executor, fromDate, toDate, profileId, "line", None)
 
 
@@ -101,7 +102,7 @@ with FutureSupport {
   }
 
 
-  get("/profile/:profileId/social/messages/text/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/social/messages/text/:fromDate/:toDate") {
     logger.info(s"---->   sentiment /sentiment/comments/ TOTAL from all sources in two groups (social media and hospitality)  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -113,13 +114,15 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val mentions = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "mention", None)
-      val retweets = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "retweet", None)
-      val favorites = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "favorite", None)
-      val posts = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, "post", None)
-      val comments = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, "comment", None)
-      val reviews = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, profileId, None)
+
+      val mentions = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "mention", None)
+      val retweets = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
+      val favorites = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "favorite", None)
+      val posts = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "post", None)
+      val comments = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "comment", None)
+      val reviews = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, profileId, companyId, None)
 
 
       val theData =

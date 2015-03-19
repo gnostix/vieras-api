@@ -2,7 +2,7 @@ package gr.gnostix.api.models.pgDao
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels._
-import gr.gnostix.api.utilities.DateUtils
+import gr.gnostix.api.utilities.{SqlUtils, DateUtils}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -25,8 +25,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getDataCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, datasourceId: Option[Int]): Option[Payload] = {
-    val sql = buildQuery(fromDate, toDate, profileId, dataType, datasourceId)
+  def getDataCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, datasourceId: Option[Int]): Option[Payload] = {
+    val sql = buildQuery(fromDate, toDate, profileId, companyId, dataType, datasourceId)
 
     //bring the actual data
     val data = dataType match {
@@ -41,8 +41,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
   def getServicesLineCountsAverageSentiment(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,
-                                            profileId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryServicesLineSentiment(fromDate, toDate, profileId, datasourceId)
+                                            profileId: Int, companyId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryServicesLineSentiment(fromDate, toDate, profileId, companyId, datasourceId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -53,8 +53,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
   def getReviewStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,
-                     datasourceId: Option[Int]): Future[Option[List[ApiData]]] = {
-    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, datasourceId)
+                     companyId: Int, datasourceId: Option[Int]): Future[Option[List[ApiData]]] = {
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, datasourceId)
     //bring the actual data
     val prom = Promise[Option[List[ApiData]]]()
 
@@ -64,9 +64,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
                   datasourceId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryTextData(fromDate, toDate, profileId, datasourceId)
+    val mySqlDynamic = buildQueryTextData(fromDate, toDate, profileId, companyId, datasourceId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -76,9 +76,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,
+  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
                            datasourceId: Option[Int]): Future[Option[List[ApiData]]] = {
-    val mySqlDynamic = buildQueryRatingStats(fromDate, toDate, profileId, datasourceId)
+    val mySqlDynamic = buildQueryRatingStats(fromDate, toDate, profileId, companyId, datasourceId)
     //bring the actual data
     val prom = Promise[Option[List[ApiData]]]()
 
@@ -89,8 +89,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getDataCountsFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, datasourceId: Option[Int]): Future[Option[SocialData]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, dataType, datasourceId)
+  def getDataCountsFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+                          dataType: String, datasourceId: Option[Int]): Future[Option[SocialData]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, datasourceId)
     //bring the actual data
     val prom = Promise[Option[SocialData]]()
 
@@ -101,8 +102,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getTotalSumDataFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, datasourceId: Option[Int]): Future[Option[SocialDataSum]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, dataType, datasourceId)
+  def getTotalSumDataFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+                            dataType: String, datasourceId: Option[Int]): Future[Option[SocialDataSum]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, datasourceId)
     //bring the actual data
     val prom = Promise[Option[SocialDataSum]]()
 
@@ -373,7 +375,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
   }
 
-  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -383,22 +385,25 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val sql = datasourceId match {
       case Some(x) =>
+        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+
         s"""
         select r.ID,r.REVIEWER ,r.STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING as vieras_review_rating,
              h.TOTAL_RATING  as datasource_hotel_rating, vd.ds_rating_scale as max_hotel_rating
         from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd
-           where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x} )
+           where r.FK_HOTEL_ID IN ( ${sqlEngAccount} )
               and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and r.FK_HOTEL_ID = h.ID        and vd.id=${x}
         """
       case None =>
+        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
         // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
         s"""
         select r.ID,r.REVIEWER ,r.STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING as vieras_review_rating,
              h.TOTAL_RATING  as datasource_hotel_rating, vd.ds_rating_scale as max_hotel_rating
         from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd
-           where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId})
+           where r.FK_HOTEL_ID IN ( ${sqlEngAccount} )
               and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and r.FK_HOTEL_ID = h.ID
@@ -411,7 +416,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -421,11 +426,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val sql = datasourceId match {
       case Some(x) =>
+        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+
         s"""
         select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
-                   where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x} )
+                   where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                       and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                       and r.FK_HOTEL_ID = h.ID
@@ -433,12 +440,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                       and cr.fk_datasource_id = dt.id
         """
       case None =>
+        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
         // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
         s"""
         select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
-                   where r.FK_HOTEL_ID IN (  SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} )
+                   where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                       and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                       and r.FK_HOTEL_ID = h.ID
@@ -453,7 +461,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryServicesLineSentiment(fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryServicesLineSentiment(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -465,10 +473,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val sql = datasourceId match {
       case Some(x) =>
+        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+
         s"""
         select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created)
           from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
-          where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id and f.fk_profile_id=${profileId}  and FK_DATASOURCE_ID=${x}
+          where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id
+            and f.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and vieras_rating_name is not null
@@ -476,10 +487,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                       order by date_trunc('${grouBydate}',r.created)
         """
       case None =>
+        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+
         s"""
         select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created)
           from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
-          where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id and f.fk_profile_id=${profileId}
+          where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id
+            and f.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and vieras_rating_name is not null
@@ -495,7 +509,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryRatingStats(fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryRatingStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -505,19 +519,23 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val sql = datasourceId match {
       case Some(x) =>
+        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+
         s"""
             select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
-                 where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x} )
+                 where FK_HOTEL_ID IN ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and r.ID = hr.FK_PID
                     and hr.VIERAS_RATING_NAME is not null
         """
       case None =>
+        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+
         // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
         s"""
             select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
-                 where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId}  )
+                 where FK_HOTEL_ID IN ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and r.ID = hr.FK_PID
@@ -539,15 +557,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
    * @param datasourceId
    * @return a sql query combination of datasource id and credentials id if present on of those or both (pre profile id)
    */
-  private def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, datasourceId: Option[Int]): String = {
+  private def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, datasourceId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val sqlEngAccount = datasourceId match {
-      case Some(x) => s""" SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId} and FK_DATASOURCE_ID=${x}  """
-      case None => s""" SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS WHERE FK_PROFILE_ID = ${profileId}  """
+      case Some(x) => SqlUtils.buildHotelCredIdQuery(profileId, companyId, x)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
 
     }
     logger.info("------------->" + sqlEngAccount + "-----------")
@@ -556,13 +574,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val toDateStr: String = fmt.print(toDate)
 
     dataType match {
-      case "line" => getSqlHotelDataLine(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
-      case "total" => getSqlHotelDataTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
+      case "line" => getSqlHotelDataLine(numDays, fromDateStr, toDateStr, sqlEngAccount)
+      case "total" => getSqlHotelDataTotal(numDays, fromDateStr, toDateStr, sqlEngAccount)
     }
 
   }
 
-  private def getSqlHotelDataTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+  private def getSqlHotelDataTotal(numDays: Int, fromDateStr: String, toDateStr: String, sqlEngAccount: String) = {
     val sql = s"""
     select count(*) from vieras.ENG_REVIEWS
       where FK_HOTEL_ID IN ( $sqlEngAccount )
@@ -572,7 +590,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def getSqlHotelDataLine(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+  private def getSqlHotelDataLine(numDays: Int, fromDateStr: String, toDateStr: String, sqlEngAccount: String) = {
     val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val sql = s"""

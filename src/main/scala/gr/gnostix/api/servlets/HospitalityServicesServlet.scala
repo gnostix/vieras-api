@@ -41,7 +41,7 @@ trait ServicesApiRoutes
 
   //mount point /api/user/account/hospitality/services/*
 
-  get("/profile/:profileId/:service/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:service/:fromDate/:toDate") {
     logger.info(s"---->   sentiment /sentiment/:service/ ${params("service")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -53,7 +53,10 @@ trait ServicesApiRoutes
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
-      val rawData = HospitalityServicesDao.getDataServiceByName(executor, params("service"), profileId, fromDate, toDate)
+      val companyId = params("companyId").toInt
+
+      val rawData = HospitalityServicesDao.getDataServiceByName(executor, params("service"), profileId,
+        companyId, fromDate, toDate)
       new AsyncResult {
         val is =
           for {
@@ -71,7 +74,7 @@ trait ServicesApiRoutes
 
 
 
-  get("/profile/:profileId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:fromDate/:toDate") {
 
     logger.info(s"---->   sentiment /sentiment/services ")
     try {
@@ -84,9 +87,11 @@ trait ServicesApiRoutes
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+
 
       // hotel services to get
-      val servicesStats = HospitalityServicesDao.getReviewRatingStats(executor, fromDate, toDate, profileId)
+      val servicesStats = HospitalityServicesDao.getReviewRatingStats(executor, fromDate, toDate, profileId, companyId)
 
       new AsyncResult {
         val is =

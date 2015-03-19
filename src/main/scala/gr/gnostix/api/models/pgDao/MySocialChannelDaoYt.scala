@@ -2,7 +2,7 @@ package gr.gnostix.api.models.pgDao
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{ApiData, DataLineGraph, YoutubeLineData, YoutubeStats, YoutubeVideoData, YoutubeVideoStats}
-import gr.gnostix.api.utilities.DateUtils
+import gr.gnostix.api.utilities.{SqlUtils, DateUtils}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -22,8 +22,8 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, engId)
+  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -33,8 +33,8 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getVideoStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryVideoStats(fromDate, toDate, profileId, engId)
+  def getVideoStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryVideoStats(fromDate, toDate, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -45,8 +45,8 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
   }
 
 
-  def getLineCounts(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val sql = buildQueryLine(fromDate, toDate, profileId, engId)
+  def getLineCounts(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val sql = buildQueryLine(fromDate, toDate, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -59,8 +59,8 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
 
 
   // get raw data
-  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryData(fromDate, toDate, profileId, engId)
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryData(fromDate, toDate, profileId, companyId, engId)
 
     val prom = Promise[Option[ApiData]]()
 
@@ -230,21 +230,14 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
 
   }
 
-  private def buildCredentialsQuery(profileId: Int, credId: Option[Int]): String = {
-    credId match {
-      case Some(x) => x + " )"
-      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 9)"
-    }
-  }
 
-
-  private def buildQueryData(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  private def buildQueryData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 9, credId)
 
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -268,11 +261,11 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryLine(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  private def buildQueryLine(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 9, credId)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -296,14 +289,14 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryVideoStats(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  private def buildQueryVideoStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 9, credId)
 
     val sql =
         s"""
@@ -319,14 +312,14 @@ object MySocialChannelDaoYt extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 9, credId)
 
     val sql =
         s"""

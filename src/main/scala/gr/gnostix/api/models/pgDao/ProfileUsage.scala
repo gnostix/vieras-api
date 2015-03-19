@@ -21,7 +21,7 @@ object ProfilesUsage extends DatabaseAccessSupportPg{
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[ProfilesUsage](s"""
-          select ID,USER_LEVEL,MAX_COUNTS,DESCRIPTION,MAX_KEYWORDS,MAX_TOPICS,social_accounts,profiles
+          select ID,USER_LEVEL,MAX_COUNTS,DESCRIPTION,MAX_KEYWORDS,MAX_TOPICS,social_accounts,profiles,companies
             from vieras.user_level_counts where user_level = $userLevel
           """)
         records.first

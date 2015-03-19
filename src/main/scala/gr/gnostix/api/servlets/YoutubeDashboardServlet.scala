@@ -42,7 +42,7 @@ with FutureSupport {
   // mount point /api/user/socialchannels/dashboard/youtube/*
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/stats/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/youtube/*  ")
     try {
@@ -55,8 +55,9 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, None)
+      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -75,7 +76,7 @@ with FutureSupport {
   }
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/:credId/stats/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:credId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/youtube/*  ")
     try {
@@ -88,9 +89,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val credId = params("credId").toInt
 
-      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, Some(credId))
+      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =
@@ -158,7 +160,7 @@ with FutureSupport {
   // -------------------- DATA --------------------------
 
   // get all data for youtube for one profile datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/message/:fromDate/:toDate") {
     logger.info(s"----> get text data for youtube for  one account  " +
       s"  /api/user/socialchannels/dashboard/youtube/*  ")
     try {
@@ -171,8 +173,9 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, None)
+      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -193,7 +196,7 @@ with FutureSupport {
 
 
   // get all data for youtube for one channel account datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:engId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/message/:engId/:fromDate/:toDate") {
     logger.info(s"----> get all data for youtube for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/dashboard/youtube/*  ")
     try {
@@ -206,9 +209,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val engId = params("engId").toInt
 
-      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, Some(engId))
+      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, companyId, Some(engId))
 
 
       new AsyncResult() {

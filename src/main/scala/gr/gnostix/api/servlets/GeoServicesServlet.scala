@@ -40,7 +40,7 @@ with FutureSupport {
   //     /api/user/account/geolocation/services/*
 
   // get all data for hotel for one profile
-  get("/profile/:profileId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:fromDate/:toDate") {
     logger.info(s"----> get all data for hotel for  one profile " +
       s"  /api/user/account/geolocation/services/*  ")
     try {
@@ -53,8 +53,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawData = GeoLocationDao.getDataByProfileId(executor, fromDate, toDate, profileId)
+
+      val rawData = GeoLocationDao.getDataByProfileId(executor, fromDate, toDate, profileId, companyId)
       new AsyncResult {
         val is =
           for {
@@ -75,7 +77,7 @@ with FutureSupport {
   }
 
   // get all data for hotel for one profile
-  get("/profile/:profileId/datasource/:datasourceId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/datasource/:datasourceId/:fromDate/:toDate") {
     logger.info(s"----> get all data for hotel for  one profile " +
       s"  /api/user/account/geolocation/services/*  ")
     try {
@@ -88,9 +90,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+
       val datasourceId = params("datasourceId").toInt
 
-      val rawData = GeoLocationDao.getDataByDatasourceId(executor, fromDate, toDate, profileId, datasourceId)
+      val rawData = GeoLocationDao.getDataByDatasourceId(executor, fromDate, toDate, profileId, companyId, datasourceId)
       new AsyncResult {
         val is =
           for {
@@ -111,7 +115,7 @@ with FutureSupport {
   }
 
   // get all data for hotel for one profile
-  get("/profile/:profileId/account/:credId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/account/:credId/:fromDate/:toDate") {
     logger.info(s"----> get all data for hotel for  one profile " +
       s"  /api/user/account/geolocation/services/*  ")
     try {
@@ -124,9 +128,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+
       val credId = params("credId").toInt
 
-      val rawData = GeoLocationDao.getDataByCredentialsId(executor, fromDate, toDate, profileId, credId)
+      val rawData = GeoLocationDao.getDataByCredentialsId(executor, fromDate, toDate, profileId, companyId, credId)
       new AsyncResult {
         val is =
           for {

@@ -2,7 +2,7 @@ package gr.gnostix.api.models.pgDao
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{ApiData, DataLineGraph, DemographicsDataFB, FacebookComment, FacebookDemographics, FacebookPost, FacebookStats, FacebookStatsApi, FacebookStatsTop, MsgNum, Payload, SocialData, SocialDataSum}
-import gr.gnostix.api.utilities.DateUtils
+import gr.gnostix.api.utilities.{SqlUtils, DateUtils}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -24,13 +24,13 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getLineCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Option[Payload] = {
-    val sql = buildQuery(fromDate, toDate, profileId, dataType, engId)
+  def getLineCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Option[Payload] = {
+    val sql = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
 
     //bring the actual data
     val data = dataType match {
-      case "post" | "comment" => getData(fromDate, toDate, dataType, profileId, sql)
-      case "totalpost" | "totalcomment" => getDataTotal(fromDate, toDate, dataType, profileId, sql)
+      case "post" | "comment" => getData(sql)
+      case "totalpost" | "totalcomment" => getDataTotal(sql)
     }
     //val data = getData(fromDate, toDate, dataType, profileId, sql)
     data match {
@@ -39,31 +39,31 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     }
   }
 
-  def getLineAllData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialData]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, dataType, engId)
+  def getLineAllData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialData]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
     //bring the actual data
     val prom = Promise[Option[SocialData]]()
 
     Future {
-      prom.success(getData(fromDate, toDate, dataType, profileId, mySqlDynamic))
+      prom.success(getData(mySqlDynamic))
     }
     prom.future
   }
 
-  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialDataSum]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, dataType, engId)
+  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialDataSum]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
     //bring the actual data
     val prom = Promise[Option[SocialDataSum]]()
 
     Future {
-      prom.success(getDataTotal(fromDate, toDate, dataType, profileId, mySqlDynamic))
+      prom.success(getDataTotal(mySqlDynamic))
     }
     prom.future
   }
 
 
-  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, engId)
+  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -74,8 +74,8 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
 
-  def getDemographics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryDemographics(fromDate, toDate, profileId, engId)
+  def getDemographics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryDemographics(fromDate, toDate, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -86,12 +86,12 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
   // get raw data
-  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
 
     val prom = Promise[Option[ApiData]]()
     val mySqlDynamic = dataType match {
-      case "comment" => buildQueryComments(fromDate, toDate, profileId, engId)
-      case "post" => buildQueryPosts(fromDate, toDate, profileId, engId)
+      case "comment" => buildQueryComments(fromDate, toDate, profileId, companyId, engId)
+      case "post" => buildQueryPosts(fromDate, toDate, profileId, companyId, engId)
     }
 
     Future {
@@ -222,7 +222,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
   }
 
-  private def getData(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int, sql: String): Option[SocialData] = {
+  private def getData(sql: String): Option[SocialData] = {
 
     try {
       var myData = List[DataLineGraph]()
@@ -247,7 +247,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
   }
 
-  private def getDataTotal(fromDate: DateTime, toDate: DateTime, dataType: String, profileId: Int, sql: String): Option[SocialDataSum] = {
+  private def getDataTotal(sql: String): Option[SocialDataSum] = {
 
     try {
       var myDataTotal = 0
@@ -270,21 +270,15 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
   }
 
-  private def buildCredentialsQuery(profileId: Int, credId: Option[Int]): String = {
-    credId match {
-      case Some(x) => x + " )"
-      case None => "select s.id from vieras.eng_profile_social_credentials s where s.fk_profile_id in (" + profileId + ") and s.fk_datasource_id = 1)"
-    }
-  }
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, dataType: String, credId: Option[Int]): String = {
+  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
 
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -292,15 +286,15 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     val toDateStr: String = fmt.print(toDate)
 
     dataType match {
-      case "post" => getSqlPosts(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
-      case "totalpost" => getSqlPostsTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
-      case "comment" => getSqlComments(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
-      case "totalcomment" => getSqlCommentsTotal(numDays, fromDateStr, toDateStr, profileId, sqlEngAccount)
+      case "post" => getSqlPosts(numDays, fromDateStr, toDateStr, sqlEngAccount)
+      case "totalpost" => getSqlPostsTotal(numDays, fromDateStr, toDateStr, sqlEngAccount)
+      case "comment" => getSqlComments(numDays, fromDateStr, toDateStr, sqlEngAccount)
+      case "totalcomment" => getSqlCommentsTotal(numDays, fromDateStr, toDateStr, sqlEngAccount)
     }
 
   }
 
-  def getSqlPostsTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+  def getSqlPostsTotal(numDays: Int, fromDateStr: String, toDateStr: String, sqlEngAccount: String) = {
     val sql = s"""
                   select count(*) from vieras.eng_fb_wall where fk_eng_engagement_data_quer_id in
                       ( select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
@@ -311,7 +305,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     sql
   }
 
-  def getSqlPosts(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+  def getSqlPosts(numDays: Int, fromDateStr: String, toDateStr: String, sqlEngAccount: String) = {
     val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val sql = s"""
@@ -330,7 +324,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
   }
 
-  def getSqlCommentsTotal(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+  def getSqlCommentsTotal(numDays: Int, fromDateStr: String, toDateStr: String, sqlEngAccount: String) = {
     val sql = s"""
                   select count(*) from vieras.ENG_FB_WALL_COMMENTS  where fk_eng_engagement_data_quer_id in
                       (select q.id from vieras.eng_engagement_data_queries q  where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
@@ -341,7 +335,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     sql
   }
 
-  def getSqlComments(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, sqlEngAccount: String) = {
+  def getSqlComments(numDays: Int, fromDateStr: String, toDateStr: String, sqlEngAccount: String) = {
     val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val sql = s"""
@@ -358,14 +352,14 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
   }
 
-  def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
 
     val sql =  s"""
         select fk_eng_engagement_data_quer_id,max(age_13_17),max(age_18_24),max(age_25_34),max(age_35_44),max(age_45_54),max(age_55_64),max(age_65_plus),gender,created
@@ -391,14 +385,14 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
 
-  def buildQueryComments(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  def buildQueryComments(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
 
     val sql =  s"""
           select id,message,created,user_name,user_id, likes,fk_post_id, fk_eng_engagement_data_quer_id, comment_id,  post_user_id
@@ -416,14 +410,14 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
 
-  def buildQueryPosts(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  def buildQueryPosts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
 
     val sql = s"""
           select id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
@@ -439,39 +433,39 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     sql
   }
 
-  def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Option[Int]): String = {
+  def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
-    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
+    val grouByDate = DateUtils.sqlGrouByDatePg(numDays)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = buildCredentialsQuery(profileId, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
 
     val sql =  s"""
         SELECT coalesce(FB_SW.QID, FB_COMM.QID) QID, coalesce(FB_SW.MDATE, FB_COMM.MDATE) MDATE, PAGE_LIKES, POSTS, POST_LIKES, POST_SHARES, COMMENTS, COMM_LIKES, TALKING_ABOUT_COUNT, REACH, VIEWS, ENGAGED
           FROM ((SELECT coalesce(FB_STATS.QID, FB_WALL.QID) QID, coalesce(FB_STATS.MDATE, FB_WALL.MDATE) MDATE,  PAGE_LIKES,  POSTS, POST_LIKES, POST_SHARES,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
-           FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouBydate}',created) AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
+           FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouByDate}',created) AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
            FROM vieras.ENG_FB_STATS WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
            AND created  between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
            and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED, date_trunc('${grouBydate}',created)) FB_STATS
+           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED, date_trunc('${grouByDate}',created)) FB_STATS
                FULL OUTER JOIN
-                (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouBydate}',created) AS MDATE,   COUNT(*) POSTS, SUM(LIKES) POST_LIKES, SUM(SHARES) POST_SHARES
+                (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouByDate}',created) AS MDATE,   COUNT(*) POSTS, SUM(LIKES) POST_LIKES, SUM(SHARES) POST_SHARES
                  FROM vieras.ENG_FB_WALL   WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
               AND created  between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, date_trunc('${grouBydate}',created)) FB_WALL
-                  ON FB_STATS.MDATE = FB_WALL.MDATE) FB_SW  FULL OUTER JOIN (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouBydate}',created) AS MDATE,  COUNT(*) as COMMENTS,   SUM(LIKES) COMM_LIKES
+           GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, date_trunc('${grouByDate}',created)) FB_WALL
+                  ON FB_STATS.MDATE = FB_WALL.MDATE) FB_SW  FULL OUTER JOIN (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouByDate}',created) AS MDATE,  COUNT(*) as COMMENTS,   SUM(LIKES) COMM_LIKES
                    FROM vieras.ENG_FB_WALL_COMMENTS
                      WHERE FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
             AND created  between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
             and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-        GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, date_trunc('${grouBydate}',created)) FB_COMM ON FB_SW.MDATE = FB_COMM.MDATE)
+        GROUP BY FK_ENG_ENGAGEMENT_DATA_QUER_ID, date_trunc('${grouByDate}',created)) FB_COMM ON FB_SW.MDATE = FB_COMM.MDATE)
         ORDER BY MDATE
          """
 

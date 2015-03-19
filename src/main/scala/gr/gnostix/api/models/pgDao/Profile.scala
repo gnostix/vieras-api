@@ -19,16 +19,17 @@ case class Profile(profileId: Int,
                    enabled: Int,
                    totalKeywords: Int,
                    language: String,
-                   var vierasTotalRating: Double)
+                   var vierasTotalRating: Double,
+                   var myCompanyId: Int)
 
 object ProfileDao extends DatabaseAccessSupportPg {
 
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getProfileResult = GetResult(r => Profile(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
-  def findById(profileId: Int, userId: Int): Option[ApiData] = {
+  def findById(userId: Int, profileId: Int): Option[ApiData] = {
     getConnection withSession {
       implicit session =>
 
@@ -41,15 +42,23 @@ object ProfileDao extends DatabaseAccessSupportPg {
           val profiles = records.list()
 
           profiles.map {
-            x => x.vierasTotalRating = {
-              val rating = Q.queryNA[Double](
-                s"""
+            x => {
+              x.vierasTotalRating = {
+                val rating = Q.queryNA[Double](
+                  s"""
           select vieras_total_rating from vieras.eng_hotels where vieras_total_rating is not null
 	          and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_profile_id=${x.profileId})
            """).list()
 
-              // in order to get the double with 2 digits precision instead of 5.23455 we get 5.34
-              BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+                // in order to get the double with 2 digits precision instead of 5.23455 we get 5.34
+                BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+              }
+
+              x.myCompanyId = Q.queryNA[Int](
+                s"""
+                select id, name, type from vieras.eng_company
+                     where fk_profile_id = ${profileId} and type='MYCOMPANY'
+           """).first()
             }
           }
 
@@ -78,19 +87,20 @@ object ProfileDao extends DatabaseAccessSupportPg {
           val profiles = records.list()
 
           profiles.map {
-            x => x.vierasTotalRating = {
-              val rating = Q.queryNA[Double](
-                s"""
+            x => {
+              x.vierasTotalRating = {
+                val rating = Q.queryNA[Double](
+                  s"""
           select vieras_total_rating from vieras.eng_hotels where vieras_total_rating is not null
 	          and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_profile_id=${x.profileId})
            """).list()
 
-              if (rating.size > 0) {
-                BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
-              } else 0
+                if (rating.size > 0) {
+                  BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+                } else 0
+              }
             }
           }
-
           if (profiles.size > 0) {
             Some(ApiData("profiles", profiles))
           } else Some(ApiData("nodata", profiles))
@@ -109,6 +119,7 @@ object ProfileDao extends DatabaseAccessSupportPg {
           Q.updateNA(
             s""" update vieras.profiles set profile_name = '${profileName}' where id = ${profileId}
                and fk_user_id = $userId """).execute()
+
           Some(true)
         } catch {
           case e: Exception => {
@@ -130,9 +141,10 @@ object ProfileDao extends DatabaseAccessSupportPg {
             """).execute()
 
           val profileId = Q.queryNA[Int]( s""" select * from (  select c.id from vieras.profiles c where
-                                                c.fk_user_id = 2 order by c.id desc) as foo
+                                                c.fk_user_id = $userId order by c.id desc) as foo
                                                 limit 1
                                           """)
+
           if (profileId.list().size > 0) {
             Some(profileId.first())
           } else {
@@ -153,8 +165,9 @@ object ProfileDao extends DatabaseAccessSupportPg {
     getConnection withSession {
       implicit session =>
         try {
-          Q.u( s"""delete from profiles c  where  c.fk_user_id = $userId and id = ${profileId}
+          Q.u( s"""delete from vieras.profiles c  where  c.fk_user_id = $userId and id = ${profileId}
             """).execute()
+
           Some(true)
         } catch {
           case e: Exception => {

@@ -160,20 +160,6 @@ with CorsSupport {
 
   }
 
-  get("/gatest") {
-    contentType = "text/html"
-    <html>
-      <head>
-        <script language="javascript" type="text/javascript">
-          function windowClose()
-          {"window.open('', '_self', ''); window.close();"}
-        </script>
-      </head>
-      <body onLoad="setTimeout('windowClose()', 3000)">
-        <h1>Authorization ok! Please close this window and return to Vieras app.</h1>
-      </body>
-    </html>
-  }
 
   get("/ga/withsession*") {
     requireLogin()

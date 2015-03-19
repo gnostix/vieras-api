@@ -35,7 +35,7 @@ with FutureSupport {
   // mount point /api/user/socialchannels/dashboard/twitter/*
 
   // get all data for twitter for one profile datatype = (post or comment)
-  get("/profile/:profileId/stats/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/twitter/*  ")
     try {
@@ -48,10 +48,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawDataStats = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, profileId, None)
-      val totalMentions = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalmention", None)
-      val totalRetweets = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, "totalretweet", None)
+      val rawDataStats = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, profileId, companyId, None)
+      val totalMentions = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalmention", None)
+      val totalRetweets = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalretweet", None)
       new AsyncResult() {
         override val is =
           for {
@@ -71,7 +72,7 @@ with FutureSupport {
   }
 
   // get all data for twitter for one profile datatype = (post or comment)
-  get("/profile/:profileId/:credId/stats/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/:credId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/twitter/*  ")
     try {
@@ -84,9 +85,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, profileId, Some(credId))
+      val rawData = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =
@@ -151,7 +153,7 @@ with FutureSupport {
   // -------------------- DATA --------------------------
 
   // get all data for twitter for one profile datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:dataType/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/message/:dataType/:fromDate/:toDate") {
     logger.info(s"----> get text data for twitter for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/dashboard/twitter/* ${params("dataType")} ")
     try {
@@ -164,9 +166,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, dataType, None)
+      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, None)
 
 
       new AsyncResult() {
@@ -188,7 +191,7 @@ with FutureSupport {
 
 
   // get all data for twitter for one channel account datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:dataType/:engId/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/message/:dataType/:engId/:fromDate/:toDate") {
     logger.info(s"----> get all data for twitter for  one account datatype = (post, comment)" +
       s"  /api/user/socialchannels/dashboard/twitter/* ${params("dataType")} ")
     try {
@@ -201,10 +204,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val engId = params("engId").toInt
       val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, dataType, Some(engId))
+      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, Some(engId))
 
 
       new AsyncResult() {
@@ -226,7 +230,7 @@ with FutureSupport {
 
 
   // get all data for twitter for  all accounts datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:fromDate/:toDate/all") {
+  get("/profile/:profileId/company/:companyId/message/:fromDate/:toDate/all") {
     logger.info(s"---->  /api/user/socialchannels/dashboard/twitter/* ${params("profileId")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -238,10 +242,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "mention", None)
-      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "favorite", None)
-      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "retweet", None)
+      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "mention", None)
+      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "favorite", None)
+      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
 
       val theData =
         new AsyncResult() {
@@ -264,7 +269,7 @@ with FutureSupport {
   }
 
   // get all data for twitter for  one accounts datatype = (mention, favorite or retweet)
-  get("/profile/:profileId/message/:credId/:fromDate/:toDate/all") {
+  get("/profile/:profileId/company/:companyId/message/:credId/:fromDate/:toDate/all") {
     logger.info(s"----> " +
       s"/api/user/socialchannels/dashboard/twitter/profile/:profileId/message/:credId/:fromDate/:toDate/all ${params("profileId")} ")
     try {
@@ -277,11 +282,12 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
       val engId = params("credId").toInt
 
-      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "mention", Some(engId))
-      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "favorite", Some(engId))
-      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, "retweet", Some(engId))
+      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "mention", Some(engId))
+      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "favorite", Some(engId))
+      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "retweet", Some(engId))
 
       val theData =
         new AsyncResult() {

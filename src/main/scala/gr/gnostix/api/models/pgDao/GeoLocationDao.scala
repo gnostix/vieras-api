@@ -2,6 +2,7 @@ package gr.gnostix.api.models.pgDao
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.CountriesLine
+import gr.gnostix.api.utilities.SqlUtils
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -19,8 +20,8 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getDataByProfileId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int): Future[Option[List[CountriesLine]]] = {
-    val sql = buildQueryByProfileId(profileId, fromDate, toDate)
+  def getDataByProfileId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int): Future[Option[List[CountriesLine]]] = {
+    val sql = buildQueryByProfileId(profileId, companyId, fromDate, toDate)
     //bring the actual data
     val prom = Promise[Option[List[CountriesLine]]]()
 
@@ -33,8 +34,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getDataByDatasourceId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, datasourceId: Int): Future[Option[List[CountriesLine]]] = {
-    val sql = buildQueryByDatasourceId(profileId, datasourceId, fromDate, toDate)
+  def getDataByDatasourceId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+    datasourceId: Int): Future[Option[List[CountriesLine]]] = {
+    val sql = buildQueryByDatasourceId(profileId, companyId, datasourceId, fromDate, toDate)
     //bring the actual data
     val prom = Promise[Option[List[CountriesLine]]]()
 
@@ -46,8 +48,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getDataByCredentialsId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, credId: Int): Future[Option[List[CountriesLine]]] = {
-    val sql = buildQueryByCredId(profileId, credId, fromDate, toDate)
+  def getDataByCredentialsId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+    credId: Int): Future[Option[List[CountriesLine]]] = {
+    val sql = buildQueryByCredId(profileId, companyId, credId, fromDate, toDate)
     //bring the actual data
     val prom = Promise[Option[List[CountriesLine]]]()
 
@@ -61,7 +64,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
 
 
 
-  private def buildQueryByProfileId(profileId: Int, fromDate: DateTime, toDate: DateTime ): String = {
+  private def buildQueryByProfileId(profileId: Int, companyId: Int, fromDate: DateTime, toDate: DateTime ): String = {
+
+    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -72,8 +77,7 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
       s"""
         SELECT * FROM (
         select VIERAS_COUNTRY, COUNT(*) from vieras.ENG_REVIEWS
-          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS
-          WHERE FK_PROFILE_ID = ${profileId} )
+          where FK_HOTEL_ID IN ( ${sqlEngAccount} )
             and CREATED between
             to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss') and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
         Group by VIERAS_COUNTRY
@@ -84,7 +88,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryByDatasourceId(profileId: Int, datasourceId: Int, fromDate: DateTime, toDate: DateTime ): String = {
+  private def buildQueryByDatasourceId(profileId: Int, companyId: Int, datasourceId: Int, fromDate: DateTime, toDate: DateTime ): String = {
+
+    val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -95,8 +101,7 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
       s"""
       SELECT * FROM (
         select VIERAS_COUNTRY, COUNT(*) from vieras.ENG_REVIEWS
-          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS
-          WHERE FK_DATASOURCE_ID=${datasourceId} and FK_PROFILE_ID = ${profileId} )
+          where FK_HOTEL_ID IN ( ${sqlEngAccount} )
             and CREATED between
             to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss') and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
         Group by VIERAS_COUNTRY
@@ -107,7 +112,13 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryByCredId(profileId: Int, credId: Int, fromDate: DateTime, toDate: DateTime ): String = {
+
+
+
+
+  private def buildQueryByCredId(profileId: Int, companyId: Int, credId: Int, fromDate: DateTime, toDate: DateTime ): String = {
+
+    val sqlEngAccount = SqlUtils.buildHotelCredIdQuery(profileId, companyId, credId)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -118,8 +129,7 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
       s"""
         SELECT * FROM (
         select VIERAS_COUNTRY, COUNT(*) from vieras.ENG_REVIEWS
-          where FK_HOTEL_ID IN (SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS
-          WHERE ID=${credId} and FK_PROFILE_ID = ${profileId} )
+          where FK_HOTEL_ID IN ( ${sqlEngAccount} )
             and CREATED between
             to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss') and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
         Group by VIERAS_COUNTRY

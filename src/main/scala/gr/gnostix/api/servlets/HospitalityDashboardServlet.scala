@@ -38,7 +38,7 @@ with FutureSupport {
   // mount point /api/user/socialchannels/dashboard/hotel/*
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/stats/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/stats/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/hotel/*  ")
     try {
@@ -51,8 +51,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getReviewStats(executor, fromDate, toDate, profileId, None)
+
+      val rawDataStats = MySocialChannelHotelDao.getReviewStats(executor, fromDate, toDate, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -71,7 +73,7 @@ with FutureSupport {
   }
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/stats/datasourceid/:dsid/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/stats/datasourceid/:dsid/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
     try {
@@ -84,9 +86,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getReviewStats(executor, fromDate, toDate, profileId, Some(dsId))
+      val rawDataStats = MySocialChannelHotelDao.getReviewStats(executor, fromDate, toDate, profileId, companyId, Some(dsId))
 
       new AsyncResult() {
         override val is =
@@ -123,7 +127,7 @@ with FutureSupport {
 
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/services/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/services/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/hotel/*  ")
     try {
@@ -136,8 +140,10 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, profileId, None)
+
+      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -156,7 +162,7 @@ with FutureSupport {
   }
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/services/datasourceid/:dsid/:fromDate/:toDate") {
+  get("/profile/:profileId/company/:companyId/services/datasourceid/:dsid/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
     try {
@@ -169,9 +175,11 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, profileId, Some(dsId))
+      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, profileId, companyId, Some(dsId))
 
       new AsyncResult() {
         override val is =
