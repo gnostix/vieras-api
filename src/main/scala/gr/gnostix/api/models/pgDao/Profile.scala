@@ -44,7 +44,8 @@ object ProfileDao extends DatabaseAccessSupportPg {
                 val rating = Q.queryNA[Double](
                   s"""
           select vieras_total_rating from vieras.eng_hotels where vieras_total_rating is not null
-	          and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_profile_id=${x.profileId})
+           and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_company_id in
+            ( select id from vieras.eng_company where fk_profile_id=${x.profileId}))
            """).list()
 
                 // in order to get the double with 2 digits precision instead of 5.23455 we get 5.34
@@ -84,7 +85,8 @@ object ProfileDao extends DatabaseAccessSupportPg {
                 val rating = Q.queryNA[Double](
                   s"""
           select vieras_total_rating from vieras.eng_hotels where vieras_total_rating is not null
-	          and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_profile_id=${x.profileId})
+           and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_company_id in
+            ( select id from vieras.eng_company where fk_profile_id=${x.profileId}))
            """).list()
 
                 if (rating.size > 0) {
