@@ -17,25 +17,23 @@ case class Profile(profileId: Int,
                    enabled: Int,
                    totalKeywords: Int,
                    language: String,
-                   var vierasTotalRating: Double,
-                   var myCompanyId: Int)
+                   var vierasTotalRating: Double)
 
 object ProfileDao extends DatabaseAccessSupportPg {
 
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getProfileResult = GetResult(r => Profile(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   def findById(userId: Int, profileId: Int): Option[ApiData] = {
     getConnection withSession {
       implicit session =>
 
-        // total_keywords is fake  we use to so we can fill it with the myCompanyId data
         try {
           val records = Q.queryNA[Profile]( s"""
                 select c.id, c.profile_firstname,c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,
-                    c.total_keywords,c.language,c.VIERAS_TOTAL_RATING, c.total_keywords
+                    c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
                    from vieras.profiles c  where c.id = $profileId  and c.fk_user_id = $userId
           """)
           val profiles = records.list()
@@ -53,11 +51,6 @@ object ProfileDao extends DatabaseAccessSupportPg {
                 BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
               }
 
-              x.myCompanyId = Q.queryNA[Int](
-                s"""
-                select id, name, type from vieras.eng_company
-                     where fk_profile_id = ${profileId} and type='MYCOMPANY'
-           """).first()
             }
           }
 
