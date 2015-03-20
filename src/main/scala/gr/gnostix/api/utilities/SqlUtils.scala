@@ -37,7 +37,7 @@ object SqlUtils {
       case None =>
         s"""select s.id from vieras.eng_profile_social_credentials s , vieras.eng_company co
           where s.fk_company_id in ( $companyId )
-          and s.fk_datasource_id = $datasourceId and s.fk_company_id = co.id and co.fk_profile_id = $profileId
+          and s.fk_datasource_id = $datasourceId and s.fk_company_id = co.id and co.fk_profile_id = $profileId)
         """
     }
   }

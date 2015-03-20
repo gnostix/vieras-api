@@ -59,15 +59,18 @@ with FutureSupport {
 
 
 
-  get("/profile/:id") {
-    logger.info(s"---->   return profile with id ${params("id")}     ")
-    val profiledata = ProfileDao.findById(user.userId, params("id").toInt)
+  get("/profile/:profileId") {
+    logger.info(s"---->   return profile with id ${params("profileId")}     ")
+    val profileId = params("profileId").toInt
+
+    val profiledata = ProfileDao.findById(user.userId, profileId)
     ApiData.cleanDataResponse(profiledata)
   }
 
   get("/profiles/all") {
     logger.info("---->   return all profiles with id and name     " + user.userId)
     try {
+
       val profiles = ProfileDao.getAllProfiles(user.userId)
       ApiData.cleanDataResponse(profiles)
     } catch {

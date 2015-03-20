@@ -297,7 +297,8 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   def getSqlPostsTotal(numDays: Int, fromDateStr: String, toDateStr: String, sqlEngAccount: String) = {
     val sql = s"""
                   select count(*) from vieras.eng_fb_wall where fk_eng_engagement_data_quer_id in
-                      ( select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FANPAGE_WALL'
+                      ( select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1
+                        and q.attr = 'FB_FANPAGE_WALL'
                     and FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
                     and created between    to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS'))
