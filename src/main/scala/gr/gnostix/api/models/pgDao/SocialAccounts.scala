@@ -67,7 +67,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
                     select q.id from vieras.eng_engagement_data_queries q
                       where q.is_active = 1 and q.attr = 'TW_FFSL'
                         and FK_PROFILE_SOCIAL_ENG_ID = ${credId}
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} )) and fk_eng_engagement_data_quer_id=i.id
+                        and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} ) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID,handle
                 """
 
@@ -96,7 +96,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
                   where fk_eng_engagement_data_quer_id in (
                     select q.id from vieras.eng_engagement_data_queries q
                       where q.is_active = 1 and q.attr = 'TW_FFSL'
-                        and FK_PROFILE_SOCIAL_ENG_ID in (  ${sqlEngAccount} )) and fk_eng_engagement_data_quer_id=i.id
+                        and FK_PROFILE_SOCIAL_ENG_ID in (  ${sqlEngAccount} ) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID,handle
                  """
               logger.info("--------------> " +sql)
@@ -190,7 +190,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
              where fk_eng_engagement_data_quer_id in (
                     select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FFSL'
                     and FK_PROFILE_SOCIAL_ENG_ID =  ${credId}
-                    and FK_PROFILE_SOCIAL_ENG_ID in (  ${sqlEngAccount} ))
+                    and FK_PROFILE_SOCIAL_ENG_ID in (  ${sqlEngAccount} )
            and fk_eng_engagement_data_quer_id=i.id
           group by FK_PROFILE_SOCIAL_ENG_ID
 
@@ -221,7 +221,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
                   from vieras.eng_fb_stats ,vieras.eng_engagement_data_queries i
                      where fk_eng_engagement_data_quer_id in (
                             select q.id from vieras.eng_engagement_data_queries q where q.is_active = 1 and q.attr = 'FB_FFSL'
-                            and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} ))
+                            and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} )
                    and fk_eng_engagement_data_quer_id=i.id
                   group by FK_PROFILE_SOCIAL_ENG_ID
               """
@@ -329,7 +329,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
                 ( select q.id from vieras.eng_engagement_data_queries q
                     where q.is_active = 1 and  q.attr = 'YT_FFSL'
                     and FK_PROFILE_SOCIAL_ENG_ID = ${credId}
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} )) and fk_eng_engagement_data_quer_id=i.id
+                        and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} ) and fk_eng_engagement_data_quer_id=i.id
               group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id
               """
 
@@ -358,8 +358,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
                    where fk_eng_engagement_data_quer_id in
                     ( select q.id from vieras.eng_engagement_data_queries q
                         where q.is_active = 1 and  q.attr = 'YT_FFSL'
-                            and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
-                             where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 9)) and fk_eng_engagement_data_quer_id=i.id
+                            and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} ) and fk_eng_engagement_data_quer_id=i.id
                   group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id
               """
 
@@ -458,7 +457,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
                 select q.id from vieras.eng_engagement_data_queries q
                   where q.is_active = 1 and q.attr = 'GA_STATS'
                   and FK_PROFILE_SOCIAL_ENG_ID = ${credId}
-                        and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} )) and fk_eng_engagement_data_quer_id=i.id
+                        and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} ) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID, profile_name
                 """
 
@@ -495,8 +494,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
                 where  fk_eng_engagement_data_quer_id in (
                 select q.id from vieras.eng_engagement_data_queries q
                   where q.is_active = 1 and q.attr = 'GA_STATS'
-                   and FK_PROFILE_SOCIAL_ENG_ID in ( select s.id from vieras.eng_profile_social_credentials s
-                         where s.fk_profile_id = ${profileId} and s.fk_datasource_id = 15)) and fk_eng_engagement_data_quer_id=i.id
+                   and FK_PROFILE_SOCIAL_ENG_ID in ( ${sqlEngAccount} ) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID, profile_name
                 """
 

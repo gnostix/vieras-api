@@ -49,7 +49,10 @@ object ProfileDao extends DatabaseAccessSupportPg {
            """).list()
 
                 // in order to get the double with 2 digits precision instead of 5.23455 we get 5.34
-                BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+                if (rating.sum > 0)
+                  BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+                else
+                  0
               }
 
             }
