@@ -70,7 +70,7 @@ object CompanyDao extends DatabaseAccessSupportPg {
                 and fk_profile_id in (select id from vieras.profiles where fk_user_id = ${userId})""").list()
 
 
-          Some(ApiData("company", company))
+          Some(ApiData("companies", company))
 
         } catch {
           case e: Exception => e.printStackTrace()

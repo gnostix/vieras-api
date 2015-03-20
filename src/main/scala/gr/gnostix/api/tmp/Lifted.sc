@@ -39,3 +39,12 @@ java.security.MessageDigest.getInstance("SHA").digest(("p_alx@hotmail.comoXXL3tU
 }.foldLeft("") {
   _ + _
 }
+
+case class Data(data: Any)
+case class ApiData(name: String, data: Any)
+
+val v = List(ApiData("dt1", Data(10)),ApiData("dt1", Data(12)),ApiData("dt1", Data(10)))
+
+val ko = List(ApiData("profiles", Data(16))) ::: v
+
+ko

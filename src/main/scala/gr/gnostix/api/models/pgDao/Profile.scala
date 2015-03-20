@@ -67,7 +67,7 @@ object ProfileDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getAllProfiles(userId: Int) = {
+  def getAllProfiles(userId: Int): Option[List[ApiData]] = {
     getConnection withSession {
       implicit session =>
 
@@ -96,8 +96,9 @@ object ProfileDao extends DatabaseAccessSupportPg {
             }
           }
           if (profiles.size > 0) {
-            Some(ApiData("profiles", profiles))
-          } else Some(ApiData("nodata", profiles))
+            val companies = profiles.map { x => CompanyDao.findAllCompanies(userId, x.profileId).get}
+            Some(List(ApiData("profiles", profiles)) ::: companies)
+          } else Some(List(ApiData("profiles", List()), ApiData("companies", List())))
 
         } catch {
           case e: Exception => e.printStackTrace()

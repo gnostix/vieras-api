@@ -7,7 +7,7 @@ import gr.gnostix.api.models.pgDao.SocialAccountsHotelDao.SocialAccountsQueriesD
 import gr.gnostix.api.models.pgDao._
 import gr.gnostix.api.models.plainModels._
 import gr.gnostix.api.models.publicSearch.{Keyword, KeywordDao, Topic, TopicDao}
-import gr.gnostix.api.utilities.{GoogleAnalyticsAuth, FbExtendedToken, TwOauth}
+import gr.gnostix.api.utilities.{HelperFunctions, GoogleAnalyticsAuth, FbExtendedToken, TwOauth}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -67,12 +67,17 @@ with FutureSupport {
     ApiData.cleanDataResponse(profiledata)
   }
 
+
   get("/profiles/all") {
     logger.info("---->   return all profiles with id and name     " + user.userId)
     try {
-
       val profiles = ProfileDao.getAllProfiles(user.userId)
-      ApiData.cleanDataResponse(profiles)
+
+      //val companies =  profiles.map{ x => CompanyDao.findAllCompanies(user.userId, x.data.asInstanceOf[Profile].profileId)}
+
+     HelperFunctions.f3(profiles)
+
+      //ApiData.cleanDataResponse(profiles)
     } catch {
       case e: Exception => "Something went wrong" + e.printStackTrace()
         ApiMessages.generalError
