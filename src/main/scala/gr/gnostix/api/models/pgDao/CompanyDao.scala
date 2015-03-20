@@ -9,11 +9,11 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
  * Created by rebel on 19/3/15.
  */
 
-case class CompanyGroup(companyGroupId: Int, companyGroupName: String, companyGroupType: String)
+case class CompanyGroup(companyGroupId: Int, companyGroupName: String, companyGroupType: String, profileId: Int)
 
 object CompanyDao extends DatabaseAccessSupportPg {
 
-  implicit val getProfileResult = GetResult(r => CompanyGroup(r.<<, r.<<, r.<<))
+  implicit val getProfileResult = GetResult(r => CompanyGroup(r.<<, r.<<, r.<<, r.<<))
 
 
   def findById(userId: Int, profileId: Int, companyId: Int): Option[ApiData] = {
@@ -23,7 +23,7 @@ object CompanyDao extends DatabaseAccessSupportPg {
         try {
 
           val company = Q.queryNA[CompanyGroup](
-            s""" select id, name, type from vieras.eng_company
+            s""" select id, name, type, fk_profile_id from vieras.eng_company
                where fk_profile_id = ${profileId}
                 and fk_profile_id in (select id from vieras.profiles where fk_user_id = ${userId})""").list()
 
@@ -44,7 +44,7 @@ object CompanyDao extends DatabaseAccessSupportPg {
         try {
 
           val company = Q.queryNA[CompanyGroup](
-            s""" select id, name, type from vieras.eng_company
+            s""" select id, name, type, fk_profile_id from vieras.eng_company
                where fk_profile_id = ${profileId} and type='MYCOMPANY'
                 and fk_profile_id in (select id from vieras.profiles where fk_user_id = ${userId})""").list()
 
@@ -65,7 +65,7 @@ object CompanyDao extends DatabaseAccessSupportPg {
         try {
 
           val company = Q.queryNA[CompanyGroup](
-            s""" select id, name, type from vieras.eng_company
+            s""" select id, name, type, fk_profile_id from vieras.eng_company
                where fk_profile_id = ${profileId}
                 and fk_profile_id in (select id from vieras.profiles where fk_user_id = ${userId})""").list()
 

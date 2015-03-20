@@ -34,6 +34,10 @@ with CorsSupport {
 //    response.addHeader(AppVersionDao.webVersionHeader, session.getOrElse("webversion","").toString)
 //  }
 
+  get("/testtheapi"){
+    "works"
+  }
+
   post("/login") {
     scentry.authenticate()
     if (isAuthenticated) {
