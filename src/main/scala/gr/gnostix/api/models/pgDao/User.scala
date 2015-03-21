@@ -116,7 +116,7 @@ object UserDao extends DatabaseAccessSupportPg {
   def createUser(userReg: UserRegistration): Option[Int] = {
     try {
 
-      val sql = "{call vieras.create_user(?, ?, ?, ?,  ?,?, ?)}"
+      val sql = "{call vieras.create_user(?, ?, ?, ?, ?, ?, ?)}"
 
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)

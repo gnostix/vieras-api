@@ -32,10 +32,12 @@ object ProfileDao extends DatabaseAccessSupportPg {
 
         try {
           val records = Q.queryNA[Profile]( s"""
-                select c.id, c.profile_firstname,c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,
+                select c.id, c.profile_name,c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,
                     c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
-                   from vieras.profiles c  where c.id = $profileId  and c.fk_user_id = $userId
+                   from vieras.profiles c  where c.id = $profileId
           """)
+          //  and c.fk_user_id = $userId  -- I need to add this but first make corectly the auth with basic auth and api key. otherwise
+          // as it is now the user after basic auth doesnt own a userId !!!
           val profiles = records.list()
 
           profiles.map {

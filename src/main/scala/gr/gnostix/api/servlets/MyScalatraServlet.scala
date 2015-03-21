@@ -72,6 +72,7 @@ with CorsSupport {
   post("/register") {
     logger.info("-----------------------> /register")
     try {
+
       val regUser = parsedBody.extract[UserRegistration]
       val existingUser = UserDao.findByUsername(regUser.username)
 
@@ -94,7 +95,10 @@ with CorsSupport {
         }
       }
     } catch {
-      case e: Exception => ApiMessages.generalErrorWithMessage("error on data ")
+      case e: Exception => {
+        e.printStackTrace()
+        ApiMessages.generalErrorWithMessage("error on data ")
+      }
     }
 
   }
