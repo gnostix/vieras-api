@@ -88,7 +88,7 @@ object CompanyDao extends DatabaseAccessSupportPg {
           // update also the company group name to be the same as the profile name
           Q.updateNA(
             s""" update vieras.eng_company set name = '${companyName}'
-                 where fk_profile_id = ${profileId}
+                 where id = ${companyId} and fk_profile_id = ${profileId}
                  and fk_profile_id in (select id from vieras.profiles where fk_user_id = ${userId})
              """).execute()
           Some(true)
@@ -99,6 +99,28 @@ object CompanyDao extends DatabaseAccessSupportPg {
         }
     }
   }
+
+  def updateMyCompanyName(userId: Int, profileId: Int, companyName: String): Option[Boolean] = {
+    getConnection withSession {
+      implicit session =>
+
+        try {
+
+          // update also the company group name to be the same as the profile name
+          Q.updateNA(
+            s""" update vieras.eng_company set name = '${companyName}'
+                 where fk_profile_id = ${profileId} and type = 'MYCOMPANY'
+                 and fk_profile_id in (select id from vieras.profiles where fk_user_id = ${userId})
+             """).execute()
+          Some(true)
+
+        } catch {
+          case e: Exception => e.printStackTrace()
+            None
+        }
+    }
+  }
+
 
   def createCompany(profileId: Int, company: CompanyGroup): Option[Int] = {
     getConnection withSession {

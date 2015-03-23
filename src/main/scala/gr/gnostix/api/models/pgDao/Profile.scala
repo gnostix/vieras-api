@@ -120,6 +120,9 @@ object ProfileDao extends DatabaseAccessSupportPg {
             s""" update vieras.profiles set profile_name = '${profileName}' where id = ${profileId}
                and fk_user_id = $userId """).execute()
 
+          // update also the Company Group name
+          CompanyDao.updateMyCompanyName(userId, profileId, profileName)
+
           Some(true)
         } catch {
           case e: Exception => {

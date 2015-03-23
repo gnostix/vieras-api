@@ -126,7 +126,7 @@ object UserDao extends DatabaseAccessSupportPg {
       callableStatement.setString(4, userReg.lastname);
       callableStatement.setString(5, userReg.password);
       callableStatement.setInt(6, 2);
-      callableStatement.setString(7, userReg.username);
+      callableStatement.setString(7, "");
 
       callableStatement.executeUpdate()
 
