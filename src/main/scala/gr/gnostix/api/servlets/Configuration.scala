@@ -186,26 +186,26 @@ with FutureSupport {
   // update the profile name
   put("/profile/:profileId/company/:companyId/:name") {
 
-    val profileId = params("id").toInt
+    val profileId = params("profileId").toInt
     val companyName = params("name")
     val companyId = params("companyId").toInt
     val result = CompanyDao.updateName(user.userId, profileId, companyId, companyName)
 
     val response = result match {
-      case Some(x) => Map("status" -> 200, "message" -> "All good", "payload" -> "")
+      case Some(x) => ApiMessages.generalSuccessNoData
       case None => ApiMessages.generalError
     }
 
     response
   }
 
-  delete("/profiles/:id/company/:companyId") {
-    val profileId = params("id").toInt
+  delete("/profiles/:profileId/company/:companyId") {
+    val profileId = params("profileId").toInt
     val companyId = params("companyId").toInt
     val result = CompanyDao.deleteCompany(user.userId, profileId, companyId)
 
     val response = result match {
-      case Some(x) => Map("status" -> 200, "message" -> "All good", "payload" -> "")
+      case Some(x) => ApiMessages.generalSuccessNoData
       case None => ApiMessages.generalError
     }
 
