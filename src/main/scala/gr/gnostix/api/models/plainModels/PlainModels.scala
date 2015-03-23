@@ -135,7 +135,7 @@ case class HotelTextData(text: String, rating: Double, dsId: Int, daName: String
 case class UserAccount(companyName: String, firstName: String, lastName: String, email:String, streetAddress: String, password: String)
 
 // Google Analytics data
-case class GoogleAnalyticsProfiles(var accountId: String, var webpropertyId: String, var profileid: String, var profileName: String)
+case class GoogleAnalyticsProfiles(accountId: String, webpropertyId: String, profileid: String, profileName: String)
 case class GoogleAnalyticsData(country: String ,browser: String , operatingSystem: String, sessions: Int, avgSessionDuration: Int,
                                profileId: Int, profileName: String ,created: Timestamp, source: String ,searchUsed: String , sessionCount: Int
                                ,pageViews: Int, sessionDuration: Int, users: Int, newUsers: Int, bounces: Int, bounceRate: Double)

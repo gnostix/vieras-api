@@ -121,7 +121,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
   }
 
 
-  def addAccount(profileId: Int, companyId: Int, token: String, tokenSecret: String, handle: String): Option[SocialCredentialsSimple] = {
+  def addAccount(companyId: Int, token: String, tokenSecret: String, handle: String): Option[SocialCredentialsSimple] = {
     try {
       //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
       //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
@@ -129,10 +129,10 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
       //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
-      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
-      callableStatement.setInt(1, profileId)
+      callableStatement.setInt(1, companyId)
       callableStatement.setString(2, "TWITTER")
       callableStatement.setString(3, token)
       callableStatement.setString(4, tokenSecret)
@@ -145,13 +145,12 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
       callableStatement.setString(11, "")
       callableStatement.setString(12, "")
       callableStatement.setString(13, "")
-      callableStatement.setInt(14, companyId)
 
-      callableStatement.registerOutParameter(15, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val credId: Int = callableStatement.getInt(15)
+      val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
       //connection.commit()
       connection.close()
@@ -247,7 +246,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
   }
 
 
-  def addAccount(profileId: Int, companyId: Int, cred: SocialCredentialsFb): Option[SocialCredentialsSimple] = {
+  def addAccount(companyId: Int, cred: SocialCredentialsFb): Option[SocialCredentialsSimple] = {
     try {
       //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
       //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
@@ -266,10 +265,10 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
         case _ => cred.expires
       }
 
-      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
-      callableStatement.setInt(1, profileId)
+      callableStatement.setInt(1, companyId)
       callableStatement.setString(2, "FACEBOOK")
       callableStatement.setString(3, cred.token)
       callableStatement.setString(4, "")
@@ -282,13 +281,12 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
       callableStatement.setString(11, "")
       callableStatement.setString(12, "")
       callableStatement.setString(13, cred.fanpageId)
-      callableStatement.setInt(14, companyId)
 
-      callableStatement.registerOutParameter(15, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val credId: Int = callableStatement.getInt(15)
+      val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
       //connection.commit()
       connection.close()
@@ -383,7 +381,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def addAccount(profileId: Int, companyId: Int, cred: SocialCredentialsYt): Option[SocialCredentialsSimple] = {
+  def addAccount(companyId: Int, cred: SocialCredentialsYt): Option[SocialCredentialsSimple] = {
     try {
       //CUSTOMERID in NUMBER, DATASOURCE IN VARCHAR2,
       //I_TOKEN IN VARCHAR2 , I_TOKENSECRET IN VARCHAR2 ,I_FBFANPAGE in VARCHAR2, I_FACEBOOK_EXPIRES_SEC IN NUMBER, FB_DATE_EXPIRES  IN DATE,
@@ -391,10 +389,10 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
       //I_G_ANALYTICS_AUTH_FILE in CLOB,I_GA_ACCOUNT_NAME in varchar2,  I_FANPAGE_ID  in varchar2, CREDENTIAL_ID OUT NUMBER
 
       val date = new java.util.Date();
-      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
-      callableStatement.setInt(1, profileId)
+      callableStatement.setInt(1, companyId)
       callableStatement.setString(2, "YOUTUBE")
       callableStatement.setString(3, cred.token)
       callableStatement.setString(4, "")
@@ -407,13 +405,12 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
       callableStatement.setString(11, "")
       callableStatement.setString(12, "")
       callableStatement.setString(13, "")
-      callableStatement.setInt(14, companyId)
 
-      callableStatement.registerOutParameter(15, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val credId: Int = callableStatement.getInt(15)
+      val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
       //connection.commit()
       connection.close()
@@ -519,14 +516,14 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
   }
 
   // change the data for Google Analytics
-  def addAccount(profileId: Int, companyId: Int, token: String, refreshToken: String, cred: GoogleAnalyticsProfiles): Option[SocialCredentialsSimple] = {
+  def addAccount(companyId: Int, token: String, refreshToken: String, cred: GoogleAnalyticsProfiles): Option[SocialCredentialsSimple] = {
     try {
 
       val date = new java.util.Date();
       val sql: String = "{call vieras.insert_social_credential(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
-      callableStatement.setInt(1, profileId)
+      callableStatement.setInt(1, companyId)
       callableStatement.setString(2, "GOOGLEANALYTICS")
       callableStatement.setString(3, token)
       callableStatement.setString(4, refreshToken)
@@ -539,13 +536,12 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
       callableStatement.setString(11, cred.profileid)
       callableStatement.setString(12, cred.profileName)
       callableStatement.setString(13, "")
-      callableStatement.setInt(14, companyId)
 
-      callableStatement.registerOutParameter(15, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(14, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val credId: Int = callableStatement.getInt(15)
+      val credId: Int = callableStatement.getInt(14)
       callableStatement.close()
       //connection.commit()
       connection.close()
@@ -641,13 +637,13 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def addAccount(profileId: Int, companyId: Int, cred: SocialCredentialsHotel, datasourceName: String): Option[Int] = {
+  def addAccount(companyId: Int, cred: SocialCredentialsHotel, datasourceName: String): Option[Int] = {
     try {
 
-      val sql: String = "{call vieras.insert_hotel_credential(?,?,?,?,?,?)}"
+      val sql: String = "{call vieras.insert_hotel_credential(?,?,?,?,?)}"
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
-      callableStatement.setInt(1, profileId)
+      callableStatement.setInt(1, companyId)
       callableStatement.setInt(2, cred.dsId)
       if (cred.hotelUrl.startsWith("http://")) {
         callableStatement.setString(3, cred.hotelUrl)
@@ -655,24 +651,23 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
         callableStatement.setString(3, "http://" + cred.hotelUrl)
       }
       callableStatement.setString(4, datasourceName)
-      callableStatement.setInt(5, companyId)
 
-      callableStatement.registerOutParameter(6, java.sql.Types.INTEGER)
+      callableStatement.registerOutParameter(5, java.sql.Types.INTEGER)
 
       callableStatement.executeUpdate()
 
-      val hotelId: Int = callableStatement.getInt(6)
+      val hotelId: Int = callableStatement.getInt(5)
       callableStatement.close()
       //connection.commit()
       connection.close()
 
-      println("---------------------> " + hotelId)
       logger.info("---------->  addAccount hotel url " + hotelId)
 
       Some(hotelId)
 
     } catch {
       case e: Exception => {
+        e.printStackTrace()
         logger.error("---------->  addAccount hotel url " + e.printStackTrace())
         None
       }

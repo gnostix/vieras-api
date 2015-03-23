@@ -289,10 +289,11 @@ with FutureSupport {
       KeywordDao.deleteKeyword(keywordIds)
   }
 
-  get("/profile/:profileId/ga/sites") {
+  get("/profile/:profileId/company/:companyId/ga/sites") {
 
     val status: Int = session.getAttribute("status_ga").asInstanceOf[Int]
 
+    val companyId = params("companyId")
     status match {
       case 200 => {
         val sitesToMonitor = session.getAttribute("sites_for_monitor").asInstanceOf[java.util.List[GoogleAnalyticsProfilesJava]]
@@ -327,7 +328,7 @@ with FutureSupport {
 
   // Twitter auth
   // 1. Step - Give the user the url for accepting the gnostix app
-  get("/profile/:id/tw/auth") {
+  get("/profile/:profileId/tw/auth") {
     logger.info("---->   Twitter AUTH!!!!    ")
     var twAuth: TwOauth = session.getAttribute("twitter_auth").asInstanceOf[TwOauth]
     var urlAuth: String = "";
@@ -345,15 +346,15 @@ with FutureSupport {
   }
 
   // 2. Step - Get the authorization of Twitter and save the account
-  post("/profile/:id/company/:companyId/tw/auth/:pin") {
+  post("/profile/:profileId/company/:companyId/tw/auth/:pin") {
     logger.info("---->   Twitter PIN !!!!    ")
     var twAuth: TwOauth = session.getAttribute("twitter_auth").asInstanceOf[TwOauth]
 
-    val profileId = params("id").toInt
+    val profileId = params("profileId").toInt
     val companyId = params("companyId").toInt
     // add twitter account and then return the twitter handle
     val accessToken: AccessToken = twAuth.getUserToken(params("pin"))
-    val account = SocialAccountsTwitterDao.addAccount(profileId, companyId, accessToken.getToken(), accessToken.getTokenSecret(),
+    val account = SocialAccountsTwitterDao.addAccount(companyId, accessToken.getToken(), accessToken.getTokenSecret(),
       accessToken.getScreenName())
 
     // reset token so user can get more accounts
@@ -475,7 +476,7 @@ with FutureSupport {
         logger.info(s"---->   add a new facebook  account ")
         val account = parsedBody.extract[SocialCredentialsFb]
         logger.info(s"---->   add a new account ${account}    ")
-        val data = SocialAccountsFacebookDao.addAccount(profileId, companyId, account)
+        val data = SocialAccountsFacebookDao.addAccount(companyId, account)
         data match {
           case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
           case None => Map("status" -> 400, "message" -> "Error")
@@ -484,7 +485,7 @@ with FutureSupport {
       case "youtube" => {
         val account = parsedBody.extract[SocialCredentialsYt]
         logger.info(s"---->   add a new account ${account}    ")
-        val data = SocialAccountsYoutubeDao.addAccount(profileId, companyId, account)
+        val data = SocialAccountsYoutubeDao.addAccount(companyId, account)
         data match {
           case Some(x) => Map("status" -> 200, "message" -> "all good", "payload" -> data)
           case None => Map("status" -> 400, "message" -> "Error")
@@ -499,7 +500,7 @@ with FutureSupport {
         if (token != null && refreshToken != null) {
 
           logger.info(s"---->   add a new account ${account}    ")
-          val data = SocialAccountsGAnalyticsDao.addAccount(profileId, companyId, token, refreshToken, account)
+          val data = SocialAccountsGAnalyticsDao.addAccount(companyId, token, refreshToken, account)
 
           // clean session from ga tokens
           session.removeAttribute("ga_token")
@@ -518,7 +519,7 @@ with FutureSupport {
         logger.info(s"---->   validUrl $validUrl ")
         if (validUrl._2) {
           // save hotel in db
-          val credId = SocialAccountsHotelDao.addAccount(profileId, companyId, hotel, validUrl._3)
+          val credId = SocialAccountsHotelDao.addAccount(companyId, hotel, validUrl._3)
 
           credId match {
             case Some(x) => {
@@ -536,6 +537,7 @@ with FutureSupport {
     }
 
   }
+
 
   delete("/profile/:profileId/company/:companyId/socialchannel/:datasource/:credId") {
     logger.info(s"---->   delete social channel for this datasource ${params("datasource")} ")
