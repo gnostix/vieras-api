@@ -42,20 +42,24 @@ object ProfileDao extends DatabaseAccessSupportPg {
 
           profiles.map {
             x => {
-              x.vierasTotalRating = {
-                val rating = Q.queryNA[Double](
-                  s"""
-          select vieras_total_rating from vieras.eng_hotels where vieras_total_rating is not null
-           and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_company_id in
-            ( select id from vieras.eng_company where fk_profile_id=${x.profileId}))
+              val rating = Q.queryNA[(Int, Double)](
+                s"""
+                      select r.fk_hotel_id ,max(r.vieras_total_rating)
+                          from vieras.eng_hotel_stats r, vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
+                          where r.fk_hotel_id = f.fk_hotel_id
+                                and f.FK_HOTEL_ID IN (
+                            SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS cr, vieras.eng_company co
+                            WHERE cr.FK_company_ID = co.id and co.type = 'MYCOMPANY'
+                                  and co.fk_profile_id=${x.profileId}
+                          )
+                          and r.CREATED between now()::timestamp(0) - interval '30' day and now()::timestamp(0)
+                                and vieras_total_rating is not null
+                          group by r.fk_hotel_id ,r.vieras_total_rating
            """).list()
 
-                // in order to get the double with 2 digits precision instead of 5.23455 we get 5.34
-                if (rating.sum > 0)
-                  BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
-                else
-                  0
-              }
+              if (rating.size > 0) {
+                BigDecimal(rating.map(x => x._2).sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+              } else 0
 
             }
           }
@@ -87,15 +91,23 @@ object ProfileDao extends DatabaseAccessSupportPg {
           profiles.map {
             x => {
               x.vierasTotalRating = {
-                val rating = Q.queryNA[Double](
+                val rating = Q.queryNA[(Int, Double)](
                   s"""
-          select vieras_total_rating from vieras.eng_hotels where vieras_total_rating is not null
-           and id in (select fk_hotel_id from vieras.eng_profile_hotel_credentials where fk_company_id in
-            ( select id from vieras.eng_company where fk_profile_id=${x.profileId}))
+                      select r.fk_hotel_id ,max(r.vieras_total_rating)
+                          from vieras.eng_hotel_stats r, vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
+                          where r.fk_hotel_id = f.fk_hotel_id
+                                and f.FK_HOTEL_ID IN (
+                            SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS cr, vieras.eng_company co
+                            WHERE cr.FK_company_ID = co.id and co.type = 'MYCOMPANY'
+                                  and co.fk_profile_id=${x.profileId}
+                          )
+                          and r.CREATED between now()::timestamp(0) - interval '30' day and now()::timestamp(0)
+                                and vieras_total_rating is not null
+                          group by r.fk_hotel_id ,r.vieras_total_rating
            """).list()
 
                 if (rating.size > 0) {
-                  BigDecimal(rating.sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+                  BigDecimal(rating.map(x => x._2).sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
                 } else 0
               }
             }
