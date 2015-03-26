@@ -14,6 +14,7 @@ trait GnostixAPIStack extends ScalatraServlet with ScalateSupport {
 
   after(){
     response.addHeader(AppVersionDao.webVersionHeader, session.getOrElse("webversion","").toString)
+    response.addHeader("Access-Control-Expose-Headers", AppVersionDao.webVersionHeader)
   }
 
   /* wire up the precompiled templates */
