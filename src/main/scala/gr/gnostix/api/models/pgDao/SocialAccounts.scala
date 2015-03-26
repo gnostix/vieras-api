@@ -819,6 +819,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
     }
   }
 
+
   object SocialAccountsQueriesDao extends DatabaseAccessSupportPg {
 
     def deleteSocialAccount(profileId: Int, companyId: Int, credId: Int, datasource: String) = Option[Int] {
@@ -832,7 +833,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
         val connection = getConnection.createConnection()
         val callableStatement: CallableStatement = connection.prepareCall(sql)
         callableStatement.setInt(1, profileId)
-        callableStatement.setInt(2, credId)
+        callableStatement.setInt(2, companyId)
         callableStatement.setInt(3, credId)
 
         callableStatement.executeUpdate()
