@@ -21,7 +21,7 @@ object AppVersionDao extends DatabaseAccessSupportPg {
       getConnection withSession {
         implicit session =>
           val records = Q.queryNA[String]( s"""
-          select web_version from vieras.app_versions order by created desc
+          select web_version from vieras.app_versions order by created desc limit 1
           """)
           records.first
       }
