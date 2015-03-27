@@ -2,7 +2,7 @@ package gr.gnostix.api.servlets
 
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
-import gr.gnostix.api.models.pgDao.{MySocialChannelHotelDao, MySocialChannelDaoFB, MySocialChannelDaoTw}
+import gr.gnostix.api.models.pgDao.{AppVersionDao, MySocialChannelHotelDao, MySocialChannelDaoFB, MySocialChannelDaoTw}
 import gr.gnostix.api.models.plainModels.{ApiMessages, DataLineGraph, SocialData}
 import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
@@ -40,6 +40,10 @@ with FutureSupport {
   get("/profile/:profileId/company/:companyId/social/messages/:fromDate/:toDate") {
     logger.info(s"---->   sentiment /sentiment/comments/ TOTAL from all sources in two groups (social media and hospitality)  ")
     try {
+      // update also web app version, in session
+      val webVersion = AppVersionDao.getWebAppVersion
+      session.setAttribute("webversion", webVersion)
+
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
