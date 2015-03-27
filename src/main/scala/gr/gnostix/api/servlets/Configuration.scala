@@ -526,7 +526,7 @@ with FutureSupport {
               logger.info(s"---->   hotelId $x ")
               Map("status" -> 200, "message" -> "all good", "payload" -> Map("credId" -> x))
             }
-            case None => Map("status" -> 402, "message" -> "Something went wrong")
+            case None => Map("status" -> 402, "message" -> validUrl._1)
           }
 
         } else {
