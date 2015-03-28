@@ -479,7 +479,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         s"""
         select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created)
           from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
-          where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id
+          where i.fk_review_id = r.id and r.fk_hotel_id = f.fk_hotel_id
             and f.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
@@ -493,7 +493,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         s"""
         select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created)
           from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
-          where i.fk_pid = r.id and r.fk_hotel_id = f.fk_hotel_id
+          where i.fk_review_id = r.id and r.fk_hotel_id = f.fk_hotel_id
             and f.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
                       and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
@@ -527,7 +527,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                  where FK_HOTEL_ID IN ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    and r.ID = hr.FK_PID
+                    and r.ID = hr.fk_review_id
                     and hr.VIERAS_RATING_NAME is not null
         """
       case None =>
@@ -539,7 +539,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                  where FK_HOTEL_ID IN ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    and r.ID = hr.FK_PID
+                    and r.ID = hr.fk_review_id
                     and hr.VIERAS_RATING_NAME is not null
          """
     }

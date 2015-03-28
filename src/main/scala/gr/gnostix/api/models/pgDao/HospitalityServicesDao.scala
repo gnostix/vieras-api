@@ -111,7 +111,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
                  where FK_HOTEL_ID IN ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    and r.ID = hr.FK_PID
+                    and r.ID = hr.fk_review_id
                     and hr.VIERAS_RATING_NAME is not null
         """
 
@@ -136,7 +136,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
                  where FK_HOTEL_ID IN  ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                     and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    and r.ID = hr.FK_PID
+                    and r.ID = hr.fk_review_id
                     and hr.VIERAS_RATING_NAME = '${serviceName}'
         """
 
