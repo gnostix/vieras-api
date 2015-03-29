@@ -62,7 +62,7 @@ object UserDao extends DatabaseAccessSupportPg {
             email, street_address, street_no, postal_code, city, company, language, expiration_date,
             total_counts, total_keywords, enabled, total_profiles, total_topic_profiles,
             total_social_account, total_hotels
-          from vieras.users where username = '$username'
+          from vieras.users where username = '$username'  and expiration_date >= now()::timestamp(0)
           """)
           if (records.list.size == 0) None else Some(records.first)
         } catch {
