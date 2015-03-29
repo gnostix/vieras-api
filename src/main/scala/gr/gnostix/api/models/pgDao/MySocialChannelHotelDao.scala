@@ -391,11 +391,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         s"""
         select r.ID,r.REVIEWER ,r.STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING as vieras_review_rating,
              h.TOTAL_RATING  as datasource_hotel_rating, vd.ds_rating_scale as max_hotel_rating
-        from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd
+        from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd, vieras.ENG_PROFILE_HOTEL_CREDENTIALS cre
            where r.FK_HOTEL_ID IN ( ${sqlEngAccount} )
               and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and r.FK_HOTEL_ID = h.ID
+              and cre.FK_HOTEL_ID = h.id
+              and vd.id = cre.fk_datasource_id
         """
       case None =>
         val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
@@ -403,11 +405,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         s"""
         select r.ID,r.REVIEWER ,r.STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING as vieras_review_rating,
              h.TOTAL_RATING  as datasource_hotel_rating, vd.ds_rating_scale as max_hotel_rating
-        from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd
+        from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd, vieras.ENG_PROFILE_HOTEL_CREDENTIALS cre
            where r.FK_HOTEL_ID IN ( ${sqlEngAccount} )
               and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
               and r.FK_HOTEL_ID = h.ID
+              and cre.FK_HOTEL_ID = h.id
+              and vd.id = cre.fk_datasource_id
          """
     }
 
