@@ -1,5 +1,7 @@
 package gr.gnostix.api.auth.strategies
 
+import java.sql.Timestamp
+import java.util.Date
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gr.gnostix.api.models.pgDao.{User, UserDao}
@@ -43,6 +45,7 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
     UserDao.findByUsername(username) match {
       case Some(user) => {
         logger.info("UserPasswordStrategy: found the username in DB")
+
         if (checkUserPassword(username, password, user.password)) {
           Some(user)
         } else {
@@ -66,12 +69,12 @@ class UserPasswordStrategy(protected val app: ScalatraBase)
     //app.redirect("/login")
   }
 
-  def checkUserPassword(username: String, password: String, userDbPassword: String): Boolean = {
-//    logger.info ("---------> UserPasswordStrategy checkUserPassword :"  + username + ":" + password + ":" )
-//    logger.info (s"---------> UserPasswordStrategy userDbPassword : $userDbPassword")
-//
-//    logger.info (s"---------> UserPasswordStrategy checkUserPassword :  " + (username.concat(password) ) )
-//    logger.info (s"---------> UserPasswordStrategy Password :  ${HelperFunctions.sha1Hash(username.concat(password)) }")
+  private def checkUserPassword(username: String, password: String, userDbPassword: String): Boolean = {
+    //    logger.info ("---------> UserPasswordStrategy checkUserPassword :"  + username + ":" + password + ":" )
+    //    logger.info (s"---------> UserPasswordStrategy userDbPassword : $userDbPassword")
+    //
+    //    logger.info (s"---------> UserPasswordStrategy checkUserPassword :  " + (username.concat(password) ) )
+    //    logger.info (s"---------> UserPasswordStrategy Password :  ${HelperFunctions.sha1Hash(username.concat(password)) }")
 
 
     if (HelperFunctions.sha1Hash(username + password) == userDbPassword) true else false

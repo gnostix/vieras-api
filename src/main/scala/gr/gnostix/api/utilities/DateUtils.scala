@@ -1,5 +1,8 @@
 package gr.gnostix.api.utilities
 
+import java.sql.Timestamp
+import java.util.Date
+
 import org.joda.time.{DateTime, Days}
 import org.slf4j.LoggerFactory
 
@@ -36,6 +39,15 @@ object DateUtils {
       case x if 31 until 91 contains x => "week"
       case x if x >= 91 => "month"
       case _ => "month"
+    }
+  }
+
+
+  def checkExpirationDate(expiration: Timestamp): Boolean = {
+    if (expiration.after(new Date())) {
+      true
+    } else {
+      false
     }
   }
 
