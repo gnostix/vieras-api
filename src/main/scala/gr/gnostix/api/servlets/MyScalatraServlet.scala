@@ -5,7 +5,7 @@ import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsTokens
 import gr.gnostix.api.models.pgDao.{AppVersionDao, UserDao, UserRegistration}
 import gr.gnostix.api.models.plainModels.{GoogleAnalyticsProfiles, ApiMessages, AllDataResponse}
-import gr.gnostix.api.utilities.{GoogleAnalyticsAuth, EmailUtils}
+import gr.gnostix.api.utilities.{DateUtils, GoogleAnalyticsAuth, EmailUtils}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -42,6 +42,12 @@ with CorsSupport {
     scentry.authenticate()
     if (isAuthenticated) {
       logger.info("--------------> /login: successful Id: " + user.userId)
+
+      if(!DateUtils.checkExpirationDate(user.userDetails.expirationDate)){
+        logger.info("-----------------------> /login: account has expired")
+        scentry.logout()
+        halt(401, ApiMessages.errorResponseMessage("account has expired"))
+      }
       // set web app version on session
       val webVersion = AppVersionDao.getWebAppVersion
       session.setAttribute("webversion", webVersion)
@@ -51,7 +57,7 @@ with CorsSupport {
       AllDataResponse(200, "all good", List(user))
     } else {
       logger.info("-----------------------> /login: NOT successful")
-      halt(401)
+      halt(401, ApiMessages.errorResponseMessage("bad username or password"))
     }
   }
 

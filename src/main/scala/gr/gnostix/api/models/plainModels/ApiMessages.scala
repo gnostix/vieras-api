@@ -22,4 +22,6 @@ object ApiMessages {
 
   def pending = Map("status" -> 255, "message" -> "operation pending..")
 
+  def errorResponseMessage(message: String) = Map("message" -> message)
+
 }
