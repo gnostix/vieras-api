@@ -12,7 +12,7 @@ case class ProfilesUsage(id: Int, userLevel: Int, maxCounts: Int, description: S
          maxTopics: Int, socialAccounts: Int, maxProfiles: Int, companies: Int, companyUrls: Int, competitorUrls: Int)
 
 
-object ProfilesUsage extends DatabaseAccessSupportPg{
+object ProfilesUsage extends DatabaseAccessSupportPg {
 
   implicit val getProfilesUsageResult = GetResult(r => ProfilesUsage(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))

@@ -1,9 +1,16 @@
 package gr.gnostix.api.utilities
 
+import java.sql.Timestamp
+
+import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
+import oracle.sql.TIMESTAMPLTZ
+import scala.slick.jdbc.{GetResult, StaticQuery => Q}
+
+
 /**
  * Created by rebel on 16/6/14.
  */
-object SqlUtils {
+object SqlUtils extends DatabaseAccessSupportPg {
 
   def buildHotelCredentialsQuery(profileId: Int, companyId: Int): String = {
 
@@ -64,4 +71,38 @@ object SqlUtils {
     }
     mySqlDyn
   }
+
+  def logUserLogin(ipAddres: String, username: String, sessionId: String) = {
+    getConnection withSession {
+      implicit session =>
+        try {
+          Q.updateNA(
+            s""" insert into vieras.user_checkins (token, user_ip, username, login_at)
+                 values ('${sessionId}', '${ipAddres}', '${username}', now()::timestamp(0) )   """).execute()
+
+        } catch {
+          case e: Exception => {
+            e.printStackTrace()
+          }
+        }
+    }
+  }
+
+  def logUserLogout(username: String, sessionId: String) = {
+    getConnection withSession {
+      implicit session =>
+        try {
+          Q.updateNA(
+            s""" update vieras.user_checkins  set logout_at = now()::timestamp(0)
+                    where username = '${username}' and token = '${sessionId}'  """).execute()
+
+        } catch {
+          case e: Exception => {
+            e.printStackTrace()
+          }
+        }
+    }
+  }
+
+
 }
