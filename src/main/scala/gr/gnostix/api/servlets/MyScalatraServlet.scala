@@ -5,7 +5,7 @@ import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsTokens
 import gr.gnostix.api.models.pgDao.{AppVersionDao, UserDao, UserRegistration}
 import gr.gnostix.api.models.plainModels.{GoogleAnalyticsProfiles, ApiMessages, AllDataResponse}
-import gr.gnostix.api.utilities.{DateUtils, GoogleAnalyticsAuth, EmailUtils}
+import gr.gnostix.api.utilities.{SqlUtils, DateUtils, GoogleAnalyticsAuth, EmailUtils}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -43,6 +43,12 @@ with CorsSupport {
     if (isAuthenticated) {
       logger.info("--------------> /login: successful Id: " + user.userId)
 
+      logger.info("--------------> /login: request.getRemoteAddr : " + request.getRemoteAddr)
+      logger.info("--------------> /login: username : " + user.username)
+      logger.info("--------------> /login: session.getid : " + session.getId)
+
+      SqlUtils.logUserLogin(request.getRemoteAddr, user.username, session.getId)
+
       if(!DateUtils.checkExpirationDate(user.userDetails.expirationDate)){
         logger.info("-----------------------> /login: account has expired")
         scentry.logout()
@@ -63,6 +69,7 @@ with CorsSupport {
 
 
   post("/logout") {
+    SqlUtils.logUserLogout(user.username, session.getId)
     scentry.logout()
   }
 
