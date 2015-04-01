@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.pgDao.MySocialChannelDaoYt._
 import gr.gnostix.api.models.plainModels._
-import gr.gnostix.api.utilities.{SqlUtils, HelperFunctions}
+import gr.gnostix.api.utilities.{DateUtils, SqlUtils, HelperFunctions}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.slf4j.LoggerFactory
@@ -19,22 +19,24 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
   implicit val getGaDataData = GetResult(r => GoogleAnalyticsData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getGaLineGraph = GetResult(r => GaLineData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
   def getGoogleAnalytics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[List[ApiData]]] = {
     val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, engId)
+    val sqlLineGraph = buildQueryLineGraph(fromDate, toDate, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[List[ApiData]]]()
 
     Future {
-      prom.success(getGaStats(mySqlDynamic))
+      prom.success(getGaStats(mySqlDynamic, sqlLineGraph))
     }
     prom.future
   }
 
 
-  private def getGaStats(sql: String): Option[List[ApiData]] = {
+  private def getGaStats(sql: String, sqlLineGraph: String): Option[List[ApiData]] = {
 
     try {
       var myData = List[GoogleAnalyticsData]()
@@ -63,7 +65,7 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
         val countryHits = getHitsByCountry(myData)
 
         // get all line graphs
-        val gaLineGraph = getLineGraphAll(myData)
+        val gaLineGraph = getLineGraphAll(sqlLineGraph)
 
         logger.info(" -------------> we have  G analytics ")
         Some(List(ApiData("ga_stats", gaStats), ApiData("source_hits", sourceHits),
@@ -85,11 +87,30 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
   }
 
-  private def getLineGraphAll(li: List[GoogleAnalyticsData]): List[GaLineData] = {
-    li.groupBy(x => x.created).map {
-      case (x, y) => GaLineData(x, y.map(u => u.users).sum, y.map(nu => nu.newUsers).sum, y.map(nu => nu.bounces).sum,
-        y.map(b => b.bounceRate).sum / y.size, y.map(a => a.avgSessionDuration).sum / y.size, y.map(nu => nu.pageViews).sum)
-    }.toList.sortWith( (a,b) => a.created.before(b.created))
+  private def getLineGraphAll(sql: String): Option[List[GaLineData]] = {
+
+//    li.groupBy(x => x.created).map {
+//      case (x, y) => GaLineData(x, y.map(u => u.users).sum, y.map(nu => nu.newUsers).sum, y.map(nu => nu.bounces).sum,
+//        y.map(b => b.bounceRate).sum / y.size, y.map(a => a.avgSessionDuration).sum / y.size, y.map(nu => nu.pageViews).sum)
+//    }.toList.sortWith( (a,b) => a.created.before(b.created))
+
+
+    try {
+      var myData = List[GaLineData]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my social channel fb ------------->" + sql)
+          val records = Q.queryNA[GaLineData](sql)
+          myData = records.list()
+      }
+
+      Some(myData)
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
   }
 
   private def getHitsByCountry(li: List[GoogleAnalyticsData]): Map[String, Int] = {
@@ -152,6 +173,33 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     sql
   }
 
+  private def buildQueryLineGraph(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+    val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
+    val grouByDate = DateUtils.sqlGrouByDatePg(numDays)
+
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 15, credId)
+
+    val sql =
+      s"""
+            select date_trunc('${grouByDate}',created) as created, sum(users) as users, sum(new_users) as new_users,
+              sum(bounces) as bounces, avg(bounce_rate) as bounce_rate, avg(avg_session_duration) as avg_session_duration, sum(page_views) as page_views
+                        from vieras.eng_ga_stats
+                        where fk_eng_engagement_data_quer_id in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'GA_STATS'
+                                and FK_PROFILE_SOCIAL_ENG_ID in  (  $sqlEngAccount  )
+                          and created between to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                          and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+               group by date_trunc('${grouByDate}',created)
+               order by date_trunc('${grouByDate}',created) asc
+
+         """
+
+    sql
+  }
 
 }
