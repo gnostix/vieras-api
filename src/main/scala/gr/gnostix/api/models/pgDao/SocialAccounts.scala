@@ -690,7 +690,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
     }
   }
 
-  def checkHotelUrl(url: String): (String, Boolean, String) = {
+  def checkHotelUrl(url: String, companyId: Int): (String, Boolean, String) = {
 
     // check if the url is real
     if (!checkIfUrlIsvalid(url)) {
@@ -698,7 +698,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
     } else {
 
       // check if the user has already entered this url
-      if (checkUrlInDatabase(url)) {
+      if (checkUrlInDatabase(url, companyId)) {
         ("You have already entered this url", false, "")
       } else {
 
@@ -742,7 +742,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   }
 
-  def checkUrlInDatabase(url: String): Boolean = {
+  def checkUrlInDatabase(url: String, companyId: Int): Boolean = {
     try {
       getConnection withSession {
         implicit session =>
@@ -755,6 +755,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
           val credId = Q.queryNA[Int]( s"""
              select i.id from  vieras.ENG_PROFILE_HOTEL_CREDENTIALS i,vieras.eng_hotels h
                   where i.fk_hotel_id=h.id
+                    and i.fk_company_id=${companyId}
                     and h.hotel_url = '$newUrl'
                     """).list()
           //and fk_profile_id = $profileId
