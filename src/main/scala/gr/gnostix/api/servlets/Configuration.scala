@@ -518,7 +518,7 @@ with FutureSupport {
       case "hotel" => {
         val hotel = parsedBody.extract[SocialCredentialsHotel]
         val cleanUrlSession = SocialAccountsHotelDao.cleanDomainSession(new URL(hotel.hotelUrl))
-        val validUrl = SocialAccountsHotelDao.checkHotelUrl(cleanUrlSession)
+        val validUrl = SocialAccountsHotelDao.checkHotelUrl(cleanUrlSession, companyId)
 
         logger.info(s"---->   validUrl $validUrl ")
         if (validUrl._2) {
