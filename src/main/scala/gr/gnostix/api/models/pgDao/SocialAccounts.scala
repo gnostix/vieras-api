@@ -1,5 +1,6 @@
 package gr.gnostix.api.models.pgDao
 
+import java.net.URL
 import java.sql.CallableStatement
 import java.util.Calendar
 
@@ -637,7 +638,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def addAccount(companyId: Int, cred: SocialCredentialsHotel, datasourceName: String): Option[Int] = {
+  def addAccount(companyId: Int, cred: SocialCredentialsHotel, url: String, datasourceName: String): Option[Int] = {
     try {
 
       val sql: String = "{call vieras.insert_hotel_credential(?,?,?,?,?)}"
@@ -646,9 +647,9 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
       callableStatement.setInt(1, companyId)
       callableStatement.setInt(2, cred.dsId)
       if (cred.hotelUrl.startsWith("http://")) {
-        callableStatement.setString(3, cred.hotelUrl)
+        callableStatement.setString(3, url)
       } else {
-        callableStatement.setString(3, "http://" + cred.hotelUrl)
+        callableStatement.setString(3, "http://" + url)
       }
       callableStatement.setString(4, datasourceName)
 
@@ -675,6 +676,19 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   }
 
+  def cleanDomainSession(l: URL): String = {
+    l.getProtocol + "://" + l.getHost + l.getPath
+  }
+
+  def cleanDomainCom(l: URL): String = {
+    if(l.getHost.contains(".com.") ){
+      val j = l.getHost.split("\\.").toList.reverse.
+        drop(1).reverse.map(x => x + ".").mkString.reverse.drop(1).reverse
+      l.getProtocol + "://" + j + l.getPath
+    } else {
+      l.getProtocol + "://" + l.getHost + l.getPath
+    }
+  }
 
   def checkHotelUrl(url: String): (String, Boolean, String) = {
 

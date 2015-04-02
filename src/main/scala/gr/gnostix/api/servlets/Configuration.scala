@@ -1,5 +1,7 @@
 package gr.gnostix.api.servlets
 
+import java.net.URL
+
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.javaModels.GoogleAnalyticsProfilesJava
@@ -515,11 +517,13 @@ with FutureSupport {
       }
       case "hotel" => {
         val hotel = parsedBody.extract[SocialCredentialsHotel]
-        val validUrl = SocialAccountsHotelDao.checkHotelUrl(hotel.hotelUrl)
+        val cleanUrlSession = SocialAccountsHotelDao.cleanDomainSession(new URL(hotel.hotelUrl))
+        val validUrl = SocialAccountsHotelDao.checkHotelUrl(cleanUrlSession)
+
         logger.info(s"---->   validUrl $validUrl ")
         if (validUrl._2) {
           // save hotel in db
-          val credId = SocialAccountsHotelDao.addAccount(companyId, hotel, validUrl._3)
+          val credId = SocialAccountsHotelDao.addAccount(companyId, hotel, cleanUrlSession, validUrl._3)
 
           credId match {
             case Some(x) => {
