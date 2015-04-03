@@ -78,7 +78,14 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
   def getPeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime,
                       profileId: Int, companyId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryPeakTextData(fromDate, toDate, peakDate, profileId, companyId, datasourceId)
+    val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
+
+    val mySqlDynamic = grouBydate match {
+      case  "hour" => buildQueryPeakTextData(peakDate, profileId, companyId, datasourceId, "day") /// it is never by hour in review messages
+      case "day" | "week" | "month" => buildQueryPeakTextData(peakDate, profileId, companyId, datasourceId, grouBydate)
+    }
+
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -434,16 +441,11 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryPeakTextData(fromDate: DateTime, toDate: DateTime, peakDate: DateTime,
-                                     profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryPeakTextData(peakDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], groupByDate: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
-    val fromDateStr: String = fmt.print(fromDate)
-    val toDateStr: String = fmt.print(toDate)
-
-    val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
-    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
+    val peakDateStr: String = fmt.print(peakDate)
 
     val sql = datasourceId match {
       case Some(x) =>
@@ -454,11 +456,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
-                      and r.created between   to_timestamp('${peakDate}', 'DD-MM-YYYY HH24:MI:SS')
-                      and to_timestamp('${peakDate}', 'DD-MM-YYYY HH24:MI:SS')
+                      and r.created between   date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
+                      and date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}' - INTERVAL '1 day')
+                      and r.created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
                       and r.FK_HOTEL_ID = h.ID
                       and h.id = cr.fk_hotel_id
                       and cr.fk_datasource_id = dt.id
+                      order by r.created
         """
       case None =>
         val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
@@ -468,11 +472,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
-                      and r.created between   to_timestamp('${peakDate}', 'DD-MM-YYYY HH24:MI:SS')
-                      and to_timestamp('${peakDate}', 'DD-MM-YYYY HH24:MI:SS')
+                      and r.created between   date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
+                      and date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}' - INTERVAL '1 day')
+                      and r.created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
                       and r.FK_HOTEL_ID = h.ID
                       and h.id = cr.fk_hotel_id
                       and cr.fk_datasource_id = dt.id
+                      order by r.created
          """
     }
 
@@ -505,6 +511,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                       and r.FK_HOTEL_ID = h.ID
                       and h.id = cr.fk_hotel_id
                       and cr.fk_datasource_id = dt.id
+                      order by r.created
         """
       case None =>
         val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
@@ -519,6 +526,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                       and r.FK_HOTEL_ID = h.ID
                       and h.id = cr.fk_hotel_id
                       and cr.fk_datasource_id = dt.id
+                      order by r.created
          """
     }
 
