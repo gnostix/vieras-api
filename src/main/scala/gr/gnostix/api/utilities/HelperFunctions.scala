@@ -23,7 +23,10 @@ object HelperFunctions {
         //val existData = dt.filter(_.dataName != "nodata")
 
         val myData = dt.map {
-          case (x) => (x.dataName -> x.data)
+          case (x) => {
+            println(x)
+            (x.dataName -> x.data)
+          }
         }.toMap
 
         val hasData = dt.size match {
