@@ -113,8 +113,17 @@ object ProfileDao extends DatabaseAccessSupportPg {
             }
           }
           if (profiles.size > 0) {
-            val companies = profiles.map { x => CompanyDao.findAllCompanies(userId, x.profileId).get}
-            Some(List(ApiData("profiles", profiles)) ::: companies)
+            val companies: List[ApiData] = profiles.map { x => CompanyDao.findAllCompanies(userId, x.profileId).get}//.groupBy(x => x.dataName).toList
+
+            val cleanCompanies = companies.groupBy(x => x.dataName).map{
+              case (x,y) => ApiData(x, y.map(z => z.data.asInstanceOf[List[CompanyGroup]] ).flatMap(f => f.map(g => g)))
+            }
+
+           logger.info("-----------> companies " + cleanCompanies)
+            logger.info("-----------> profiles " + profiles)
+
+            Some(List(ApiData("profiles", profiles), cleanCompanies.head))
+
           } else Some(List(ApiData("profiles", List()), ApiData("companies", List())))
 
         } catch {
