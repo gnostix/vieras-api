@@ -73,7 +73,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
                 """
 
         val records = Q.queryNA[SocialAccountsTwitter](sql)
-        logger.info("--------------> " +sql)
+        logger.info("--------------> " + sql)
         val accounts = records.list()
         SocialAccounts("twitter", accounts)
 
@@ -100,7 +100,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
                         and FK_PROFILE_SOCIAL_ENG_ID in (  ${sqlEngAccount} ) and fk_eng_engagement_data_quer_id=i.id
                 group by FK_PROFILE_SOCIAL_ENG_ID,handle
                  """
-              logger.info("--------------> " +sql)
+              logger.info("--------------> " + sql)
               val records = Q.queryNA[SocialAccountsTwitter](sql)
               val accounts = records.list()
               if (accounts.isEmpty) {
@@ -195,7 +195,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
           group by FK_PROFILE_SOCIAL_ENG_ID
 
    """
-        logger.info("--------------> " +sql)
+        logger.info("--------------> " + sql)
         val records = Q.queryNA[SocialAccountsFacebook](sql)
         val accounts = records.list()
         SocialAccounts("facebook", accounts)
@@ -226,7 +226,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
                   group by FK_PROFILE_SOCIAL_ENG_ID
               """
 
-              logger.info("--------------> " +sql)
+              logger.info("--------------> " + sql)
               val records = Q.queryNA[SocialAccountsFacebook](sql)
               val accounts = records.list()
 
@@ -332,7 +332,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
               group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id
               """
 
-        logger.info("--------------> " +sql)
+        logger.info("--------------> " + sql)
         val records = Q.queryNA[SocialAccountsYoutube](sql)
         val accounts = records.list()
         SocialAccounts("youtube", accounts)
@@ -361,7 +361,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
                   group by FK_PROFILE_SOCIAL_ENG_ID ,fk_eng_engagement_data_quer_id
               """
 
-              logger.info("--------------> " +sql)
+              logger.info("--------------> " + sql)
               val records = Q.queryNA[SocialAccountsYoutube](sql)
               val accounts = records.list()
 
@@ -459,7 +459,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
                 group by FK_PROFILE_SOCIAL_ENG_ID, profile_name
                 """
 
-          logger.info("--------------> " +sql)
+          logger.info("--------------> " + sql)
           val records = Q.queryNA[SocialAccountsGAnalytics](sql)
           val accounts = records.list()
           SocialAccounts("ganalytics", accounts)
@@ -496,7 +496,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
                 group by FK_PROFILE_SOCIAL_ENG_ID, profile_name
                 """
 
-              logger.info("--------------> " +sql)
+              logger.info("--------------> " + sql)
               val records = Q.queryNA[SocialAccountsGAnalytics](sql)
               val accounts = records.list()
 
@@ -646,11 +646,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
       val callableStatement: CallableStatement = connection.prepareCall(sql)
       callableStatement.setInt(1, companyId)
       callableStatement.setInt(2, cred.dsId)
-      if (cred.hotelUrl.startsWith("http://")) {
-        callableStatement.setString(3, url)
-      } else {
-        callableStatement.setString(3, "http://" + url)
-      }
+      callableStatement.setString(3, url)
       callableStatement.setString(4, datasourceName)
 
       callableStatement.registerOutParameter(5, java.sql.Types.INTEGER)
@@ -677,7 +673,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
   def cleanDomainSession(l: String): String = {
-    if(l.startsWith("http://")){
+    if (l.startsWith("http://")) {
       val url = new URL(l)
       url.getProtocol + "://" + url.getHost + url.getPath
     } else {
@@ -687,7 +683,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
   def cleanDomainCom(l: URL): String = {
-    if(l.getHost.contains(".com.") ){
+    if (l.getHost.contains(".com.")) {
       val j = l.getHost.split("\\.").toList.reverse.
         drop(1).reverse.map(x => x + ".").mkString.reverse.drop(1).reverse
       l.getProtocol + "://" + j + l.getPath
@@ -721,8 +717,8 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   }
 
-  private def getUrlDomain(url: String): String ={
-    if(url.startsWith("http://www."))
+  private def getUrlDomain(url: String): String = {
+    if (url.startsWith("http://www."))
       url.split("\\.").toList.tail.head.capitalize
     else if (url.startsWith("http://"))
       url.drop(7).split("\\.").toList.head.capitalize
