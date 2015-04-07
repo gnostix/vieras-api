@@ -87,9 +87,10 @@ with FutureSupport {
   }
 
   // create a new profile
-  post("/profile/:name") {
-    logger.info(s"---->   return profile with name ${params("name")}     ")
-    val profileId = ProfileDao.createProfile(user.userId, params("name"))
+  post("/profile") {
+    val profile = parsedBody.extract[String]
+    logger.info(s"---->   return profile with name ${profile}     ")
+    val profileId = ProfileDao.createProfile(user.userId, profile )
 
     val response = profileId match {
       case Some(x) => ApiMessages.generalSuccess("profileId", profileId)
@@ -134,7 +135,7 @@ with FutureSupport {
 
   }
 
-  delete("/profiles/:id") {
+  delete("/profile/:id") {
     try {
       val profileId = params("id").toInt
 
@@ -171,7 +172,7 @@ with FutureSupport {
     ApiData.cleanDataResponse(companyData)
   }
 
-  get("/profiles/:profileId/company/all") {
+  get("/profile/:profileId/company/all") {
     logger.info("---->   return all profiles with id and name     " + user.userId)
     try {
       val profileId = params("profileId").toInt
@@ -185,9 +186,9 @@ with FutureSupport {
 
   // create a new Company
   post("/profile/:profileId/company") {
-    logger.info(s"---->   return company with name ${params("name")}     ")
+    logger.info(s"---->   create company with name   ")
     val profileId = params("profileId").toInt
-    val company = parsedBody.extract[CompanyGroup]
+    val company = parsedBody.extract[CompanyGroupJson]
     val companyId = CompanyDao.createCompany(profileId, company)
 
     val response = companyId match {
@@ -199,10 +200,10 @@ with FutureSupport {
   }
 
   // update the profile name
-  put("/profile/:profileId/company/:companyId/:name") {
+  put("/profile/:profileId/company/:companyId") {
 
     val profileId = params("profileId").toInt
-    val companyName = params("name")
+    val companyName = parsedBody.extract[String]
     val companyId = params("companyId").toInt
     val result = CompanyDao.updateName(user.userId, profileId, companyId, companyName)
 
@@ -214,7 +215,7 @@ with FutureSupport {
     response
   }
 
-  delete("/profiles/:profileId/company/:companyId") {
+  delete("/profile/:profileId/company/:companyId") {
     val profileId = params("profileId").toInt
     val companyId = params("companyId").toInt
     val result = CompanyDao.deleteCompany(user.userId, profileId, companyId)

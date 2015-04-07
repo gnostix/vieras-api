@@ -10,6 +10,8 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
  */
 
 case class CompanyGroup(companyGroupId: Int, companyGroupName: String, companyGroupType: String, profileId: Int)
+case class CompanyGroupJson(companyGroupName: String, companyGroupType: String)
+
 
 object CompanyDao extends DatabaseAccessSupportPg {
 
@@ -122,14 +124,12 @@ object CompanyDao extends DatabaseAccessSupportPg {
   }
 
 
-  def createCompany(profileId: Int, company: CompanyGroup): Option[Int] = {
+  def createCompany(profileId: Int, company: CompanyGroupJson): Option[Int] = {
     getConnection withSession {
       implicit session =>
 
         try {
-
-          // create also a company group
-          Q.u(
+          (Q.u +
             s""" insert into vieras.eng_company (name, type, fk_profile_id)
                   values ('${company.companyGroupName}', '${company.companyGroupType}',$profileId)
             """).execute()
@@ -159,7 +159,7 @@ object CompanyDao extends DatabaseAccessSupportPg {
         try {
 
           // delete  from company groups
-          Q.u( s"""delete from vieras.eng_company  where  fk_profile_id = ${profileId} and id = ${companyId}
+          Q.updateNA( s"""delete from vieras.eng_company  where  fk_profile_id = ${profileId} and id = ${companyId}
                    and fk_profile_id in (select id from vieras.profiles where fk_user_id = ${userId})
             """).execute()
 
