@@ -99,7 +99,7 @@ object UserDao extends DatabaseAccessSupportPg {
       }
 
       val message = s""" You temporary password is ${newPassword}. \r\nPlease change it in your next Login"""
-      val subject = "Gnostix Vieras support"
+      val subject = "Vieras support"
       //send email to the user with the new password
       EmailUtils.sendMailOneRecipient(user.userDetails.email, message, subject)
 

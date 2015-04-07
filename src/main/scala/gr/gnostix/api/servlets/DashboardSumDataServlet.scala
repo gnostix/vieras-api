@@ -179,7 +179,7 @@ with FutureSupport {
 //      val retweets = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
 //      val favorites = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "favorite", None)
 //      val posts = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "post", None)
-//      val comments = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "comment", None)
+      val comments = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, "comment", None)
       val reviews = MySocialChannelHotelDao.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, None)
 
 
