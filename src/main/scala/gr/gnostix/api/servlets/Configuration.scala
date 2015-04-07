@@ -135,7 +135,20 @@ with FutureSupport {
   }
 
   delete("/profiles/:id") {
-    // not implemented
+    try {
+      val profileId = params("id").toInt
+
+      ProfileDao.deleteProfile(user.userId, profileId) match {
+        case Some(x) => ApiMessages.generalSuccessWithMessage("Profile deleted!")
+        case None => ApiMessages.generalError
+      }
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        ApiMessages.generalErrorOnData
+      }
+    }
   }
 
 
@@ -517,7 +530,7 @@ with FutureSupport {
       }
       case "hotel" => {
         val hotel = parsedBody.extract[SocialCredentialsHotel]
-        val cleanUrlSession = SocialAccountsHotelDao.cleanDomainSession(new URL(hotel.hotelUrl))
+        val cleanUrlSession = SocialAccountsHotelDao.cleanDomainSession(hotel.hotelUrl)
         val validUrl = SocialAccountsHotelDao.checkHotelUrl(cleanUrlSession, companyId)
 
         logger.info(s"---->   validUrl $validUrl ")
