@@ -18,7 +18,7 @@ public class EmailUtils {
     public static void sendMailOneRecipient(String toEmail, String msg, String subject) throws IOException {
         final String username = "info@gnostix.gr";
         final String password = "197777alex";
-        final String fromEmailAddress = "info@gnostix.gr";
+        final String fromEmailAddress = "info@vieras.eu";
 
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
@@ -38,7 +38,7 @@ public class EmailUtils {
         try {
 
             Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(fromEmailAddress, "Gnostix Support"));
+            message.setFrom(new InternetAddress(fromEmailAddress, "Vieras Support"));
 
 //            Address[] toAddr = new InternetAddress[toEmailList.size()];
 //            for (int i = 0; i < toEmailList.size(); i++) {

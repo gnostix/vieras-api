@@ -24,7 +24,7 @@ object HelperFunctions {
 
         val myData = dt.map {
           case (x) => {
-            println(x)
+            //println(x)
             (x.dataName -> x.data)
           }
         }.toMap
