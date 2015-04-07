@@ -113,13 +113,13 @@ object ProfileDao extends DatabaseAccessSupportPg {
             }
           }
           if (profiles.size > 0) {
-            val companies: List[ApiData] = profiles.map { x => CompanyDao.findAllCompanies(userId, x.profileId).get}//.groupBy(x => x.dataName).toList
+            val companies: List[ApiData] = profiles.map { x => CompanyDao.findAllCompanies(userId, x.profileId).get} //.groupBy(x => x.dataName).toList
 
-            val cleanCompanies = companies.groupBy(x => x.dataName).map{
-              case (x,y) => ApiData(x, y.map(z => z.data.asInstanceOf[List[CompanyGroup]] ).flatMap(f => f.map(g => g)))
+            val cleanCompanies = companies.groupBy(x => x.dataName).map {
+              case (x, y) => ApiData(x, y.map(z => z.data.asInstanceOf[List[CompanyGroup]]).flatMap(f => f.map(g => g)))
             }
 
-           logger.info("-----------> companies " + cleanCompanies)
+            logger.info("-----------> companies " + cleanCompanies)
             logger.info("-----------> profiles " + profiles)
 
             Some(List(ApiData("profiles", profiles), cleanCompanies.head))
@@ -159,18 +159,12 @@ object ProfileDao extends DatabaseAccessSupportPg {
     getConnection withSession {
       implicit session =>
         try {
-          Q.u(
-            s""" insert into vieras.profiles (profile_name, fk_user_id)
-                  values ('${profileName}', $userId)
-            """).execute()
+          val profileId = Q.queryNA[Int](
+            s""" select vieras.create_profile(null,null,null,'${profileName}', null,$userId,2)
+            """).list()
 
-          val profileId = Q.queryNA[Int]( s""" select * from (  select c.id from vieras.profiles c where
-                                                c.fk_user_id = $userId order by c.id desc) as foo
-                                                limit 1
-                                          """)
-
-          if (profileId.list().size > 0) {
-            Some(profileId.first())
+          if (profileId.size > 0) {
+            Some(profileId.head)
           } else {
             None
           }
@@ -189,7 +183,7 @@ object ProfileDao extends DatabaseAccessSupportPg {
     getConnection withSession {
       implicit session =>
         try {
-          Q.u( s"""delete from vieras.profiles c  where  c.fk_user_id = $userId and id = ${profileId}
+          Q.updateNA( s"""delete from vieras.profiles c  where  c.fk_user_id = $userId and id = ${profileId}
             """).execute()
 
           Some(true)
