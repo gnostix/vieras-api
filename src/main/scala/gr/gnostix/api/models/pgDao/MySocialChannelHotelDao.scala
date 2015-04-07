@@ -182,8 +182,14 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
         val (neg, pos) = getTopMinusMaxReviews(myData)
 
-        val negative_tips = neg.map(x => s""" ${x.numMsg} reviews mentioned negative the hotel ${x.service_name}""")
-        val positive_tips = pos.map(x => s"""Based on ${x.numMsg} reviews, the hotel ${x.service_name} is mentioned positively""")
+        val negative_tips = neg.map(x => {
+          val review = if (x.numMsg > 1) "reviews" else "review"
+          s""" ${x.numMsg} ${review} mentioned negative the hotel ${x.service_name}"""
+        })
+        val positive_tips = pos.map(x => {
+          val review = if (x.numMsg > 1) "reviews" else "review"
+          s"""Based on ${x.numMsg} ${review}, the hotel ${x.service_name} is mentioned positively"""
+        })
 
         val tips = Map("positive_tips" -> positive_tips, "negative_tips" -> negative_tips)
         // geographic data

@@ -676,8 +676,14 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   }
 
-  def cleanDomainSession(l: URL): String = {
-    l.getProtocol + "://" + l.getHost + l.getPath
+  def cleanDomainSession(l: String): String = {
+    if(l.startsWith("http://")){
+      val url = new URL(l)
+      url.getProtocol + "://" + url.getHost + url.getPath
+    } else {
+      val url = new URL("http://" + l)
+      url.getProtocol + "://" + url.getHost + url.getPath
+    }
   }
 
   def cleanDomainCom(l: URL): String = {
