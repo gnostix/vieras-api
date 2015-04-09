@@ -13,6 +13,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.io.Source
 import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 import Q.interpolation
+import scala.util.matching.Regex
 
 /**
  * Created by rebel on 4/8/14.
@@ -730,18 +731,29 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   def checkIfUrlIsvalid(url: String): Boolean = {
     try {
-      if (url.startsWith("http://")) {
-        Source.fromURL(url)
-        true
-      } else {
-        Source.fromURL("http://" + url)
-        true
+
+      checkValidUrlFormat(url) match {
+        case true => {
+          Source.fromURL(url)
+          true
+        }
+        case false => false
       }
+
     } catch {
       case e: Exception => logger.error("---------->  bad url " + e.printStackTrace())
         false
     }
 
+  }
+
+  def checkValidUrlFormat(url: String): Boolean = {
+    val URL = """(http|ftp)://(.*)\.([a-z]+)""".r
+
+    url match {
+      case URL(protocol, domain, tld) => true
+      case _ => false
+    }
   }
 
   def checkUrlInDatabase(url: String, companyId: Int): Boolean = {
