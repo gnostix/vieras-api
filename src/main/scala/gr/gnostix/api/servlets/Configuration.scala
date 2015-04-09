@@ -115,7 +115,7 @@ with FutureSupport {
     response
   }
 
-  put("/profile/:id/account") {
+  put("/profile/:id/company/:companyId/account") {
     try {
       val profileId = params("id").toInt
       val account = parsedBody.extract[UserAccount]
