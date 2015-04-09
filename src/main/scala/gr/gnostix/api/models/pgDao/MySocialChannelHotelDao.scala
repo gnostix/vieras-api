@@ -184,7 +184,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
         val negative_tips = neg.map(x => {
           val review = if (x.numMsg > 1) "reviews" else "review"
-          s""" ${x.numMsg} ${review} mentioned negative the hotel ${x.service_name}"""
+          s""" ${x.numMsg} ${review} mentioned the hotel ${x.service_name} negatively """
         })
         val positive_tips = pos.map(x => {
           val review = if (x.numMsg > 1) "reviews" else "review"
