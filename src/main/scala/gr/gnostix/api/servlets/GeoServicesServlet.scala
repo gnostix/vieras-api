@@ -4,6 +4,7 @@ import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.pgDao.GeoLocationDao
 import gr.gnostix.api.models.plainModels.{ApiMessages, CountriesLine, ErrorDataResponse}
+import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
@@ -113,6 +114,83 @@ with FutureSupport {
       }
     }
   }
+
+  // get all data for hotel for one profile
+  get("/profile/:profileId/company/:companyId/text/country/:countryId/:fromDate/:toDate") {
+    logger.info(s"----> get text data for hotel for  one profile " +
+      s"  /api/user/account/geolocation/services/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val countryId = params("countryId")
+
+
+      val rawData = GeoLocationDao.getTextDataByProfileId(executor, fromDate, toDate, profileId, companyId, countryId)
+      new AsyncResult {
+        val is =
+          for {
+            data <- rawData
+          } yield HelperFunctions.f2(data)
+      }
+
+
+    } catch {
+      case e: NumberFormatException => {
+        ErrorDataResponse(404, "Error on data")
+      }
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        ErrorDataResponse(404, "Error on data")
+      }
+    }
+  }
+
+  // get all data for hotel for one profile
+  get("/profile/:profileId/company/:companyId/datasource/:datasourceId/text/country/:countryId/:fromDate/:toDate") {
+    logger.info(s"----> get text data for hotel for  one profile " +
+      s"  /api/user/account/geolocation/services/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val countryId = params("countryId")
+      val datasourceId = params("datasourceId").toInt
+
+      val rawData = GeoLocationDao.getTextDataByDatasourceId(executor, fromDate, toDate, profileId, companyId, datasourceId, countryId)
+      new AsyncResult {
+        val is =
+          for {
+            data <- rawData
+          } yield HelperFunctions.f2(data)
+      }
+
+
+    } catch {
+      case e: NumberFormatException => {
+        ErrorDataResponse(404, "Error on data")
+      }
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        ErrorDataResponse(404, "Error on data")
+      }
+    }
+  }
+
 
   // get all data for hotel for one profile
   get("/profile/:profileId/company/:companyId/account/:credId/:fromDate/:toDate") {

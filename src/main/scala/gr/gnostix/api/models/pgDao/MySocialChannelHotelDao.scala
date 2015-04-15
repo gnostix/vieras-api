@@ -19,7 +19,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   implicit val getReviewStats = GetResult(r => HotelReviewStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getRatingStats = GetResult(r => HotelRatingStats(r.<<, r.<<))
   implicit val getServicesLine = GetResult(r => HotelServicesLine(r.<<, r.<<, r.<<))
-  implicit val getHotelTextData = GetResult(r => HotelTextData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getHotelTextData = GetResult(r => HotelTextData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getHotelTextDataRating = GetResult(r => HotelTextDataRating(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
 
   val logger = LoggerFactory.getLogger(getClass)
@@ -75,6 +76,45 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     }
     prom.future
   }
+
+  def getSentimentTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+                  datasourceId: Option[Int], sentiment: String): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQuerySentimentTextData(fromDate, toDate, profileId, companyId, datasourceId, sentiment)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getTextDataRaw(mySqlDynamic))
+    }
+    prom.future
+  }
+
+  def getServiceBySentimentTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+                           datasourceId: Option[Int], service: String, sentiment: String): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryServiceSentimentTextData(fromDate, toDate, profileId, companyId, datasourceId, service, sentiment)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getTextDataRawServiceBySentiment(mySqlDynamic))
+    }
+    prom.future
+  }
+
+
+  def getStayTypeTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+                           datasourceId: Option[Int], stayType: String): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryStayTypeTextData(fromDate, toDate, profileId, companyId, datasourceId, stayType)
+    //bring the actual data
+    val prom = Promise[Option[ApiData]]()
+
+    Future {
+      prom.success(getTextDataRaw(mySqlDynamic))
+    }
+    prom.future
+  }
+
+
 
   def getPeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime,
                       profileId: Int, companyId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
@@ -299,6 +339,31 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     }
   }
 
+  private def getTextDataRawServiceBySentiment(sql: String): Option[ApiData] = {
+    try {
+      var myData = List[HotelTextDataRating]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my hotel HotelTextData ------------->" + sql)
+          val records = Q.queryNA[HotelTextDataRating](sql)
+          myData = records.list()
+      }
+
+      Some(ApiData("hotel_messages", myData))
+
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+  }
+
+//  private def fixServiceBySentimentTextData(data: List[HotelTextDataRating]): List[HotelTextDataRatingFull] = {
+//
+//    data
+//  }
+
   private def getDataStats(sql: String): Option[List[ApiData]] = {
 
     try {
@@ -408,12 +473,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val toDateStr: String = fmt.print(toDate)
 
 
-    val sql = datasourceId match {
-      case Some(x) =>
-        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
 
-        //       and vd.id=${x}
-        s"""
+
+    val sql =         s"""
         select r.ID,r.REVIEWER ,r.STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING as vieras_review_rating,
              h.TOTAL_RATING  as datasource_hotel_rating, vd.ds_rating_scale as max_hotel_rating
         from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd, vieras.ENG_PROFILE_HOTEL_CREDENTIALS cre
@@ -424,21 +490,6 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
               and cre.FK_HOTEL_ID = h.id
               and vd.id = cre.fk_datasource_id
         """
-      case None =>
-        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
-        // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
-        s"""
-        select r.ID,r.REVIEWER ,r.STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING as vieras_review_rating,
-             h.TOTAL_RATING  as datasource_hotel_rating, vd.ds_rating_scale as max_hotel_rating
-        from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.vieras_datasources vd, vieras.ENG_PROFILE_HOTEL_CREDENTIALS cre
-           where r.FK_HOTEL_ID IN ( ${sqlEngAccount} )
-              and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-              and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-              and r.FK_HOTEL_ID = h.ID
-              and cre.FK_HOTEL_ID = h.id
-              and vd.id = cre.fk_datasource_id
-         """
-    }
 
 
     //logger.info("------------->" + sql + "-----------")
@@ -453,13 +504,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val peakDateStr: String = fmt.print(peakDate)
 
-    val sql = datasourceId match {
-      case Some(x) =>
-        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
 
-        s"""
-        select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
+
+    val sql =     s"""
+        select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.created between   date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
@@ -470,23 +523,6 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                       and cr.fk_datasource_id = dt.id
                       order by r.created
         """
-      case None =>
-        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
-        // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
-        s"""
-        select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
-                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
-                   where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
-                      and r.created between   date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
-                      and date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}' - INTERVAL '1 day')
-                      and r.created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
-                      and r.FK_HOTEL_ID = h.ID
-                      and h.id = cr.fk_hotel_id
-                      and cr.fk_datasource_id = dt.id
-                      order by r.created
-         """
-    }
 
 
     //logger.info("------------->" + sql + "-----------")
@@ -502,14 +538,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
 
-    val sql = datasourceId match {
-      case Some(x) =>
-        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
 
-        s"""
-        select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
+    val sql =         s"""
+        select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -519,14 +556,39 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                       and cr.fk_datasource_id = dt.id
                       order by r.created
         """
-      case None =>
-        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
-        // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
-        s"""
-        select substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url
+
+
+    //logger.info("------------->" + sql + "-----------")
+
+    sql
+  }
+
+
+
+  private def buildQuerySentimentTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], sentiment: String): String = {
+
+    val sentValue = sentiment match {
+      case "positive" => "r.vieras_total_rating >= 7"
+      case "negative" => "r.vieras_total_rating <= 4"
+      case _ => "r.vieras_total_rating <= 0" //for fan..
+    }
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
+
+    val sql = s"""
+        select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
+                      and ${sentValue}
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                       and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                       and r.FK_HOTEL_ID = h.ID
@@ -534,13 +596,94 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                       and cr.fk_datasource_id = dt.id
                       order by r.created
          """
-    }
 
 
     //logger.info("------------->" + sql + "-----------")
 
     sql
   }
+
+
+  private def buildQueryServiceSentimentTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], service: String , sentiment: String): String = {
+
+    val sentValue = sentiment match {
+      case "positive" => "ra.vieras_rating_value >= 7"
+      case "negative" => "ra.vieras_rating_value <= 4"
+      case _ => "ra.vieras_rating_value <= 0" //for fan..
+    }
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+
+
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
+
+    val sql =         s"""
+        select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type,
+          ra.vieras_rating_name, ra.vieras_rating_value
+                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt,
+                vieras.eng_review_rating ra
+                   where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
+                      and r.id = ra.fk_review_id
+                      and LOWER(ra.vieras_rating_name) like LOWER('%${service}%')
+                      and ${sentValue}
+                      and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and r.FK_HOTEL_ID = h.ID
+                      and h.id = cr.fk_hotel_id
+                      and cr.fk_datasource_id = dt.id
+                      order by r.created
+        """
+
+    //logger.info("------------->" + sql + "-----------")
+
+    sql
+  }
+
+
+
+
+  private def buildQueryStayTypeTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], stayType: String): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val fromDateStr: String = fmt.print(fromDate)
+    val toDateStr: String = fmt.print(toDate)
+
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
+
+
+    val sql =         s"""
+        select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
+                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
+                   where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
+                      and LOWER(stay_type) like LOWER('%${stayType}%')
+                      and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                      and r.FK_HOTEL_ID = h.ID
+                      and h.id = cr.fk_hotel_id
+                      and cr.fk_datasource_id = dt.id
+                      order by r.created
+        """
+
+    //logger.info("------------->" + sql + "-----------")
+
+    sql
+  }
+
+
+
 
   private def buildQueryServicesLineSentiment(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
 
@@ -552,25 +695,13 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
-    val sql = datasourceId match {
-      case Some(x) =>
-        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
 
-        s"""
-        select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created)
-          from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
-          where i.fk_review_id = r.id and r.fk_hotel_id = f.fk_hotel_id
-            and f.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
-                      and r.CREATED between to_timestamp('${fromDateStr}', 'dd-mm-yyyy hh24:mi:ss')
-                      and to_timestamp('${toDateStr}', 'dd-mm-yyyy hh24:mi:ss')
-                      and vieras_rating_name is not null
-                      group by vieras_rating_name,vieras_rating_value, date_trunc('${grouBydate}',r.created)
-                      order by date_trunc('${grouBydate}',r.created)
-        """
-      case None =>
-        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
 
-        s"""
+    val sql =         s"""
         select i.vieras_rating_name,i.vieras_rating_value, date_trunc('${grouBydate}',r.created)
           from vieras.ENG_REVIEW_RATING i,vieras.ENG_REVIEWS r,vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
           where i.fk_review_id = r.id and r.fk_hotel_id = f.fk_hotel_id
@@ -581,8 +712,6 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                       group by vieras_rating_name,vieras_rating_value, date_trunc('${grouBydate}',r.created)
                       order by date_trunc('${grouBydate}',r.created)
          """
-    }
-
 
     //logger.info("------------->" + sql + "-----------")
 
@@ -597,24 +726,14 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
 
-    val sql = datasourceId match {
-      case Some(x) =>
-        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
 
-        s"""
-            select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
-                 where FK_HOTEL_ID IN ( ${sqlEngAccount} )
-                    and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                    and r.ID = hr.fk_review_id
-                    and hr.VIERAS_RATING_NAME is not null
-        """
-      case None =>
-        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
 
-        // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
-        s"""
+    val sql =         s"""
             select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
                  where FK_HOTEL_ID IN ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -622,8 +741,6 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
                     and r.ID = hr.fk_review_id
                     and hr.VIERAS_RATING_NAME is not null
          """
-    }
-
 
     //logger.info("------------->" + sql + "-----------")
 
