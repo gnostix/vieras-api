@@ -122,7 +122,7 @@ object ProfileDao extends DatabaseAccessSupportPg {
             logger.info("-----------> companies " + cleanCompanies)
             logger.info("-----------> profiles " + profiles)
 
-            Some(List(ApiData("profiles", profiles), cleanCompanies.head))
+            Some(List(ApiData("profiles", profiles.sortBy(_.profileId)), cleanCompanies.head))
 
           } else Some(List(ApiData("profiles", List()), ApiData("companies", List())))
 
