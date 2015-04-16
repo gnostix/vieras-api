@@ -130,9 +130,9 @@ case class HotelReviewStats(reviewId: Int, reviewer: String,  stayType: String, 
 case class RevStat(service_name: String, score: Double, numMsg: Int)
 case class HotelRatingStats(ratingName: String, ratingValue: Double)
 case class HotelServicesLine(ratingName: String, ratingValue: Double, created: String)
-case class HotelTextData(reviewId: Int, text: String, rating: Double, dsId: Int, dsName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String)
-case class HotelTextDataRating(reviewId: Int, text: String, rating: Double, dsId: Int, dsName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String,ratingName: String, ratingValue: Double)
-case class HotelTextDataRatingFull(reviewId: Int, text: String, rating: Double, dsId: Int, dsName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String, servicesRating: Map[String, Int])
+case class HotelTextData(reviewId: Int, text: String, rating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String)
+case class HotelTextDataRating(reviewId: Int, text: String, rating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String,ratingName: String, ratingValue: Double)
+case class HotelTextDataRatingFull(reviewId: Int, text: String, rating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String, servicesRating: Map[String, Int])
 
 
 
