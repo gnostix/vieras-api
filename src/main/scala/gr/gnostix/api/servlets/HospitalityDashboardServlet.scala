@@ -109,9 +109,80 @@ with FutureSupport {
   }
 
 
+  get("/profile/:profileId/company/:companyId/text/:fromDate/:toDate") {
+    logger.info(s"----> get /text/   " +
+      s"  /api/user/socialchannels/dashboard/hotel/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+
+
+      val rawDataStats = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, profileId, companyId, None)
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawDataStats
+          } yield HelperFunctions.f2(Some(a1.get))
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/company/:companyId/sentiment/:sentiment/:fromDate/:toDate") {
-    logger.info(s"----> get stats  one account " +
+  get("/profile/:profileId/company/:companyId/datasourceid/:dsid/text/:fromDate/:toDate") {
+    logger.info(s"----> get datasourceid/text/ " +
+      s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val dsId = params("dsid").toInt
+
+      val rawDataStats = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, profileId, companyId, Some(dsId) )
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawDataStats
+          } yield HelperFunctions.f2(Some(a1.get))
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+
+
+
+  get("/profile/:profileId/company/:companyId/text/sentiment/:sentiment/:fromDate/:toDate") {
+    logger.info(s"----> get /text/sentiment/:sentiment    " +
       s"  /api/user/socialchannels/dashboard/hotel/*  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -146,8 +217,8 @@ with FutureSupport {
   }
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/company/:companyId/datasourceid/:dsid/sentiment/:sentiment/:fromDate/:toDate") {
-    logger.info(s"----> get stats  one account " +
+  get("/profile/:profileId/company/:companyId/datasourceid/:dsid/text/sentiment/:sentiment/:fromDate/:toDate") {
+    logger.info(s"----> get datasourceid/text/sentiment/:sentiment " +
       s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -184,8 +255,8 @@ with FutureSupport {
 
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/company/:companyId/staytype/:staytype/:fromDate/:toDate") {
-    logger.info(s"----> get stats  one account " +
+  get("/profile/:profileId/company/:companyId/text/staytype/:staytype/:fromDate/:toDate") {
+    logger.info(s"----> get /text/staytype/:staytype/ " +
       s"  /api/user/socialchannels/dashboard/hotel/*  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -220,8 +291,8 @@ with FutureSupport {
   }
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/company/:companyId/datasourceid/:dsid/staytype/:staytype/:fromDate/:toDate") {
-    logger.info(s"----> get stats  one account " +
+  get("/profile/:profileId/company/:companyId/datasourceid/:dsid/text/staytype/:staytype/:fromDate/:toDate") {
+    logger.info(s"----> get datasourceid/:dsid/text/staytype/:staytype " +
       s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -257,9 +328,8 @@ with FutureSupport {
 
 
 
-  // get all data for youtube for one profile datatype
-  get("/profile/:profileId/company/:companyId/service/:service/sentiment/:sentiment/:fromDate/:toDate") {
-    logger.info(s"----> get stats  one account " +
+  get("/profile/:profileId/company/:companyId/text/service/:service/sentiment/:sentiment/:fromDate/:toDate") {
+    logger.info(s"----> get text data for  /text/:service/sentiment/:sentiment " +
       s"  /api/user/socialchannels/dashboard/hotel/*  ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -295,8 +365,8 @@ with FutureSupport {
   }
 
   // get all data for youtube for one profile datatype
-  get("/profile/:profileId/company/:companyId/datasourceid/:dsid/service/:service/sentiment/:sentiment/:fromDate/:toDate") {
-    logger.info(s"----> get stats  one account " +
+  get("/profile/:profileId/company/:companyId/datasourceid/:dsid/text/service/:service/sentiment/:sentiment/:fromDate/:toDate") {
+    logger.info(s"----> get /datasourceid/:dsid/text/service/:service/sentiment/:sentiment " +
       s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
@@ -314,6 +384,80 @@ with FutureSupport {
       val dsId = params("dsid").toInt
 
       val rawDataStats = MySocialChannelHotelDao.getServiceBySentimentTextData(executor, fromDate, toDate, profileId, companyId, Some(dsId), service, sentiment)
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawDataStats
+          } yield HelperFunctions.f2(Some(a1.get))
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+
+
+
+  get("/profile/:profileId/company/:companyId/text/service/:service/:fromDate/:toDate") {
+    logger.info(s"----> get text data for  /text/:service/ " +
+      s"  /api/user/socialchannels/dashboard/hotel/*  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val service = params("service")
+
+
+      val rawDataStats = MySocialChannelHotelDao.getServiceTextData(executor, fromDate, toDate, profileId, companyId, None, service)
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- rawDataStats
+          } yield HelperFunctions.f2(Some(a1.get))
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+  // get all data for youtube for one profile datatype
+  get("/profile/:profileId/company/:companyId/datasourceid/:dsid/text/service/:service/:fromDate/:toDate") {
+    logger.info(s"----> get /datasourceid/:dsid/text/service/:service " +
+      s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val service = params("service")
+      val dsId = params("dsid").toInt
+
+      val rawDataStats = MySocialChannelHotelDao.getServiceTextData(executor, fromDate, toDate, profileId, companyId, Some(dsId), service)
 
       new AsyncResult() {
         override val is =

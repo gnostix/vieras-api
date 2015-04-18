@@ -208,14 +208,15 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
+    val sqlEngAccount = datasourceId match {
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    }
 
-    val sql = datasourceId match {
-      case Some(x) =>
-        val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
 
-        s"""
+    val sql =         s"""
         select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.vieras_country = '${countryId}'
@@ -226,23 +227,6 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
                       and cr.fk_datasource_id = dt.id
                       order by r.created
         """
-      case None =>
-        val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
-        // in the case that we are getting the total score for all the datasources then we added the 10 manually to our sql query
-        s"""
-        select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country
-                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
-                   where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
-                      and r.vieras_country = '${countryId}'
-                      and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                      and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-                      and r.FK_HOTEL_ID = h.ID
-                      and h.id = cr.fk_hotel_id
-                      and cr.fk_datasource_id = dt.id
-                      order by r.created
-         """
-    }
 
     sql
   }

@@ -174,12 +174,7 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-
-//      val mentions = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "mention", None)
-//      val retweets = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
-//      val favorites = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "favorite", None)
-//      val posts = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "post", None)
-      val comments = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, "comment", None)
+      //val comments = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, "comment", None)
       val reviews = MySocialChannelHotelDao.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, None)
 
 
@@ -187,13 +182,54 @@ with FutureSupport {
         new AsyncResult() {
           override val is =
             for {
-//              a1 <- mentions
-//              a2 <- retweets
-//              a3 <- favorites
-//              a4 <- posts
-//              a5 <- comments
               a6 <- reviews
-            } yield HelperFunctions.f3(Some(List(a6.get))) //a1.get, a2.get, a3.get, a4.get, a5.get,
+            } yield HelperFunctions.f3(Some(List(a6.get)))
+        }
+
+      // return the data
+      theData
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss ")
+        logger.info(s"-----> ${e.printStackTrace()}")
+        ApiMessages.generalError
+      }
+    }
+  }
+
+
+
+  get("/profile/:profileId/company/:companyId/social/messages/text/peak/service/:service/:fromDate/:toDate/:peakDate") {
+    logger.info(s"---->   get text for all sources for a peak in the line graph  ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val peakDate: DateTime = DateTime.parse(params("peakDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${peakDate}    ")
+
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val service = params("service")
+
+      val reviews = MySocialChannelHotelDao.getServicePeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, None, service)
+
+
+      val theData =
+        new AsyncResult() {
+          override val is =
+            for {
+              a6 <- reviews
+            } yield HelperFunctions.f3(Some(List(a6.get)))
         }
 
       // return the data
