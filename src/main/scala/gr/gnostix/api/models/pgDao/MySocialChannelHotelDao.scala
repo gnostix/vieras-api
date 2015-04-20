@@ -19,7 +19,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   implicit val getReviewStats = GetResult(r => HotelReviewStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getRatingStats = GetResult(r => HotelRatingStats(r.<<, r.<<))
   implicit val getServicesLine = GetResult(r => HotelServicesLine(r.<<, r.<<, r.<<))
-  implicit val getHotelTextData = GetResult(r => HotelTextData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  //implicit val getHotelTextData = GetResult(r => HotelTextData(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getHotelTextDataRating = GetResult(r => HotelTextDataRating(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
 
@@ -355,15 +355,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
   private def getTextDataRaw(sql: String): Option[ApiData] = {
     try {
-      var myData = List[HotelTextData]()
+      var myData = List[HotelTextDataRating]()
       getConnection withSession {
         implicit session =>
           logger.info("get my hotel HotelTextData ------------->" + sql)
-          val records = Q.queryNA[HotelTextData](sql)
+          val records = Q.queryNA[HotelTextDataRating](sql)
           myData = records.list()
       }
 
-      Some(ApiData("hotel_messages", myData))
+      Some(ApiData("hotel_messages", GeoLocationDao.fixRatingTextData(myData)))
 
     } catch {
       case e: Exception => {
@@ -544,7 +544,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val sql =     s"""
         select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 140),
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
-                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
+          , ra.vieras_rating_name, ra.vieras_rating_value
+                from  vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt, vieras.ENG_REVIEWS r
+                 left join vieras.eng_review_rating ra on r.id=ra.fk_review_id
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.created between   date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
                       and date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}' )
@@ -615,7 +617,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val sql =         s"""
         select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
-                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
+          , ra.vieras_rating_name, ra.vieras_rating_value
+                from vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt, vieras.ENG_REVIEWS r
+                 left join vieras.eng_review_rating ra on r.id=ra.fk_review_id
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                       and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -654,7 +658,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val sql = s"""
         select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
-                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
+          , ra.vieras_rating_name, ra.vieras_rating_value
+                from vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt, vieras.ENG_REVIEWS r
+                left join vieras.eng_review_rating ra on r.id=ra.fk_review_id
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and ${sentValue}
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -694,8 +700,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val sql =         s"""
         select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type,
-          ra.vieras_rating_name, ra.vieras_rating_value
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
+          ,ra.vieras_rating_name, ra.vieras_rating_value
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt,
                 vieras.eng_review_rating ra
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
@@ -735,8 +741,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val sql =         s"""
         select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
-          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type,
-          ra.vieras_rating_name, ra.vieras_rating_value
+          r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
+          ,ra.vieras_rating_name, ra.vieras_rating_value
                 from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt,
                 vieras.eng_review_rating ra
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
@@ -774,7 +780,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val sql =         s"""
         select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country, r.stay_type
-                from vieras.ENG_REVIEWS r, vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt
+          , ra.vieras_rating_name, ra.vieras_rating_value
+                from vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt, vieras.ENG_REVIEWS r
+                left join vieras.eng_review_rating ra on r.id=ra.fk_review_id
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
                       and LOWER(stay_type) like LOWER('%${stayType}%')
                       and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
