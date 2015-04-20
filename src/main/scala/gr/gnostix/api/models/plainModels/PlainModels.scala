@@ -132,7 +132,7 @@ case class HotelRatingStats(ratingName: String, ratingValue: Double)
 case class HotelServicesLine(ratingName: String, ratingValue: Double, created: String)
 case class HotelTextData(reviewId: Int, text: String, reviewRating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String)
 case class HotelTextDataRating(reviewId: Int, text: String, reviewRating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String,ratingName: String, ratingValue: Double)
-case class HotelTextDataRatingFull(reviewId: Int, text: String, reviewRating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String, servicesRating: Map[String, Int])
+case class HotelTextDataRatingFull(reviewId: Int, text: String, reviewRating: Double, dsId: Int, daName: String, created: Timestamp, hotelUrl: String, countryCode: String, stayType: String, servicesRating: Map[Any, Any])
 
 
 
