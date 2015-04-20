@@ -699,7 +699,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
     if (!checkIfUrlIsvalid(url)) {
       ("Bad url", false, "")
     } else if (!checkIfUrlContainHotel(url)) {
-      ("To short url. This url doesn't contain your hotel!", false, "")
+      ("Too short url. This url doesn't contain your hotel!", false, "")
     } else {
 
       // check if the user has already entered this url
@@ -739,12 +739,8 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   def checkIfUrlIsvalid(url: String): Boolean = {
     try {
 
-      checkValidUrlFormat(url) match {
-        case true => {
-          Source.fromURL(url)
-          true
-        }
-        case false => false
+      Source.fromURL(url) match {
+        case x =>  true
       }
 
     } catch {
@@ -755,11 +751,14 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
   def checkValidUrlFormat(url: String): Boolean = {
-    val URL = """(http|ftp)://(.*)\.([a-z]+)""".r
+    val URL = """(http)://(.*)\.([a-z].+)""".r
 
     url match {
       case URL(protocol, domain, tld) => true
-      case _ => false
+      case _ => {
+        println("checkValidUrlFormat failed " + url)
+        false
+      }
     }
   }
 
