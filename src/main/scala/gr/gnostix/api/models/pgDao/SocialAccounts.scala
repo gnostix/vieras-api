@@ -674,7 +674,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
   def cleanDomainSession(l: String): String = {
-    if (l.startsWith("http://")) {
+    if (l.startsWith("http")) {
       val url = new URL(l)
       url.getProtocol + "://" + url.getHost + url.getPath
     } else {
@@ -697,7 +697,9 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
     // check if the url is real
     if (!checkIfUrlIsvalid(url)) {
-      ("bad url", false, "")
+      ("Bad url", false, "")
+    } else if (!checkIfUrlContainHotel(url)) {
+      ("To short url. This url doesn't contain your hotel!", false, "")
     } else {
 
       // check if the user has already entered this url
@@ -716,6 +718,11 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
     }
 
+  }
+
+  private def checkIfUrlContainHotel(url: String): Boolean = {
+    val l2 = new URL(url)
+    l2.getPath.length > 3
   }
 
   private def getUrlDomain(url: String): String = {
