@@ -146,3 +146,6 @@ case class GoogleAnalyticsData(country: String ,browser: String , operatingSyste
 
 case class GoogleAnalyticsStats(users: Int, newUsers: Int, bounces: Int, bounceRate: Double, avgSessionDuration: Int, pageViews: Int)
 case class GaLineData(created: Timestamp, users: Int, newUsers: Int, bounces: Int, bounceRate: Double, avrSessionDuration: Int, pageViews: Int)
+
+// Dashboard
+case class DashboardServicesKPIs(service: String, positive: Int, negative: Int, neutral: Int, size: Int, score: Double)

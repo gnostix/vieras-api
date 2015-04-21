@@ -2,7 +2,7 @@ package gr.gnostix.api.models.pgDao
 
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
-import gr.gnostix.api.models.plainModels.{ApiData, RevStat, HotelRatingStats}
+import gr.gnostix.api.models.plainModels.{DashboardServicesKPIs, ApiData, RevStat, HotelRatingStats}
 import gr.gnostix.api.utilities.SqlUtils
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
@@ -53,8 +53,6 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
   }
 
 
-
-
   private def getDataRatingSentiment(sql: String): Option[ApiData] = {
     /*      ------------ Test data --------------
     * val li = List(HotelRatingStats("Value", 10), HotelRatingStats("Value", 8),
@@ -81,23 +79,51 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
       }
 
       if (myData.size > 0) {
-        Some(ApiData("Services", myData.groupBy(_.ratingName).map {
-          case (x, y) => (x -> Map("positive" -> y.filter(a => a.ratingValue >= 7).size,
-            "negative" -> y.filter(a => a.ratingValue <= 4).size,
-            "neutral" -> y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size,
-            //"score" -> (y.map(x => x.ratingValue).sum / y.size) // score average
-            "score" -> BigDecimal(y.map(x => x.ratingValue).sum / y.size).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
-          ))
-        } ))
+
+        val services = myData.groupBy(_.ratingName).map {
+          case (x, y) => DashboardServicesKPIs(x, y.filter(a => a.ratingValue >= 7).size, y.filter(a => a.ratingValue <= 4).size,
+            y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size, y.size,
+            BigDecimal(y.map(x => x.ratingValue).sum / y.size).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
+          )
+          /*            (x -> Map(
+                      "positive" -> y.filter(a => a.ratingValue >= 7).size,
+                      "negative" -> y.filter(a => a.ratingValue <= 4).size,
+                      "neutral" -> y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size,
+                      //"score" -> (y.map(x => x.ratingValue).sum / y.size) // score average
+                      "score" -> BigDecimal(y.map(x => x.ratingValue).sum / y.size).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble,
+                      "size" -> y.size
+                    ))*/
+        }.toList.sortBy(_.size).reverse.take(6)
+
+        services.size match {
+          case 6 => Some(ApiData("Services", services))
+          case x if x < 6 => Some(ApiData("Services", createExtraServices(services)))
+        }
       } else {
-        Some(ApiData("Services", List()))
+        Some(ApiData("Services", createServicesEmptyList()))
       }
 
     }
 
   }
 
-  private def buildQueryRatingSentiment(fromDate: DateTime, toDate: DateTime, sqlEngAccount: String ): String = {
+  // assuming we deal with hotels only , that's why we have hard coded services
+  private def createServicesEmptyList(): List[DashboardServicesKPIs] = {
+    val s = List("Location", "Room", "Sleep", "Cleanliness", "Value", "Staff")
+    s.map(x => DashboardServicesKPIs(x, 0, 0, 0, 0, 0))
+  }
+
+  private def createExtraServices(l: List[DashboardServicesKPIs]): List[DashboardServicesKPIs] = {
+    logger.info("createExtraServices " + l.size)
+    val s = List("Location", "Room", "Sleep", "Cleanliness", "Value", "Staff")
+    val k = l.map(x => x.service)
+    val emptyServices = s.diff(k).take(6 - k.size).map(x => DashboardServicesKPIs(x, 0, 0, 0, 0, 0))
+
+    l ::: emptyServices
+  }
+
+
+  private def buildQueryRatingSentiment(fromDate: DateTime, toDate: DateTime, sqlEngAccount: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -106,7 +132,7 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
 
 
     val sql =
-        s"""
+      s"""
             select hr.VIERAS_RATING_NAME, hr.VIERAS_RATING_VALUE  from vieras.ENG_REVIEWS r, vieras.eng_review_rating hr
                  where FK_HOTEL_ID IN ( ${sqlEngAccount} )
                     and r.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
