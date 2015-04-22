@@ -232,7 +232,7 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     val sql = s"""
         select r.id, substring( (r.review_title || '. ' || r.review_text) from 0 for 240),
           r.VIERAS_TOTAL_RATING as vieras_review_rating, cr.fk_hotel_id, dt.ds_name, r.created, h.hotel_url, r.vieras_country,
-          r.stay_type, ra.vieras_rating_name, ra.vieras_rating_value
+          r.vieras_stay_type, ra.vieras_rating_name, ra.vieras_rating_value
                 from vieras.eng_hotels h, vieras.eng_profile_hotel_credentials cr, vieras.vieras_datasources dt,vieras.ENG_REVIEWS r
                   left join vieras.eng_review_rating ra on r.id=ra.fk_review_id
                    where r.FK_HOTEL_ID IN (  ${sqlEngAccount}  )
