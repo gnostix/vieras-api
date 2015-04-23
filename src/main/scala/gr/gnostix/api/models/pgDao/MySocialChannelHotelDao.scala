@@ -257,12 +257,12 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         val (neg, pos) = getTopMinusMaxReviews(myData)
 
         val negative_tips = neg.map(x => {
-          val review = if (x.numMsg > 1) "reviews" else "review"
-          s""" ${x.numMsg} ${review} mentioned the hotel ${x.service_name} negatively """
+          val review = if (x.msgNum > 1) "reviews" else "review"
+          s""" ${x.msgNum} ${review} mentioned the hotel ${x.serviceName} negatively """
         })
         val positive_tips = pos.map(x => {
-          val review = if (x.numMsg > 1) "reviews" else "review"
-          s"""Based on ${x.numMsg} ${review}, the hotel ${x.service_name} is mentioned positively"""
+          val review = if (x.msgNum > 1) "reviews" else "review"
+          s"""Based on ${x.msgNum} ${review}, the hotel ${x.serviceName} is mentioned positively"""
         })
 
         val tips = Map("positive_tips" -> positive_tips, "negative_tips" -> negative_tips)
@@ -312,7 +312,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def getTopMinusMaxReviews(li: List[HotelRatingStats]): (List[RevStat], List[RevStat]) = {
+  private def getTopMinusMaxReviews(li: List[HotelRatingStats]): (List[ServiceSentiment], List[ServiceSentiment]) = {
     /*      ------------ Test data --------------
     * val li = List(HotelRatingStats("Value", 10), HotelRatingStats("Value", 8),
   HotelRatingStats("Value", 10), HotelRatingStats("Value", 8), HotelRatingStats("Value", 6),
@@ -328,6 +328,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   HotelRatingStats("room", 10), HotelRatingStats("sleep", 4), HotelRatingStats("staff", 6),
   HotelRatingStats("location", 10), HotelRatingStats("staff", 8), HotelRatingStats("sleep", 8))*/
 
+/*
 
     val firstStep = li.
       groupBy(_.ratingName).map {
@@ -348,6 +349,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val neg = massagedData.take(5).toList.sortBy(x => x.service_name)
     val pos = massagedData.reverse.take(5).toList.sortBy(x => x.service_name)
+*/
+
+    val pos = li.filter(_.ratingValue > 7).groupBy(_.ratingName).map{
+      case (x,y) => ServiceSentiment(x, y.size)
+    }.toList.sortBy(_.msgNum).reverse.take(5)
+
+    val neg = li.filter(_.ratingValue < 4).groupBy(_.ratingName).map{
+      case (x,y) => ServiceSentiment(x, y.size)
+    }.toList.sortBy(_.msgNum).reverse.take(5)
 
 
     (neg, pos)
