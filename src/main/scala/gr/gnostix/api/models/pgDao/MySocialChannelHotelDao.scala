@@ -351,11 +351,11 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val pos = massagedData.reverse.take(5).toList.sortBy(x => x.service_name)
 */
 
-    val pos = li.filter(_.ratingValue > 7).groupBy(_.ratingName).map{
+    val pos = li.filter(_.ratingValue > 6).groupBy(_.ratingName).map{
       case (x,y) => ServiceSentiment(x, y.size)
     }.toList.sortBy(_.msgNum).reverse.take(5)
 
-    val neg = li.filter(_.ratingValue < 4).groupBy(_.ratingName).map{
+    val neg = li.filter(_.ratingValue < 5).groupBy(_.ratingName).map{
       case (x,y) => ServiceSentiment(x, y.size)
     }.toList.sortBy(_.msgNum).reverse.take(5)
 
