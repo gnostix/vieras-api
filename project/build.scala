@@ -38,7 +38,7 @@ object ScalatraoraBuild extends Build {
         "com.typesafe.slick" %% "slick-extensions" % "2.0.2" withJavadoc(),
         "com.typesafe.akka" %% "akka-actor" % "2.3.4",
         "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
-        "com.restfb" % "restfb" % "1.6.16",
+        "com.restfb" % "restfb" % "1.10.1",
         "org.twitter4j" % "twitter4j-core" % "4.0.2",
         "postgresql" % "postgresql" % "9.1-901.jdbc4",
         "javax.mail" % "mail" % "1.4.1",
