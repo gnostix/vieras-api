@@ -59,7 +59,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
   def findById(profileId: Int, companyId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
-        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 2, Some(credId))
+        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", Some(credId))
 
         val sql =
           s"""
@@ -89,7 +89,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
         getConnection withSession {
           implicit session =>
             try {
-              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 2, None)
+              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", None)
 
               val sql =
                 s"""
@@ -181,7 +181,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
   def findById(profileId: Int, companyId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
-        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, Some(credId))
+        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", Some(credId))
 
         val sql =
           s"""
@@ -213,7 +213,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
 
           getConnection withSession {
             implicit session =>
-              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, None)
+              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", None)
 
               val sql =
                 s"""
@@ -319,7 +319,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
   def findById(profileId: Int, companyId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
-        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 9, Some(credId))
+        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "youtube", Some(credId))
 
         val sql =
           s"""
@@ -349,7 +349,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
         try {
           getConnection withSession {
             implicit session =>
-              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 9, None)
+              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "youtube", None)
 
               val sql =
                 s"""
@@ -446,7 +446,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
     try {
       getConnection withSession {
         implicit session =>
-          val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 15, Some(credId))
+          val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "google_analytics", Some(credId))
 
           val sql =
             s"""
@@ -484,7 +484,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
         try {
           getConnection withSession {
             implicit session =>
-              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 15, None)
+              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "google_analytics", None)
 
               val sql =
                 s"""

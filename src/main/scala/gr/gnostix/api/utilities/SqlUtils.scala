@@ -38,13 +38,14 @@ object SqlUtils extends DatabaseAccessSupportPg {
   }
 
 
-  def buildSocialCredentialsQuery(profileId: Int, companyId: Int, datasourceId: Int, credId: Option[Int]): String = {
+  def buildSocialCredentialsQuery(profileId: Int, companyId: Int, datasourceName: String, credId: Option[Int]): String = {
     credId match {
       case Some(x) => x + " )"
       case None =>
         s"""select s.id from vieras.eng_profile_social_credentials s , vieras.eng_company co
           where s.fk_company_id in ( $companyId )
-          and s.fk_datasource_id = $datasourceId and s.fk_company_id = co.id and co.fk_profile_id = $profileId)
+          and s.fk_datasource_id in (select id from vieras.eng_datasources where LOWER(ds_name) = LOWER('${datasourceName}' ))
+          and s.fk_company_id = co.id and co.fk_profile_id = $profileId)
         """
     }
   }

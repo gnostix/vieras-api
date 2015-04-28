@@ -156,7 +156,7 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 15, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "google_analytics", credId)
 
     val sql =
       s"""
@@ -183,7 +183,7 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     val grouByDate = DateUtils.sqlGrouByDatePg(numDays)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 15, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "google_analytics", credId)
 
     val sql =
       s"""
