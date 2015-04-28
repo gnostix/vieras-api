@@ -113,6 +113,14 @@ case class Male(age17: Int, age24: Int, age34: Int, age44: Int, age54: Int, age6
 case class FacebookComment(id: Int, message: String, created: Timestamp  , userName: String, userId: String, likes: Int, postId: String, engQueryId: Int, commentId: String, postUserId: String)
 case class FacebookPost(id: Int, message: String, created: Timestamp  , userName: String, userId: String, likes: Int, comments: Int, engQueryId: Int, postId: String, postLink: String, shares: Int)
 
+// 3 next classes for the peak data
+case class FacebookPostWithCommentsRaw(postMessage: String, postCreated: Timestamp  , postUserName: String, postUserId: String,
+                                       postLikes: Int, postComments: Int,   postId: String, postShares: Int, commentMessage: String, commentDate: Timestamp,
+                                       commentUserName: String, commentUserId: String, commentLikes: Int, commentId: String)
+case class FacebookPostWithCommentsOnlyRaw(commentMessage: String, commentDate: Timestamp, commentUserName: String, commentUserId: String, commentLikes: Int, commentId: String)
+case class FacebookPostWithComments(postMessage: String, postCreated: Timestamp  , postUserName: String, postUserId: String,
+                                       postLikes: Int, postComments: Int,   postId: String, postShares: Int, comments: List[FacebookPostWithCommentsOnlyRaw])
+
 // twitter page
 case class TwitterMentionFav(id: Int, created: Timestamp, actionUserHandler: String, actionUserId: String, actionUserFollowers: Int, actionUserListed: Int, text: String, queryId: Int, favorites: Int, statusId: String)
 case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: String, retweetedCount: Int, text: String, queryId: Int,handle: String)

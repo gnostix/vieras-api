@@ -137,7 +137,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val mySqlDynamic = grouBydate match {
       case  "hour" => buildQueryPeakTextData(peakDate, profileId, companyId, datasourceId, "day") /// it is never by hour in review messages
-      case "day" | "week" | "month" => buildQueryPeakTextData(peakDate, profileId, companyId, datasourceId, grouBydate)
+      case "day" | "week" | "month" | "year" => buildQueryPeakTextData(peakDate, profileId, companyId, datasourceId, grouBydate)
     }
 
     //bring the actual data
@@ -156,7 +156,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
     val mySqlDynamic = grouBydate match {
       case  "hour" => buildQueryServicePeakTextData(peakDate, profileId, companyId, datasourceId, "day", service) /// it is never by hour in review messages
-      case "day" | "week" | "month" => buildQueryServicePeakTextData(peakDate, profileId, companyId, datasourceId, grouBydate, service)
+      case "day" | "week" | "month"  | "year" => buildQueryServicePeakTextData(peakDate, profileId, companyId, datasourceId, grouBydate, service)
     }
 
     //bring the actual data
@@ -373,7 +373,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      Some(ApiData("hotel_messages", GeoLocationDao.fixRatingTextData(myData)))
+      Some(ApiData("messages", GeoLocationDao.fixRatingTextData(myData)))
 
     } catch {
       case e: Exception => {
@@ -393,7 +393,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      Some(ApiData("hotel_messages", myData))
+      Some(ApiData("messages", myData))
 
     } catch {
       case e: Exception => {

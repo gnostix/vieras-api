@@ -1,7 +1,7 @@
 package gr.gnostix.api.models.pgDao
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
-import gr.gnostix.api.models.plainModels.{ApiData, DataLineGraph, DemographicsDataFB, FacebookComment, FacebookDemographics, FacebookPost, FacebookStats, FacebookStatsApi, FacebookStatsTop, MsgNum, Payload, SocialData, SocialDataSum}
+import gr.gnostix.api.models.plainModels._
 import gr.gnostix.api.utilities.{SqlUtils, DateUtils}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
@@ -20,6 +20,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   implicit val getFbStats = GetResult(r => FacebookStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getFbComment = GetResult(r => FacebookComment(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getFbPost = GetResult(r => FacebookPost(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getFbPostPeakDataRaw = GetResult(r => FacebookPostWithCommentsRaw(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<,r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -113,7 +114,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     val prom = Promise[Option[ApiData]]()
     val mySqlDynamic = dataType match {
       case "comment" => buildQueryCommentsPeakDate(peakDate, profileId, companyId, engId, grouBydate)
-      case "post" => buildQueryPostsPeakDate(fromDate, toDate, peakDate, profileId, companyId, engId)
+      case "post" => buildQueryPostsCommentsPeakDate(peakDate, profileId, companyId, engId, grouBydate)
     }
 
     Future {
@@ -129,11 +130,11 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   private def getPostMessages(sql: String): Option[ApiData] = {
 
     try {
-      var myData = List[FacebookPost]()
+      var myData = List[FacebookPostWithCommentsRaw]()
       getConnection withSession {
         implicit session =>
           logger.info("get my social channel fb ------------->" + sql)
-          val records = Q.queryNA[FacebookPost](sql)
+          val records = Q.queryNA[FacebookPostWithCommentsRaw](sql)
           myData = records.list()
       }
 
@@ -146,6 +147,13 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     }
 
   }
+
+//  private def fixPostCommentsRawData(li: List[FacebookPostWithCommentsRaw]): List[FacebookPostWithComments] = {
+//
+//    li.groupBy(_.postId).map{
+//      case (x,y) => FacebookPostWithComments(y.head.postMessage, y.head.postCreated, y.head.postUserName, y.head.postUserId)
+//    }
+//  }
 
   private def getCommentMessages(sql: String): Option[ApiData] = {
 
@@ -300,7 +308,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
 
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -382,9 +390,9 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
 
-    val sql =  s"""
+    val sql = s"""
         select fk_eng_engagement_data_quer_id,max(age_13_17),max(age_18_24),max(age_25_34),max(age_35_44),max(age_45_54),max(age_55_64),max(age_65_plus),gender,created
             from vieras.ENG_FB_DEMOGRAPHICS i where I.FK_ENG_ENGAGEMENT_DATA_QUER_ID  in
              (select q.id from vieras.eng_engagement_data_queries q where FK_PROFILE_SOCIAL_ENG_ID in  ( $sqlEngAccount )
@@ -415,9 +423,9 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
 
-    val sql =  s"""
+    val sql = s"""
           select id,message,created,user_name,user_id, likes,fk_post_id, fk_eng_engagement_data_quer_id, comment_id,  post_user_id
               from vieras.ENG_FB_WALL_COMMENTS  where fk_eng_engagement_data_quer_id in
                 (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
@@ -437,63 +445,84 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     val peakDateStr: String = fmt.print(peakDate)
 
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
 
-    val sql =  groupByDate match {
-      case "day" | "week" | "month" => {
+    val sql = groupByDate match {
+      case "hour" | "day" | "week" | "month" | "year" => {
         s"""
           select id,message,created,user_name,user_id, likes,fk_post_id, fk_eng_engagement_data_quer_id, comment_id,  post_user_id
               from vieras.ENG_FB_WALL_COMMENTS  where fk_eng_engagement_data_quer_id in
                 (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-              and  created between   date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
-              and date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}' - INTERVAL '1 day')
+              and  created between   date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
+              and date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}')
               and created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
           group by id,message,created,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
           order by created asc
          """
       }
-      case "hour" => {
-        s"""
-          select id,message,created,user_name,user_id, likes,fk_post_id, fk_eng_engagement_data_quer_id, comment_id,  post_user_id
-              from vieras.ENG_FB_WALL_COMMENTS  where fk_eng_engagement_data_quer_id in
-                (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-              and  created between   date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
-              and date_trunc('${groupByDate}', to_date('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}' - INTERVAL '1 day')
-              and created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
-          group by id,message,created,user_name,user_id,likes,fk_post_id,fk_eng_engagement_data_quer_id,comment_id, post_user_id
-          order by created asc
-         """
-      }
+
     }
 
 
     sql
   }
 
-  def buildQueryPostsPeakDate(fromDate: DateTime, toDate: DateTime, peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  def buildQueryPostsCommentsPeakDate(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], groupByDate: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
-    val fromDateStr: String = fmt.print(fromDate)
-    val toDateStr: String = fmt.print(toDate)
     val peakDateStr: String = fmt.print(peakDate)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
-
-    val sql = s"""
-          select id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
-           from vieras.eng_fb_wall where fk_eng_engagement_data_quer_id in
-            (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
-              and created  between to_timestamp('${peakDate}', 'DD-MM-YYYY HH24:MI:SS')
-              and to_timestamp('${peakDate}', 'DD-MM-YYYY HH24:MI:SS')
-         group by id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
-         order by created asc
-
+    val sql = groupByDate match {
+      case "hour" | "day" | "week" | "month" | "year" => {
+        s"""
+    select p.message as post_msg, p.created as post_date, p.from_user as post_user, p.from_user_id as post_user_id, p.likes as post_likes,
+    p.comments as post_comments, p.msg_id as post_id, p.shares as post_shares,
+      m.message as comment_msg, m.created as comment_date, m.user_name  as comment_user_name, m.user_id  as comment_usr_id, m.likes  as comment_likes,
+       m.comment_id as comment_id
+               from vieras.eng_fb_wall p
+      left join vieras.ENG_FB_WALL_COMMENTS m on p.msg_id=m.fk_post_id
+               where p.fk_eng_engagement_data_quer_id in
+                (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+                  and  p.created between   date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
+                  and date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}')
+                  and p.created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
+             group by p.id, p.message, p.created, p.from_user, p.from_user_id, p.likes, p.comments, p.msg_id, p.shares,
+        m.message, m.created, m.user_name, m.user_id, m.likes, m.comment_id
+             order by p.created asc
          """
+      }
+    }
 
     sql
   }
 
+  def buildQueryPostsPeakDate(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], groupByDate: String): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val peakDateStr: String = fmt.print(peakDate)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+
+    val sql = groupByDate match {
+      case "hour" | "day" | "week" | "month" | "year" => {
+        s"""
+          select id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
+           from vieras.eng_fb_wall where fk_eng_engagement_data_quer_id in
+            (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where FK_PROFILE_SOCIAL_ENG_ID in ( $sqlEngAccount )
+              and  created between   date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
+              and date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}')
+              and created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
+         group by id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
+         order by created asc
+
+         """
+      }
+    }
+
+    sql
+  }
 
   def buildQueryPosts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
@@ -502,7 +531,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
 
     val sql = s"""
           select id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
@@ -529,9 +558,9 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 1, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
 
-    val sql =  s"""
+    val sql = s"""
         SELECT coalesce(FB_SW.QID, FB_COMM.QID) QID, coalesce(FB_SW.MDATE, FB_COMM.MDATE) MDATE, PAGE_LIKES, POSTS, POST_LIKES, POST_SHARES, COMMENTS, COMM_LIKES, TALKING_ABOUT_COUNT, REACH, VIEWS, ENGAGED
           FROM ((SELECT coalesce(FB_STATS.QID, FB_WALL.QID) QID, coalesce(FB_STATS.MDATE, FB_WALL.MDATE) MDATE,  PAGE_LIKES,  POSTS, POST_LIKES, POST_SHARES,TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED
            FROM  (SELECT FK_ENG_ENGAGEMENT_DATA_QUER_ID QID, date_trunc('${grouByDate}',created) AS MDATE,  ROUND(MAX(FANPAGE_FANS)) PAGE_LIKES, TALKING_ABOUT_COUNT, REACH , VIEWS, ENGAGED

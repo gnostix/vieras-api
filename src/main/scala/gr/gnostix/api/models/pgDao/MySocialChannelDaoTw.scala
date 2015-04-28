@@ -209,7 +209,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 2, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
 
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -311,7 +311,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 2, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
 
     val sql =
         s"""
@@ -336,7 +336,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 2, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
 
     val sql =
         s"""
@@ -358,7 +358,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, 2, credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
 
     val sql =
         s"""

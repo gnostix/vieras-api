@@ -378,6 +378,92 @@ with FutureSupport {
   }
 
 
+  // ----------------------------- PEAK DATA -------------------------------------------------------
+
+  // get all data for facebook for one profile datatype = (post or comment)
+  get("/profile/:profileId/company/:companyId/message/peak/:dataType/:fromDate/:toDate/:peakDate") {
+    logger.info(s"----> get text data for facebook for  one account datatype = (post, comment)" +
+      s"  /api/user/socialchannels/dashboard/facebook/ --peak data  * ${params("dataType")} ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val peakDate: DateTime = DateTime.parse(params("peakDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${peakDate}    ")
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val dataType = params("dataType").toString
+
+      val data = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, dataType, None)
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- data
+          } yield f2(a1)
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+
+
+  // get all data for facebook for one channel account datatype = (post or comment)
+  get("/profile/:profileId/company/:companyId/message/peak/:dataType/:engId/:fromDate/:toDate/:peakDate") {
+    logger.info(s"----> get all data for facebook for  one account datatype = (post, comment)" +
+      s"  /api/user/socialchannels/dashboard/facebook/--peak data * ${params("dataType")} ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val peakDate: DateTime = DateTime.parse(params("peakDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${peakDate}    ")
+
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val engId = params("engId").toInt
+      val dataType = params("dataType").toString
+
+      val data = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, dataType, Some(engId))
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- data
+          } yield f2(a1)
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+
+
 }
 
 case class FacebookDashboardServlet(executor: ExecutionContext) extends GnostixAPIStack with FacebookDashboardServletRoutes
