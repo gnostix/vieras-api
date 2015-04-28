@@ -120,7 +120,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     Future {
       dataType match {
         case "comment" => prom.success(getCommentMessages(mySqlDynamic))
-        case "post" => prom.success(getPostMessages(mySqlDynamic))
+        case "post" => prom.success(getPostPeakMessages(mySqlDynamic))
       }
     }
 
@@ -130,11 +130,11 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   private def getPostMessages(sql: String): Option[ApiData] = {
 
     try {
-      var myData = List[FacebookPostWithCommentsRaw]()
+      var myData = List[FacebookPost]()
       getConnection withSession {
         implicit session =>
           logger.info("get my social channel fb ------------->" + sql)
-          val records = Q.queryNA[FacebookPostWithCommentsRaw](sql)
+          val records = Q.queryNA[FacebookPost](sql)
           myData = records.list()
       }
 
@@ -148,12 +148,36 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
   }
 
-//  private def fixPostCommentsRawData(li: List[FacebookPostWithCommentsRaw]): List[FacebookPostWithComments] = {
-//
-//    li.groupBy(_.postId).map{
-//      case (x,y) => FacebookPostWithComments(y.head.postMessage, y.head.postCreated, y.head.postUserName, y.head.postUserId)
-//    }
-//  }
+  private def getPostPeakMessages(sql: String): Option[ApiData] = {
+
+    try {
+      var myData = List[FacebookPostWithCommentsRaw]()
+      getConnection withSession {
+        implicit session =>
+          logger.info("get my social channel fb ------------->" + sql)
+          val records = Q.queryNA[FacebookPostWithCommentsRaw](sql)
+          myData = records.list()
+      }
+
+      Some(ApiData("facebook_posts", fixPostCommentsRawData(myData)))
+    } catch {
+      case e: Exception => {
+        e.printStackTrace()
+        None
+      }
+    }
+
+  }
+
+  private def fixPostCommentsRawData(li: List[FacebookPostWithCommentsRaw]): List[FacebookPostWithComments] = {
+
+    li.groupBy(_.postId).map{
+      case (x,y) => FacebookPostWithComments(y.head.postMessage, y.head.postCreated, y.head.postUserName, y.head.postUserId,
+        y.head.postLikes, y.head.postComments, y.head.postId, y.head.postShares,
+        y.filter(_.commentId != null).map(x => FacebookPostWithCommentsOnlyRaw(x.commentMessage, x.commentDate, x.commentUserName,
+        x.commentUserId, x.commentLikes, x.commentId)).toList)
+    }.toList
+  }
 
   private def getCommentMessages(sql: String): Option[ApiData] = {
 
