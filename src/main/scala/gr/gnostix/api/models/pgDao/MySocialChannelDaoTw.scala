@@ -62,7 +62,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
     val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
@@ -80,6 +80,30 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val prom = Promise[Option[ApiData]]()
     val mySqlDynamic = dataType match {
       case "mention" | "favorite" => buildQueryMentionsFavs(fromDate, toDate, profileId, companyId, engId, dataType)
+      case "retweet" => buildQueryRetweets(fromDate, toDate, profileId, companyId, engId)
+    }
+
+    Future {
+      dataType match {
+        case "mention" | "favorite" => prom.success(getMentionFavMessages(mySqlDynamic, dataType))
+        case "retweet" => prom.success(getRetweetMessages(mySqlDynamic))
+      }
+    }
+
+    prom.future
+  }
+
+  // get raw data
+  def getPeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime,
+                      profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+
+
+    val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
+    val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
+
+    val prom = Promise[Option[ApiData]]()
+    val mySqlDynamic = dataType match {
+      case "mention" | "favorite" => buildQueryMentionsFavsPeak(peakDate, profileId, companyId, engId, dataType, grouBydate)
       case "retweet" => buildQueryRetweets(fromDate, toDate, profileId, companyId, engId)
     }
 
@@ -266,7 +290,6 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
   }
 
 
-
   private def getSqlRetweetTotal(numDays: Int, fromDateStr: String, toDateStr: String, sqlEngAccount: String) = {
     val sql =
       s"""
@@ -298,6 +321,36 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
 
   }
 
+  private def buildQueryMentionsFavsPeak(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], dataType: String, groupByDate: String): String = {
+
+    val twType = dataType match {
+      case "mention" => "TW_MENTIONS"
+      case "favorite" => "TW_FAVORITES"
+    }
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val peakDateStr: String = fmt.print(peakDate)
+
+
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
+
+    val sql = groupByDate match {
+      case "hour" | "day" | "week" | "month" | "year" => {
+        s"""
+          select t.id, t.CREATED, t.ACTION_FROM_USER_HANDLER, t.ACTION_FROM_USER_ID, t.ACTION_FROM_USER_FOLLOWERS,
+              t.ACTION_FROM_USER_LISTED, t.TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.FAVORITES, t.status_id  from vieras.ENG_TW_MENT_AND_FAV t
+           where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where  q.attr = '${twType}'
+              and fk_profile_social_eng_id in  ( $sqlEngAccount  )
+              and  created between   date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
+              and date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}')
+              and created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
+          order by created asc
+         """
+      }
+    }
+    sql
+  }
 
   private def buildQueryMentionsFavs(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], dataType: String): String = {
 
@@ -314,7 +367,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
 
     val sql =
-        s"""
+      s"""
           select t.id, t.CREATED, t.ACTION_FROM_USER_HANDLER, t.ACTION_FROM_USER_ID, t.ACTION_FROM_USER_FOLLOWERS,
               t.ACTION_FROM_USER_LISTED, t.TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.FAVORITES, t.status_id  from vieras.ENG_TW_MENT_AND_FAV t
            where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where  q.attr = '${twType}'
@@ -328,6 +381,29 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     sql
   }
 
+  private def buildQueryRetweetsPeak(peakDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+                                     credId: Option[Int], groupByDate: String): String = {
+
+    val datePattern = "dd-MM-yyyy HH:mm:ss"
+    val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
+    val peakDateStr: String = fmt.print(peakDate)
+
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
+
+    val sql = groupByDate match {
+      case "hour" | "day" | "week" | "month" | "year" => {
+        s"""
+          select t.ID, t.CREATED, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from vieras.ENG_TW_RETWEETS t
+              where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where fk_profile_social_eng_id in  ( $sqlEngAccount  )
+                and  created between   date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
+                and date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}')
+                and created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
+             order by created asc
+         """
+      }
+    }
+    sql
+  }
 
   private def buildQueryRetweets(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
@@ -339,7 +415,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
 
     val sql =
-        s"""
+      s"""
           select t.ID, t.CREATED, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from vieras.ENG_TW_RETWEETS t
               where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where fk_profile_social_eng_id in  ( $sqlEngAccount  )
                 and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
@@ -361,7 +437,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
 
     val sql =
-        s"""
+      s"""
         SELECT max(status_number) as tweets,max(followers),max(following), max(favorites), max(listed), max(handle), max(created) FROM vieras.ENG_TW_STATS t
           where T.FK_ENG_ENGAGEMENT_DATA_QUER_ID in (select id from vieras.ENG_ENGAGEMENT_DATA_QUERIES where attr = 'TW_FFSL'
            and FK_PROFILE_SOCIAL_ENG_ID in  ( $sqlEngAccount  )

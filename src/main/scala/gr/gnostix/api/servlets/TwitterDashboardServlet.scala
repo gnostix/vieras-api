@@ -4,6 +4,7 @@ import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.pgDao.MySocialChannelDaoTw
 import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, ErrorDataResponse}
+import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
@@ -59,7 +60,7 @@ with FutureSupport {
             a1 <- rawDataStats
             a2 <- totalMentions
             a3 <- totalRetweets
-          } yield f3(Some(List(a1.get, a2.get, a3.get)))
+          } yield HelperFunctions.f3(Some(List(a1.get, a2.get, a3.get)))
       }
 
     } catch {
@@ -94,7 +95,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawData
-          } yield f2(a1)
+          } yield HelperFunctions.f2(a1)
       }
 
     } catch {
@@ -110,6 +111,7 @@ with FutureSupport {
 
 
 
+/*
   def f2(dashboardData: Option[ApiData]) = {
     dashboardData match {
       case Some(dt) => {
@@ -147,6 +149,7 @@ with FutureSupport {
     }
 
   }
+*/
 
 
 
@@ -176,7 +179,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- data
-          } yield f2(a1)
+          } yield HelperFunctions.f2(a1)
       }
 
     } catch {
@@ -215,7 +218,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- data
-          } yield f2(a1)
+          } yield HelperFunctions.f2(a1)
       }
 
     } catch {
@@ -255,7 +258,7 @@ with FutureSupport {
               a1 <- mention
               a2 <- favorite
               a3 <- retweet
-            } yield f3(Some(List(a1.get, a2.get, a3.get)))
+            } yield HelperFunctions.f3(Some(List(a1.get, a2.get, a3.get)))
         }
 
       theData
@@ -296,7 +299,7 @@ with FutureSupport {
               a1 <- mention
               a2 <- favorite
               a3 <- retweet
-            } yield f3(Some(List(a1.get, a2.get, a3.get)))
+            } yield HelperFunctions.f3(Some(List(a1.get, a2.get, a3.get)))
         }
 
       theData
@@ -309,6 +312,91 @@ with FutureSupport {
     }
   }
 
+  // ----------------------------- PEAK DATA -------------------------------------------------------
+
+  // get all data for twitter for one profile datatype = (mention, favorite or retweet)
+  get("/profile/:profileId/company/:companyId/message/peak/:dataType/:fromDate/:toDate/:peakDate") {
+    logger.info(s"----> get text data for twitter for  peak" +
+      s"  /api/user/socialchannels/dashboard/twitter/* ${params("dataType")} ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val peakDate: DateTime = DateTime.parse(params("peakDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${peakDate}    ")
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val dataType = params("dataType").toString
+
+      val data = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, dataType, None)
+
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- data
+          } yield HelperFunctions.f2(a1)
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
+
+
+
+  // get all data for twitter for one channel account datatype = (mention, favorite or retweet)
+  get("/profile/:profileId/company/:companyId/message/peak/:dataType/:engId/:fromDate/:toDate/:peakDate") {
+    logger.info(s"----> get all data for twitter for peak" +
+      s"  /api/user/socialchannels/dashboard/twitter/* ${params("dataType")} ")
+    try {
+      val fromDate: DateTime = DateTime.parse(params("fromDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${fromDate}    ")
+
+      val toDate: DateTime = DateTime.parse(params("toDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${toDate}    ")
+
+      val peakDate: DateTime = DateTime.parse(params("peakDate"),
+        DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
+      logger.info(s"---->   parsed date ---> ${peakDate}    ")
+
+
+      val profileId = params("profileId").toInt
+      val companyId = params("companyId").toInt
+      val engId = params("engId").toInt
+      val dataType = params("dataType").toString
+
+      val data = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, dataType, Some(engId))
+
+
+      new AsyncResult() {
+        override val is =
+          for {
+            a1 <- data
+          } yield HelperFunctions.f2(a1)
+      }
+
+    } catch {
+      case e: NumberFormatException => "wrong profile number"
+      case e: Exception => {
+        logger.info(s"-----> ${e.printStackTrace()}")
+        "Wrong Date format. You should sen in format dd-MM-yyyy HH:mm:ss "
+      }
+    }
+  }
 
 
 
