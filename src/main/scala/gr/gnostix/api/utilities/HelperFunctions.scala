@@ -2,6 +2,8 @@ package gr.gnostix.api.utilities
 
 import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, ErrorDataResponse}
 
+import scala.util.Random
+
 /**
  * Created by rebel on 13/1/15.
  */
@@ -61,7 +63,7 @@ object HelperFunctions {
   private def randomStringFromCharList(length: Int, chars: Seq[Char]): String = {
     val sb = new StringBuilder
     for (i <- 1 to length) {
-      val randomNum = util.Random.nextInt(chars.length)
+      val randomNum = new Random().nextInt(chars.length)
       sb.append(chars(randomNum))
     }
     sb.toString
