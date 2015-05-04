@@ -385,10 +385,16 @@ with FutureSupport {
 
   //get supported hospitality sites
   get("/profile/:profileId/company/:companyId/socialchannel/hospitality/supported/all") {
-    val validUrl = SocialAccountsHotelDao.getHospitalitySites
-    logger.info(s"---->   get supported hospitality sites ")
+    val validUrl = SocialAccountsHotelDao.getHospitalitySites(user.userLevel, "company")
+    logger.info(s"---->   get company supported hospitality sites ")
     Map("status" -> 200, "message" -> "all good", "payload" -> validUrl)
+  }
 
+  //get supported hospitality sites
+  get("/profile/:profileId/company/:companyId/socialchannel/hospitality/supported/competitor") {
+    val validUrl = SocialAccountsHotelDao.getHospitalitySites(user.userLevel, "competitor")
+    logger.info(s"---->   get competitor supported hospitality sites ")
+    Map("status" -> 200, "message" -> "all good", "payload" -> validUrl)
   }
 
   // get customer hotel sites
