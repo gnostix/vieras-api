@@ -820,11 +820,21 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getHospitalitySites() = {
+  def getHospitalitySites(userLevel: Int, companyType: String) = {
     try {
+
+      val theCompany = companyType match {
+        case "company" => "MYCOMPANY"
+        case "competitor" => "COMPETITOR"
+      }
       getConnection withSession {
         implicit session =>
-          val credId = Q.queryNA[SupportedHospitalitySites]( s""" select ds_name, id from vieras.vieras_datasources where fk_g_id=9 """)
+          val credId = Q.queryNA[SupportedHospitalitySites](
+            s"""
+                select d.ds_name, d.id from vieras.vieras_datasources d, vieras.user_level_urls u
+                  where d.id=u.fk_datasource_id and u.fk_user_level_id=${userLevel}
+                  and company_type = ${theCompany} """
+          )
           credId.list()
       }
 
