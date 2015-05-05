@@ -833,7 +833,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
             s"""
                 select d.ds_name, d.id from vieras.vieras_datasources d, vieras.user_level_urls u
                   where d.id=u.fk_datasource_id and u.fk_user_level_id=${userLevel}
-                  and company_type = ${theCompany} """
+                  and company_type = '${theCompany}' """
           )
           credId.list()
       }
