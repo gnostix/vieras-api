@@ -43,6 +43,31 @@ object HelperFunctions {
 
   }
 
+  def fixSumData(dashboardData: Option[List[ApiData]]) = {
+
+    dashboardData match {
+      case Some(dt) => {
+
+        //val existData = dt.filter(_.dataName != "nodata")
+
+        val myData = dt.map {
+          case (x) => {
+            //println(x)
+            (x.dataName -> x.data)
+          }
+        }.toMap
+
+        val hasData = dt.size match {
+          case x if (x > 0) => ApiMessages.generalSuccessOneParam("messages" -> myData)
+          case x if (x == 0) => ApiMessages.generalSuccessNoData
+        }
+
+        hasData
+      }
+      case None => ErrorDataResponse(404, "Error on data")
+    }
+
+  }
 
 
   def f4(dashboardData: Option[List[ApiData]]) = {

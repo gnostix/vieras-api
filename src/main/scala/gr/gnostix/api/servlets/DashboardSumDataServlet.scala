@@ -3,7 +3,7 @@ package gr.gnostix.api.servlets
 import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.pgDao.{AppVersionDao, MySocialChannelHotelDao, MySocialChannelDaoFB, MySocialChannelDaoTw}
-import gr.gnostix.api.models.plainModels.{ApiMessages, DataLineGraph, SocialData}
+import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, DataLineGraph, SocialData}
 import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
@@ -35,7 +35,7 @@ with FutureSupport {
   }
 
 
-  //mount point /api/user/account/dashboard/services/*
+  //mount point -*
 
   get("/profile/:profileId/company/:companyId/social/messages/:fromDate/:toDate") {
     logger.info(s"---->   sentiment /sentiment/comments/ TOTAL from all sources in two groups (social media and hospitality)  ")
@@ -219,14 +219,22 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
       val comments = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, "comment", None)
+      val posts = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, "post", None)
+      val retweets = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, "retweet", None)
+      val mentions = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, "mention", None)
+      val favorites = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, "favorite", None)
       // here we are going to add also posts/ twitter fav, ment, retweets
 
       val theData =
         new AsyncResult() {
           override val is =
             for {
-              a6 <- comments
-            } yield HelperFunctions.f3(Some(List(a6.get)))
+              a1 <- posts
+              a2 <- comments
+              a3 <- retweets
+              a4 <- mentions
+              a5 <- favorites
+            } yield  HelperFunctions.fixSumData(Some(List(a1.get, a2.get, a3.get, a4.get, a5.get)))
         }
 
       // return the data
