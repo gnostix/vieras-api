@@ -191,7 +191,7 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      Some(ApiData("hotel_messages", fixRatingTextData(myData)))
+      Some(ApiData("messages", fixRatingTextData(myData)))
 
     } catch {
       case e: Exception => {
