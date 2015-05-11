@@ -56,6 +56,7 @@ with FutureSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val mentions = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "mention", None)
+      val favorites = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "favorite", None)
       val retweets = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
       val posts = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, companyId, "post", None)
       val comments = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, companyId, "comment", None)
@@ -68,10 +69,11 @@ with FutureSupport {
             for {
               a1 <- mentions
               a2 <- retweets
-              a3 <- posts
-              a4 <- comments
+              a3 <- favorites
+              a4 <- posts
+              a5 <- comments
               //a5 <- reviews
-            } yield f1(List(a1.get, a2.get, a3.get, a4.get))
+            } yield f1(List(a1.get, a2.get, a3.get, a4.get, a5.get))
         }
 
       // return the data

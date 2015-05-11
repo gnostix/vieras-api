@@ -104,7 +104,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val prom = Promise[Option[ApiData]]()
     val mySqlDynamic = dataType match {
       case "mention" | "favorite" => buildQueryMentionsFavsPeak(peakDate, profileId, companyId, engId, dataType, grouBydate)
-      case "retweet" => buildQueryRetweets(fromDate, toDate, profileId, companyId, engId)
+      case "retweet" => buildQueryRetweetsPeak(peakDate, profileId, companyId, engId, dataType, grouBydate)
     }
 
     Future {
@@ -381,8 +381,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryRetweetsPeak(peakDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
-                                     credId: Option[Int], groupByDate: String): String = {
+  private def buildQueryRetweetsPeak(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], dataType: String, groupByDate: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
