@@ -342,7 +342,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- data
-          } yield HelperFunctions.f2(a1)
+          } yield HelperFunctions.peakSocialMessages(a1)
       }
 
     } catch {
@@ -386,7 +386,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- data
-          } yield HelperFunctions.f2(a1)
+          } yield HelperFunctions.peakSocialMessages(a1)
       }
 
     } catch {

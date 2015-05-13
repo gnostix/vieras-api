@@ -79,6 +79,21 @@ object HelperFunctions {
 
   }
 
+  def peakSocialMessages(dashboardData: Option[ApiData]) = {
+    dashboardData match {
+      case Some(dt) => {
+
+        val hasData = dt.dataName match {
+          case "nodata" => ApiMessages.generalSuccessNoData
+          case _ => ApiMessages.generalSuccessOneParam( Map("messages" -> Map(dt.dataName -> dt.data)))
+        }
+
+        hasData
+      }
+      case None => ErrorDataResponse(404, "Error on data")
+    }
+
+  }
 
   def randomAlphaNumericString(length: Int): String = {
     val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')

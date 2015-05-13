@@ -4,6 +4,7 @@ import gr.gnostix.api.GnostixAPIStack
 import gr.gnostix.api.auth.AuthenticationSupport
 import gr.gnostix.api.models.pgDao.MySocialChannelDaoFB
 import gr.gnostix.api.models.plainModels.{ApiData, ApiMessages, ErrorDataResponse}
+import gr.gnostix.api.utilities.HelperFunctions
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
@@ -216,21 +217,7 @@ with FutureSupport {
 
   }
 
-  def fbMessages(dashboardData: Option[ApiData]) = {
-    dashboardData match {
-      case Some(dt) => {
 
-        val hasData = dt.dataName match {
-          case "nodata" => ApiMessages.generalSuccessNoData
-          case _ => ApiMessages.generalSuccessOneParam( Map("messages" -> Map(dt.dataName -> dt.data)))
-        }
-
-        hasData
-      }
-      case None => ErrorDataResponse(404, "Error on data")
-    }
-
-  }
 
 
  // -------------------- DATA --------------------------
@@ -422,7 +409,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- data
-          } yield fbMessages(a1)
+          } yield HelperFunctions.peakSocialMessages(a1)
       }
 
     } catch {
@@ -465,7 +452,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- data
-          } yield fbMessages(a1)
+          } yield HelperFunctions.peakSocialMessages(a1)
       }
 
     } catch {
