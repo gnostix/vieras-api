@@ -216,6 +216,21 @@ with FutureSupport {
 
   }
 
+  def fbMessages(dashboardData: Option[ApiData]) = {
+    dashboardData match {
+      case Some(dt) => {
+
+        val hasData = dt.dataName match {
+          case "nodata" => ApiMessages.generalSuccessNoData
+          case _ => ApiMessages.generalSuccessOneParam( Map("messages" -> Map(dt.dataName -> dt.data)))
+        }
+
+        hasData
+      }
+      case None => ErrorDataResponse(404, "Error on data")
+    }
+
+  }
 
 
  // -------------------- DATA --------------------------
@@ -223,7 +238,7 @@ with FutureSupport {
   // get all data for facebook for one profile datatype = (post or comment)
   get("/profile/:profileId/company/:companyId/message/:dataType/:fromDate/:toDate") {
     logger.info(s"----> get text data for facebook for  one account datatype = (post, comment)" +
-      s"  /api/user/socialchannels/dashboard/facebook/* ${params("dataType")} ")
+      s"  /api/user/socialchannels/dashboard/facebook/ ${params("dataType")} ")
     try {
       val fromDate: DateTime = DateTime.parse(params("fromDate"),
         DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss"))
@@ -407,7 +422,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- data
-          } yield f2(a1)
+          } yield fbMessages(a1)
       }
 
     } catch {
@@ -450,7 +465,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- data
-          } yield f2(a1)
+          } yield fbMessages(a1)
       }
 
     } catch {
