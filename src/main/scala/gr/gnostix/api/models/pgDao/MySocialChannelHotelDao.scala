@@ -24,6 +24,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
   val logger = LoggerFactory.getLogger(getClass)
+  val positiveScore = 7
+  val negativeScore = 4
 
 
   def getDataCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, datasourceId: Option[Int]): Option[Payload] = {
@@ -351,11 +353,11 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val pos = massagedData.reverse.take(5).toList.sortBy(x => x.service_name)
 */
 
-    val pos = li.filter(_.ratingValue > 6).groupBy(_.ratingName).map{
+    val pos = li.filter(_.ratingValue > positiveScore).groupBy(_.ratingName).map{
       case (x,y) => ServiceSentiment(x, y.size)
     }.toList.sortBy(_.msgNum).reverse.take(5)
 
-    val neg = li.filter(_.ratingValue < 5).groupBy(_.ratingName).map{
+    val neg = li.filter(_.ratingValue < negativeScore).groupBy(_.ratingName).map{
       case (x,y) => ServiceSentiment(x, y.size)
     }.toList.sortBy(_.msgNum).reverse.take(5)
 
@@ -423,8 +425,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
         val stats = Map("score" -> myData.map(x => x.datasourceHotelRating).max,
           "outOf" -> myData.map(x => x.maxHotelScore).max,
           "reviewsNum" -> myData.size,
-          "positive" -> myData.filter(x => x.vierasReviewRating >= 8).size,
-          "negative" -> myData.filter(x => x.vierasReviewRating <= 4).size)
+          "positive" -> myData.filter(x => x.vierasReviewRating >= positiveScore).size,
+          "negative" -> myData.filter(x => x.vierasReviewRating <= negativeScore).size)
 
         // stay type graph
         /*        val stayType = myData.groupBy(_.stayType).map{
@@ -654,9 +656,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   private def buildQuerySentimentTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], sentiment: String): String = {
 
     val sentValue = sentiment match {
-      case "positive" => "r.vieras_total_rating >= 7"
-      case "negative" => "r.vieras_total_rating <= 4"
-      case _ => "r.vieras_total_rating <= 0" //for fan..
+      case "positive" => s"""r.vieras_total_rating >= ${positiveScore}"""
+      case "negative" => s"""r.vieras_total_rating <= ${negativeScore}"""
+      case _ => s"""r.vieras_total_rating <= 0""" //for fan..
     }
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
@@ -695,9 +697,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   private def buildQueryServiceSentimentTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], service: String , sentiment: String): String = {
 
     val sentValue = sentiment match {
-      case "positive" => "ra.vieras_rating_value >= 7"
-      case "negative" => "ra.vieras_rating_value <= 4"
-      case _ => "ra.vieras_rating_value <= 0" //for fan..
+      case "positive" => s"""r.vieras_total_rating >= ${positiveScore}"""
+      case "negative" => s"""r.vieras_total_rating <= ${negativeScore}"""
+      case _ => s"""r.vieras_total_rating <= 0""" //for fan..
     }
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
