@@ -417,11 +417,13 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
 
     val sql =
       s"""
-          select t.ID, t.CREATED, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from vieras.ENG_TW_RETWEETS t
+          select t.ID, t.CREATED, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, ra.screen_name, ra.listed,  ra.followers, ra.following
+          from vieras.ENG_TW_RETWEETS t
+          left join vieras.eng_tw_retweets_ffsl ra on t.id=ra.fk_eng_tw_retweets_id
               where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where fk_profile_social_eng_id in  ( $sqlEngAccount  )
-                and created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
+                and t.created between   to_timestamp('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')
                 and to_timestamp('${toDateStr}', 'DD-MM-YYYY HH24:MI:SS')
-             order by created asc
+             order by t.created asc
          """
 
     sql
