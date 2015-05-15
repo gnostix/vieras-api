@@ -17,7 +17,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
   implicit val getTwLineResult = GetResult(r => DataLineGraph(r.<<, r.<<))
   implicit val getTotalResult = GetResult(r => MsgNum(r.<<))
   implicit val getMentionsFavs = GetResult(r => TwitterMentionFav(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
-  implicit val getTwitterRetweets = GetResult(r => TwitterRetweets(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  implicit val getTwitterRetweets = GetResult(r => TwitterRetweets(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   implicit val getTwitterStats = GetResult(r => TwitterStats(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   val logger = LoggerFactory.getLogger(getClass)
@@ -392,12 +392,14 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val sql = groupByDate match {
       case "hour" | "day" | "week" | "month" | "year" => {
         s"""
-          select t.ID, t.CREATED, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, t.twitter_handle from vieras.ENG_TW_RETWEETS t
+          select t.ID, t.CREATED, t.RETWEET_STATUS_ID, t.RETWEETED_COUNT,t.RETWEETED_TEXT, t.FK_ENG_ENGAGEMENT_DATA_QUER_ID, ra.screen_name, ra.listed,  ra.followers, ra.following
+          from vieras.ENG_TW_RETWEETS t
+          left join vieras.eng_tw_retweets_ffsl ra on t.id=ra.fk_eng_tw_retweets_id
               where fk_eng_engagement_data_quer_id in ( select q.id from vieras.eng_engagement_data_queries q where fk_profile_social_eng_id in  ( $sqlEngAccount  )
-                and  created between   date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
+                and  t.created between   date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS'))
                 and date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS')+ INTERVAL '1 ${groupByDate}')
-                and created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
-             order by created asc
+                and t.created < date_trunc('${groupByDate}', to_timestamp('${peakDateStr}' ,'DD-MM-YYYY HH24:MI:SS') + INTERVAL '1 ${groupByDate}')
+             order by t.created asc
          """
       }
     }

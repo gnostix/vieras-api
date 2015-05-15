@@ -123,7 +123,7 @@ case class FacebookPostWithComments(postMessage: String, postCreated: Timestamp 
 
 // twitter page
 case class TwitterMentionFav(id: Int, created: Timestamp, actionUserHandler: String, actionUserId: String, actionUserFollowers: Int, actionUserListed: Int, text: String, queryId: Int, favorites: Int, statusId: String)
-case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: String, retweetedCount: Int, text: String, queryId: Int,handle: String)
+case class TwitterRetweets(id: Int, created: Timestamp, retweetStatusId: String, retweetedCount: Int, text: String, queryId: Int,handle: String, listed: Int, followers: Int, following: Int)
 case class TwitterStats(totalTweets: Int, totalFollowers: Int, totalFollowing: Int, totalFavorites: Int, totalListed: Int, handle: String, created: Timestamp)
 
 // Youtube page
