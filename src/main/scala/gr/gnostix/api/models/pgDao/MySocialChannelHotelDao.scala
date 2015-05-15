@@ -428,6 +428,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
           "positive" -> myData.filter(x => x.vierasReviewRating >= positiveScore).size,
           "negative" -> myData.filter(x => x.vierasReviewRating <= negativeScore).size)
 
+        //logger.info(" -------------> negative reviews " + myData.filter(x => x.vierasReviewRating <= negativeScore))
         // stay type graph
         /*        val stayType = myData.groupBy(_.stayType).map{
                   case (name, tuple) => (name -> tuple.size)
@@ -536,6 +537,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
               and r.FK_HOTEL_ID = h.ID
               and cre.FK_HOTEL_ID = h.id
               and vd.id = cre.fk_datasource_id
+              and r.vieras_total_rating is not null
         """
 
 
@@ -655,6 +657,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
   private def buildQuerySentimentTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], sentiment: String): String = {
 
+    // here we are asking the review rating!
     val sentValue = sentiment match {
       case "positive" => s"""r.vieras_total_rating >= ${positiveScore}"""
       case "negative" => s"""r.vieras_total_rating <= ${negativeScore}"""
@@ -696,9 +699,10 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
   private def buildQueryServiceSentimentTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], service: String , sentiment: String): String = {
 
+    // this is diferrent frm the orevious one because we are asking here for service rating and not the review rating
     val sentValue = sentiment match {
-      case "positive" => s"""r.vieras_total_rating >= ${positiveScore}"""
-      case "negative" => s"""r.vieras_total_rating <= ${negativeScore}"""
+      case "positive" => s"""ra.vieras_rating_value >= ${positiveScore}"""
+      case "negative" => s"""ra.vieras_rating_value <= ${negativeScore}"""
       case _ => s"""r.vieras_total_rating <= 0""" //for fan..
     }
 
