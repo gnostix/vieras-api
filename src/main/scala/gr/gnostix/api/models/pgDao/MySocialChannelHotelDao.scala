@@ -538,6 +538,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
               and cre.FK_HOTEL_ID = h.id
               and vd.id = cre.fk_datasource_id
               and r.vieras_total_rating is not null
+              group by r.id,r.REVIEWER ,r.VIERAS_STAY_TYPE, r.VIERAS_COUNTRY, r.VIERAS_TOTAL_RATING ,h.TOTAL_RATING , vd.ds_rating_scale
         """
 
 
