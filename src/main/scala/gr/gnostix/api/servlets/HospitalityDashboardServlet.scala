@@ -72,7 +72,7 @@ with FutureSupport {
     }
   }
 
-  // get all data for youtube for one profile datatype
+  // get all data for  for one profile datatype
   get("/profile/:profileId/company/:companyId/stats/datasourceid/:dsid/:fromDate/:toDate") {
     logger.info(s"----> get stats  one account " +
       s"  /api/user/socialchannels/dashboard/hotel/*  " + params("dsid"))
