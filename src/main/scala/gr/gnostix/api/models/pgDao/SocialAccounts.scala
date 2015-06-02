@@ -854,6 +854,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
                   select i.id,h.hotel_url,i.fk_datasource_id
                    from vieras.ENG_PROFILE_HOTEL_CREDENTIALS i, vieras.eng_hotels h
                        where i.fk_hotel_id=h.id
+                        and i.FK_company_ID = ${companyId}
                         and i.fk_hotel_id in ( ${sqlEngAccount} )
             """)
           urls.list()
