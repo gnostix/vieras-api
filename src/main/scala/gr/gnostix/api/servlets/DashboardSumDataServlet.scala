@@ -184,7 +184,7 @@ with FutureSupport {
           override val is =
             for {
               a6 <- reviews
-            } yield HelperFunctions.f3(Some(List(a6.get)))
+            } yield HelperFunctions.peakSocialMessages(Some(a6.get))
         }
 
       // return the data
@@ -282,7 +282,7 @@ with FutureSupport {
           override val is =
             for {
               a6 <- reviews
-            } yield HelperFunctions.f3(Some(List(a6.get)))
+            } yield HelperFunctions.peakSocialMessages(Some(a6.get))
         }
 
       // return the data
