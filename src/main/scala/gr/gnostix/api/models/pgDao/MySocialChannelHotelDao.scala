@@ -375,7 +375,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      Some(ApiData("messages", GeoLocationDao.fixRatingTextData(myData)))
+      Some(ApiData("reviews", GeoLocationDao.fixRatingTextData(myData)))
 
     } catch {
       case e: Exception => {
@@ -395,7 +395,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
           myData = records.list()
       }
 
-      Some(ApiData("messages", GeoLocationDao.fixRatingTextData(myData)))
+      Some(ApiData("reviews", GeoLocationDao.fixRatingTextData(myData)))
 
     } catch {
       case e: Exception => {
