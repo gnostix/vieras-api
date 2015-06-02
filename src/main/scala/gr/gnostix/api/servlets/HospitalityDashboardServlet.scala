@@ -131,7 +131,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -166,7 +166,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -204,7 +204,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -240,7 +240,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -278,7 +278,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -314,7 +314,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -352,7 +352,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -389,7 +389,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -427,7 +427,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {
@@ -463,7 +463,7 @@ with FutureSupport {
         override val is =
           for {
             a1 <- rawDataStats
-          } yield HelperFunctions.f2(Some(a1.get))
+          } yield HelperFunctions.peakSocialMessages(Some(a1.get))
       }
 
     } catch {

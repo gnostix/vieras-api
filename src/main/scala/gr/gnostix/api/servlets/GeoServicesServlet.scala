@@ -138,7 +138,7 @@ with FutureSupport {
         val is =
           for {
             data <- rawData
-          } yield HelperFunctions.f2(data)
+          } yield HelperFunctions.peakSocialMessages(data)
       }
 
 
@@ -176,7 +176,7 @@ with FutureSupport {
         val is =
           for {
             data <- rawData
-          } yield HelperFunctions.f2(data)
+          } yield HelperFunctions.peakSocialMessages(data)
       }
 
 
