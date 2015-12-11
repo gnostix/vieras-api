@@ -4,7 +4,7 @@ desc "sbt package on dev"
 task :sbt_package_dev do
     on roles(:dev), in: :sequence, wait: 5 do
       within release_path do
-        execute './sbt', 'package'
+        execute '/usr/bin/sbt', 'package'
       end
     end
   end
