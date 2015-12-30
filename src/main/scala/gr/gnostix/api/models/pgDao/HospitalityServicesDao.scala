@@ -81,18 +81,17 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
       if (myData.size > 0) {
 
         val services = myData.groupBy(_.ratingName).map {
-          case (x, y) => DashboardServicesKPIs(x, y.filter(a => a.ratingValue >= 7).size, y.filter(a => a.ratingValue <= 4).size,
-            y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size, y.size,
-            BigDecimal(y.map(x => x.ratingValue).sum / y.size).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
-          )
-          /*            (x -> Map(
-                      "positive" -> y.filter(a => a.ratingValue >= 7).size,
-                      "negative" -> y.filter(a => a.ratingValue <= 4).size,
-                      "neutral" -> y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size,
-                      //"score" -> (y.map(x => x.ratingValue).sum / y.size) // score average
-                      "score" -> BigDecimal(y.map(x => x.ratingValue).sum / y.size).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble,
-                      "size" -> y.size
-                    ))*/
+          case (x, y) =>
+            val dashboardServicesKPIs = (y.map(x => x.ratingValue).sum != 0 && y.size != 0) match {
+              case true => DashboardServicesKPIs(x, y.filter(a => a.ratingValue >= 7).size, y.filter(a => a.ratingValue <= 4).size,
+                y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size, y.size,
+                BigDecimal(y.map(x => x.ratingValue).sum / y.size).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
+              )
+              case false => DashboardServicesKPIs(x, y.filter(a => a.ratingValue >= 7).size, y.filter(a => a.ratingValue <= 4).size,
+                y.filter(a => a.ratingValue > 4 && a.ratingValue < 7).size, y.size, 0 )
+            }
+
+            dashboardServicesKPIs
         }.toList.sortBy(_.size).reverse.take(6)
 
         services.size match {

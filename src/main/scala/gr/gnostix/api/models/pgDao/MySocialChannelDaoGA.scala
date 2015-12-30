@@ -89,10 +89,10 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
   private def getLineGraphAll(sql: String): Option[List[GaLineData]] = {
 
-//    li.groupBy(x => x.created).map {
-//      case (x, y) => GaLineData(x, y.map(u => u.users).sum, y.map(nu => nu.newUsers).sum, y.map(nu => nu.bounces).sum,
-//        y.map(b => b.bounceRate).sum / y.size, y.map(a => a.avgSessionDuration).sum / y.size, y.map(nu => nu.pageViews).sum)
-//    }.toList.sortWith( (a,b) => a.created.before(b.created))
+    //    li.groupBy(x => x.created).map {
+    //      case (x, y) => GaLineData(x, y.map(u => u.users).sum, y.map(nu => nu.newUsers).sum, y.map(nu => nu.bounces).sum,
+    //        y.map(b => b.bounceRate).sum / y.size, y.map(a => a.avgSessionDuration).sum / y.size, y.map(nu => nu.pageViews).sum)
+    //    }.toList.sortWith( (a,b) => a.created.before(b.created))
 
 
     try {
@@ -141,10 +141,17 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
   private def getStats(li: List[GoogleAnalyticsData]): GoogleAnalyticsStats = {
     val users = li.map(x => x.users).sum
     val newUsers = li.map(x => x.newUsers).sum
-    val avgSessionDuration = li.map(x => x.avgSessionDuration).sum / li.filter(x => x.avgSessionDuration != 0).size
+    val avgSessionDuration = (li.map(x => x.avgSessionDuration).sum != 0 &&
+      li.filter(x => x.avgSessionDuration != 0).size != 0) match {
+      case true => li.map(x => x.avgSessionDuration).sum / li.filter(x => x.avgSessionDuration != 0).size
+      case false => 0
+    }
     val pageViews = li.map(x => x.pageViews).sum
     val bounces = li.map(x => x.bounces).sum
-    val bounceRate = li.map(x => x.bounceRate).sum / li.size
+    val bounceRate = (li.map(x => x.bounceRate).sum != 0 && li.size != 0) match {
+      case true => li.map(x => x.bounceRate).sum / li.size
+      case false => 0
+    }
 
     GoogleAnalyticsStats(users, newUsers, bounces, HelperFunctions.doublePrecision1(bounceRate), avgSessionDuration, pageViews)
   }
