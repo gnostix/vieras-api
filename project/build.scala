@@ -46,7 +46,9 @@ object ScalatraoraBuild extends Build {
         "com.google.code.gson" % "gson" % "2.3.1",
         "com.google.oauth-client" % "google-oauth-client" % "1.19.0",
         "com.google.http-client" % "google-http-client-gson" % "1.19.0",
-        "com.google.apis" % "google-api-services-analytics" % "v3-rev111-1.19.1"
+        "com.google.apis" % "google-api-services-analytics" % "v3-rev111-1.19.1",
+        "com.likethecolor" % "alchemy" % "1.2.0"
+
         //"org.joda" %% "joda-time" % "2.2"  ,
         //"org.joda" %% "joda-convert" % "1.6"
       ),

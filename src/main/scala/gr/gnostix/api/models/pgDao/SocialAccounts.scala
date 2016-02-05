@@ -6,7 +6,7 @@ import java.util.Calendar
 
 import gr.gnostix.api.db.plainsql.DatabaseAccessSupportPg
 import gr.gnostix.api.models.plainModels.{GoogleAnalyticsProfiles, DataGraph, SocialAccounts}
-import gr.gnostix.api.utilities.SqlUtils
+import gr.gnostix.api.utilities.{AlchemyApiClient, SqlUtils}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -710,6 +710,8 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
         // check if the url source contains the supported datasources
         if (!checkUrlForSupportedHospitalityUrl(url)) {
           ("This url is not supported", false, "")
+        } else if (!isUrlLanguageEnglish(url)) {
+          ("This language of this url is not supported. Please add the English version of your hotel url", false, "")
         } else {
           ("Good url", true, getUrlDomain(url))
         }
@@ -718,6 +720,11 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
     }
 
+  }
+
+  private def isUrlLanguageEnglish(url: String ): Boolean = {
+    val alchemyClient = new AlchemyApiClient();
+    alchemyClient.isEnglishLang(url)
   }
 
   private def checkIfUrlContainHotel(url: String): Boolean = {
