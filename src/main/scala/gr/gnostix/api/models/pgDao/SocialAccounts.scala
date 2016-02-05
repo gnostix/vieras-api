@@ -711,7 +711,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
         if (!checkUrlForSupportedHospitalityUrl(url)) {
           ("This url is not supported", false, "")
         } else if (!isUrlLanguageEnglish(url)) {
-          ("This language of this url is not supported. Please add the English version of your hotel url", false, "")
+          ("The language of this url is not supported. Please add the English version of your hotel url", false, "")
         } else {
           ("Good url", true, getUrlDomain(url))
         }
