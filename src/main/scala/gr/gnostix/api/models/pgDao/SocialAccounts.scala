@@ -733,7 +733,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
   private def getUrlDomain(url: String): String = {
-    if (url.startsWith("http://www."))
+    if (url.startsWith("http://www.") || url.startsWith("https://www."))
       url.split("\\.").toList.tail.head.capitalize
     else if (url.startsWith("http://"))
       url.drop(7).split("\\.").toList.head.capitalize
