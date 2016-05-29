@@ -16,8 +16,8 @@ import Q.interpolation
 import scala.util.matching.Regex
 
 /**
- * Created by rebel on 4/8/14.
- */
+  * Created by rebel on 4/8/14.
+  */
 case class SocialAccountsTwitter(credId: Int, handle: String, followers: Int,
                                  following: Int, listed: Int, statusNum: Int) extends DataGraph
 
@@ -673,12 +673,20 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   }
 
+  /** Note
+    * clean session and also make protocol HTTPS
+    */
   def cleanDomainSession(l: String): String = {
-    if (l.startsWith("http")) {
+    if (l.startsWith("http:")) {
+      val url = new URL(l)
+      url.getProtocol + "s://" + url.getHost + url.getPath
+    }
+    else if (l.startsWith("https:")) {
       val url = new URL(l)
       url.getProtocol + "://" + url.getHost + url.getPath
-    } else {
-      val url = new URL("http://" + l)
+    }
+    else {
+      val url = new URL("https://" + l)
       url.getProtocol + "://" + url.getHost + url.getPath
     }
   }
@@ -722,7 +730,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   }
 
-  private def isUrlLanguageEnglish(url: String ): Boolean = {
+  private def isUrlLanguageEnglish(url: String): Boolean = {
     val alchemyClient = new AlchemyApiClient();
     alchemyClient.isEnglishLang(url)
   }
@@ -747,7 +755,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
     try {
 
       Source.fromURL(url) match {
-        case x =>  true
+        case x => true
       }
 
     } catch {
@@ -779,7 +787,8 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
             "http://" + url
           }
 
-          val credId = Q.queryNA[Int]( s"""
+          val credId = Q.queryNA[Int](
+            s"""
              select i.id from  vieras.ENG_PROFILE_HOTEL_CREDENTIALS i,vieras.eng_hotels h
                   where i.fk_hotel_id=h.id
                     and i.fk_company_id=${companyId}
@@ -857,7 +866,8 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
         implicit session =>
           val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
 
-          val urls = Q.queryNA[UserHotelUrls]( s"""
+          val urls = Q.queryNA[UserHotelUrls](
+            s"""
                   select i.id,h.hotel_url,i.fk_datasource_id
                    from vieras.ENG_PROFILE_HOTEL_CREDENTIALS i, vieras.eng_hotels h
                        where i.fk_hotel_id=h.id
