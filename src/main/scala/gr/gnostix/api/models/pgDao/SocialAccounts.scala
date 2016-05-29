@@ -674,19 +674,33 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   }
 
   /** Note
-    * clean session and also make protocol HTTPS
+    * clean session and also make protocol HTTPS (don't do that for Zoover)
     */
-  def cleanDomainSession(l: String): String = {
-    if (l.startsWith("http:")) {
-      val url = new URL(l)
-      url.getProtocol + "s://" + url.getHost + url.getPath
+
+  def fixProtocolToHttps(url: String): String = {
+    if (!url.contains("zoover") && url.startsWith("http:")) {
+      url.replace("http:", "https:")
+    } else if (url.contains("zoover") && !url.startsWith("http:")) {
+      "http://" + url
+    } else {
+      url
     }
-    else if (l.startsWith("https:")) {
-      val url = new URL(l)
+  }
+
+  def cleanDomainSession(l: String): String = {
+
+    val myUrl = fixProtocolToHttps(l)
+
+    if (myUrl.startsWith("http:")) {
+      val url = new URL(myUrl)
+      url.getProtocol + "://" + url.getHost + url.getPath
+    }
+    else if (myUrl.startsWith("https:")) {
+      val url = new URL(myUrl)
       url.getProtocol + "://" + url.getHost + url.getPath
     }
     else {
-      val url = new URL("https://" + l)
+      val url = new URL("https://" + myUrl)
       url.getProtocol + "://" + url.getHost + url.getPath
     }
   }
