@@ -5,7 +5,7 @@ package gr.gnostix.api.utilities
 object AsyncUtilsGnx {
 
 
-/*  def getSentiment(fromDate: DateTime, toDate: DateTime, profileId: Int, datasource: String) (implicit ctx: ExecutionContext): Future[SocialData] = {
+/*  def getSentiment(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  datasource: String) (implicit ctx: ExecutionContext): Future[SocialData] = {
     val prom = Promise[SocialData]()
 
     DatafindingsSentimentLineDao.getDataDefault(fromDate, toDate, profileId, datasource) onComplete {

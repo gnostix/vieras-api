@@ -149,8 +149,8 @@ case class UserAccount(companyName: String, firstName: String, lastName: String,
 
 // Google Analytics data
 case class GoogleAnalyticsProfiles(accountId: String, webpropertyId: String, profileid: String, profileName: String)
-case class GoogleAnalyticsData(country: String ,browser: String , operatingSystem: String, sessions: Int, avgSessionDuration: Int,
-                               profileId: Int, profileName: String ,created: Timestamp, source: String ,searchUsed: String , sessionCount: Int
+case class GoogleAnalyticsData(country: String ,browser: String , operatingSystem: String, sessions: Int, avgSessionDuration: Int
+                               ,profileId: Int,  profileName: String ,created: Timestamp, source: String ,searchUsed: String , sessionCount: Int
                                ,pageViews: Int, sessionDuration: Int, users: Int, newUsers: Int, bounces: Int, bounceRate: Double)
 
 case class GoogleAnalyticsStats(users: Int, newUsers: Int, bounces: Int, bounceRate: Double, avgSessionDuration: Int, pageViews: Int)

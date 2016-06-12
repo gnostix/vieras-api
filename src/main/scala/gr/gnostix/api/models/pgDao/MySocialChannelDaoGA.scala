@@ -23,9 +23,9 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  def getGoogleAnalytics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[List[ApiData]]] = {
-    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, engId)
-    val sqlLineGraph = buildQueryLineGraph(fromDate, toDate, profileId, companyId, engId)
+  def getGoogleAnalytics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, engId: Option[Int]): Future[Option[List[ApiData]]] = {
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, userId, profileId, companyId, engId)
+    val sqlLineGraph = buildQueryLineGraph(fromDate, toDate, userId, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[List[ApiData]]]()
 
@@ -156,14 +156,14 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     GoogleAnalyticsStats(users, newUsers, bounces, HelperFunctions.doublePrecision1(bounceRate), avgSessionDuration, pageViews)
   }
 
-  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "google_analytics", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "google_analytics", credId)
 
     val sql =
       s"""
@@ -180,7 +180,7 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryLineGraph(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  private def buildQueryLineGraph(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -190,7 +190,7 @@ object MySocialChannelDaoGA extends DatabaseAccessSupportPg {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     val grouByDate = DateUtils.sqlGrouByDatePg(numDays)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "google_analytics", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "google_analytics", credId)
 
     val sql =
       s"""

@@ -29,20 +29,20 @@ object DatafindingsThirdLevelDataDAO extends DatabaseAccessSupportOra {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getThirdLevelDataDefault(fromDate: DateTime, toDate: DateTime, profileId: Int, datasource: String): SocialData = {
+  def getThirdLevelDataDefault(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  datasource: String): SocialData = {
     val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
     //bring the actual data
     getThirdLevelData(fromDate, toDate, mySqlDynamic, datasource)
   }
 
-  def getThirdLevelDataByKeywords(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int], datasource: String): SocialData = {
-    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
+  def getThirdLevelDataByKeywords(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  keywords: List[Int], datasource: String): SocialData = {
+    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(userId, profileId,keywords)
     //bring the actual data
     getThirdLevelData(fromDate, toDate, mySqlDynamic, datasource)
   }
 
-  def getThirdLevelDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int], datasource: String): SocialData = {
-    val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)
+  def getThirdLevelDataByTopics(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  topics: List[Int], datasource: String): SocialData = {
+    val mySqlDynamic = SqlUtils.getDataByTopicsObj(userId, profileId,topics)
     //bring the actual data
     getThirdLevelData(fromDate, toDate, mySqlDynamic, datasource)
   }

@@ -189,7 +189,7 @@ with FutureSupport {
     logger.info(s"---->   create company with name   ")
     val profileId = params("profileId").toInt
     val company = parsedBody.extract[CompanyGroupJson]
-    val companyId = CompanyDao.createCompany(profileId, company)
+    val companyId = CompanyDao.createCompany(user.userId, profileId, company)
 
     val response = companyId match {
       case Some(x) => ApiMessages.generalSuccess("companyId", companyId)
@@ -402,7 +402,7 @@ with FutureSupport {
     val profileId = params("profileId").toInt
     val companyId = params("companyId").toInt
 
-    val hotelUrls = SocialAccountsHotelDao.getHotelUrls(profileId, companyId)
+    val hotelUrls = SocialAccountsHotelDao.getHotelUrls(user.userId,profileId, companyId)
     logger.info(s"---->   get customer hotel sites ")
     Map("status" -> 200, "message" -> "all good", "payload" -> hotelUrls)
   }
@@ -414,11 +414,11 @@ with FutureSupport {
     val profileId = params("profileId").toInt
     val companyId = params("companyId").toInt
 
-    val tw = SocialAccountsTwitterDao.getAllAccounts(executor, profileId, companyId)
-    val fb = SocialAccountsFacebookDao.getAllAccounts(executor, profileId, companyId)
-    val yt = SocialAccountsYoutubeDao.getAllAccounts(executor, profileId, companyId)
-    val ga = SocialAccountsGAnalyticsDao.getAllAccounts(executor, profileId, companyId)
-    val ho = SocialAccountsHotelDao.getAllAccounts(executor, profileId, companyId)
+    val tw = SocialAccountsTwitterDao.getAllAccounts(executor, user.userId, profileId, companyId)
+    val fb = SocialAccountsFacebookDao.getAllAccounts(executor, user.userId, profileId, companyId)
+    val yt = SocialAccountsYoutubeDao.getAllAccounts(executor, user.userId,profileId, companyId)
+    val ga = SocialAccountsGAnalyticsDao.getAllAccounts(executor, user.userId,profileId, companyId)
+    val ho = SocialAccountsHotelDao.getAllAccounts(executor, user.userId,profileId, companyId)
     new AsyncResult {
       val is =
         for {
@@ -453,11 +453,11 @@ with FutureSupport {
     val credId = params("credId").toInt
 
     params("datasource") match {
-      case "twitter" => SocialAccountsTwitterDao.findById(profileId, companyId, credId)
-      case "facebook" => SocialAccountsFacebookDao.findById(profileId, companyId, credId)
-      case "youtube" => SocialAccountsYoutubeDao.findById(profileId, companyId, credId)
-      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(profileId, companyId, credId)
-      case "hotel" => SocialAccountsHotelDao.findById(profileId, companyId, credId)
+      case "twitter" => SocialAccountsTwitterDao.findById(user.userId, profileId, companyId, credId)
+      case "facebook" => SocialAccountsFacebookDao.findById(user.userId, profileId, companyId, credId)
+      case "youtube" => SocialAccountsYoutubeDao.findById(user.userId, profileId, companyId, credId)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.findById(user.userId, profileId, companyId, credId)
+      case "hotel" => SocialAccountsHotelDao.findById(user.userId, profileId, companyId, credId)
     }
 
   }
@@ -470,12 +470,12 @@ with FutureSupport {
     val companyId = params("companyId").toInt
 
     val data = params("datasource") match {
-      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, profileId, companyId)
-      case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, profileId, companyId)
-      case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, profileId, companyId)
+      case "twitter" => SocialAccountsTwitterDao.getAllAccounts(executor, user.userId, profileId, companyId)
+      case "facebook" => SocialAccountsFacebookDao.getAllAccounts(executor, user.userId, profileId, companyId)
+      case "youtube" => SocialAccountsYoutubeDao.getAllAccounts(executor, user.userId, profileId, companyId)
       // the next route needs refactor !!!!!!!!!!!
-      case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, profileId, companyId)
-      case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, profileId, companyId)
+      case "ganalytics" => SocialAccountsGAnalyticsDao.getAllAccounts(executor, user.userId, profileId, companyId)
+      case "hotel" => SocialAccountsHotelDao.getAllAccounts(executor, user.userId, profileId, companyId)
     }
     ApiMessages.generalSuccessOneParam(data)
   }
@@ -572,11 +572,11 @@ with FutureSupport {
     var status: Int = 100
     val credId = params("credId").toInt
     params("datasource") match {
-      case "hotel" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
-      case "twitter" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
-      case "facebook" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
-      case "youtube" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
-      case "ganalytics" => status = SocialAccountsQueriesDao.deleteSocialAccount(profileId, companyId, credId, params("datasource")).get
+      case "hotel" => status = SocialAccountsQueriesDao.deleteSocialAccount(user.userId, profileId, companyId, credId, params("datasource")).get
+      case "twitter" => status = SocialAccountsQueriesDao.deleteSocialAccount(user.userId, profileId, companyId, credId, params("datasource")).get
+      case "facebook" => status = SocialAccountsQueriesDao.deleteSocialAccount(user.userId, profileId, companyId, credId, params("datasource")).get
+      case "youtube" => status = SocialAccountsQueriesDao.deleteSocialAccount(user.userId, profileId, companyId, credId, params("datasource")).get
+      case "ganalytics" => status = SocialAccountsQueriesDao.deleteSocialAccount(user.userId, profileId, companyId, credId, params("datasource")).get
     }
     status match {
       case 200 => Map("status" -> 200, "message" -> "all good")

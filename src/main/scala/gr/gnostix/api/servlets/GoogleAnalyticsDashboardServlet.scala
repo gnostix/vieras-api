@@ -51,7 +51,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
 
-      val rawData = MySocialChannelDaoGA.getGoogleAnalytics(executor, fromDate, toDate, profileId, companyId, None)
+      val rawData = MySocialChannelDaoGA.getGoogleAnalytics(executor, fromDate, toDate, user.userId, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -87,7 +87,7 @@ with FutureSupport {
 
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoGA.getGoogleAnalytics(executor, fromDate, toDate, profileId, companyId, Some(credId))
+      val rawData = MySocialChannelDaoGA.getGoogleAnalytics(executor, fromDate, toDate, user.userId, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =

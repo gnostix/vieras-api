@@ -124,7 +124,7 @@ object CompanyDao extends DatabaseAccessSupportPg {
   }
 
 
-  def createCompany(profileId: Int, company: CompanyGroupJson): Option[Int] = {
+  def createCompany(userId :Int, profileId: Int, company: CompanyGroupJson): Option[Int] = {
     getConnection withSession {
       implicit session =>
 

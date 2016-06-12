@@ -25,8 +25,8 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getLineCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Option[Payload] = {
-    val sql = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
+  def getLineCounts(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, dataType: String, engId: Option[Int]): Option[Payload] = {
+    val sql = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, engId)
 
     //bring the actual data
     val data = dataType match {
@@ -40,8 +40,8 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     }
   }
 
-  def getLineAllData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialData]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
+  def getLineAllData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialData]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, engId)
     //bring the actual data
     val prom = Promise[Option[SocialData]]()
 
@@ -51,8 +51,8 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialDataSum]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
+  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialDataSum]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, engId)
     //bring the actual data
     val prom = Promise[Option[SocialDataSum]]()
 
@@ -63,8 +63,8 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
 
-  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, engId)
+  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, userId, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -75,8 +75,8 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
 
-  def getDemographics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryDemographics(fromDate, toDate, profileId, companyId, engId)
+  def getDemographics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryDemographics(fromDate, toDate, userId, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -87,12 +87,12 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
   // get raw data
-  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
 
     val prom = Promise[Option[ApiData]]()
     val mySqlDynamic = dataType match {
-      case "comment" => buildQueryComments(fromDate, toDate, profileId, companyId, engId)
-      case "post" => buildQueryPosts(fromDate, toDate, profileId, companyId, engId)
+      case "comment" => buildQueryComments(fromDate, toDate, userId, profileId, companyId, engId)
+      case "post" => buildQueryPosts(fromDate, toDate, userId, profileId, companyId, engId)
     }
 
     Future {
@@ -106,15 +106,15 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
   // get raw data
-  def getPeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+  def getPeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime, userId :Int, profileId: Int,  companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val prom = Promise[Option[ApiData]]()
     val mySqlDynamic = dataType match {
-      case "comment" => buildQueryCommentsPeakDate(peakDate, profileId, companyId, engId, grouBydate)
-      case "post" => buildQueryPostsCommentsPeakDate(peakDate, profileId, companyId, engId, grouBydate)
+      case "comment" => buildQueryCommentsPeakDate(peakDate, userId, profileId, companyId, engId, grouBydate)
+      case "post" => buildQueryPostsCommentsPeakDate(peakDate, userId, profileId, companyId, engId, grouBydate)
     }
 
     Future {
@@ -325,14 +325,14 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, credId: Option[Int]): String = {
+  def buildQuery(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, dataType: String, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", credId)
 
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -407,14 +407,14 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
 
   }
 
-  def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  def buildQueryDemographics(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", credId)
 
     val sql = s"""
         select fk_eng_engagement_data_quer_id,max(age_13_17),max(age_18_24),max(age_25_34),max(age_35_44),max(age_45_54),max(age_55_64),max(age_65_plus),gender,created
@@ -440,14 +440,14 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
   }
 
 
-  def buildQueryComments(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  def buildQueryComments(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", credId)
 
     val sql = s"""
           select id,message,created,user_name,user_id, likes,fk_post_id, fk_eng_engagement_data_quer_id, comment_id,  post_user_id
@@ -462,14 +462,14 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     sql
   }
 
-  def buildQueryCommentsPeakDate(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], groupByDate: String): String = {
+  def buildQueryCommentsPeakDate(peakDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int], groupByDate: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val peakDateStr: String = fmt.print(peakDate)
 
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", credId)
 
     val sql = groupByDate match {
       case "hour" | "day" | "week" | "month" | "year" => {
@@ -491,12 +491,12 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     sql
   }
 
-  def buildQueryPostsCommentsPeakDate(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], groupByDate: String): String = {
+  def buildQueryPostsCommentsPeakDate(peakDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int], groupByDate: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val peakDateStr: String = fmt.print(peakDate)
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", credId)
 
     val sql = groupByDate match {
       case "hour" | "day" | "week" | "month" | "year" => {
@@ -522,12 +522,12 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     sql
   }
 
-  def buildQueryPostsPeakDate(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], groupByDate: String): String = {
+  def buildQueryPostsPeakDate(peakDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int], groupByDate: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val peakDateStr: String = fmt.print(peakDate)
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", credId)
 
     val sql = groupByDate match {
       case "hour" | "day" | "week" | "month" | "year" => {
@@ -548,14 +548,14 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     sql
   }
 
-  def buildQueryPosts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  def buildQueryPosts(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", credId)
 
     val sql = s"""
           select id,message,created, from_user,from_user_id,likes,comments, fk_eng_engagement_data_quer_id, msg_id,post_link,shares
@@ -571,7 +571,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     sql
   }
 
-  def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  def buildQueryStats(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
@@ -582,7 +582,7 @@ object MySocialChannelDaoFB extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", credId)
 
     val sql = s"""
         SELECT coalesce(FB_SW.QID, FB_COMM.QID) QID, coalesce(FB_SW.MDATE, FB_COMM.MDATE) MDATE, PAGE_LIKES, POSTS, POST_LIKES, POST_SHARES, COMMENTS, COMM_LIKES, TALKING_ABOUT_COUNT, REACH, VIEWS, ENGAGED

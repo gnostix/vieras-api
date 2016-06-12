@@ -57,7 +57,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
 
-      val rawData = GeoLocationDao.getDataByProfileId(executor, fromDate, toDate, profileId, companyId)
+      val rawData = GeoLocationDao.getDataByProfileId(executor, fromDate, toDate, user.userId, profileId, companyId)
       new AsyncResult {
         val is =
           for {
@@ -95,7 +95,7 @@ with FutureSupport {
 
       val datasourceId = params("datasourceId").toInt
 
-      val rawData = GeoLocationDao.getDataByDatasourceId(executor, fromDate, toDate, profileId, companyId, datasourceId)
+      val rawData = GeoLocationDao.getDataByDatasourceId(executor, fromDate, toDate, user.userId, profileId, companyId, datasourceId)
       new AsyncResult {
         val is =
           for {
@@ -133,7 +133,7 @@ with FutureSupport {
       val countryId = params("countryId")
 
 
-      val rawData = GeoLocationDao.getTextDataByProfileId(executor, fromDate, toDate, profileId, companyId, countryId)
+      val rawData = GeoLocationDao.getTextDataByProfileId(executor, fromDate, toDate, user.userId, profileId, companyId, countryId)
       new AsyncResult {
         val is =
           for {
@@ -171,7 +171,7 @@ with FutureSupport {
       val countryId = params("countryId")
       val datasourceId = params("datasourceId").toInt
 
-      val rawData = GeoLocationDao.getTextDataByDatasourceId(executor, fromDate, toDate, profileId, companyId, datasourceId, countryId)
+      val rawData = GeoLocationDao.getTextDataByDatasourceId(executor, fromDate, toDate, user.userId, profileId, companyId, datasourceId, countryId)
       new AsyncResult {
         val is =
           for {
@@ -210,7 +210,7 @@ with FutureSupport {
 
       val credId = params("credId").toInt
 
-      val rawData = GeoLocationDao.getDataByCredentialsId(executor, fromDate, toDate, profileId, companyId, credId)
+      val rawData = GeoLocationDao.getDataByCredentialsId(executor, fromDate, toDate, user.userId, profileId, companyId, credId)
       new AsyncResult {
         val is =
           for {

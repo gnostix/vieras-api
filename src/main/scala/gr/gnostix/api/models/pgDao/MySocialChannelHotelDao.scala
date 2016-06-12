@@ -28,8 +28,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   val negativeScore = 4
 
 
-  def getDataCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, datasourceId: Option[Int]): Option[Payload] = {
-    val sql = buildQuery(fromDate, toDate, profileId, companyId, dataType, datasourceId)
+  def getDataCounts(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, dataType: String, datasourceId: Option[Int]): Option[Payload] = {
+    val sql = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, datasourceId)
 
     //bring the actual data
     val data = dataType match {
@@ -43,9 +43,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     }
   }
 
-  def getServicesLineCountsAverageSentiment(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,
-                                            profileId: Int, companyId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryServicesLineSentiment(fromDate, toDate, profileId, companyId, datasourceId)
+  def getServicesLineCountsAverageSentiment(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime
+                                            , userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryServicesLineSentiment(fromDate, toDate, userId, profileId, companyId, datasourceId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -55,9 +55,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getReviewStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int,
+  def getReviewStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,
                      companyId: Int, datasourceId: Option[Int]): Future[Option[List[ApiData]]] = {
-    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, datasourceId)
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, userId, profileId, companyId, datasourceId)
     //bring the actual data
     val prom = Promise[Option[List[ApiData]]]()
 
@@ -67,9 +67,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int,
                   datasourceId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryTextData(fromDate, toDate, profileId, companyId, datasourceId)
+    val mySqlDynamic = buildQueryTextData(fromDate, toDate, userId, profileId, companyId, datasourceId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -79,9 +79,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getSentimentTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getSentimentTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int,
                   datasourceId: Option[Int], sentiment: String): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQuerySentimentTextData(fromDate, toDate, profileId, companyId, datasourceId, sentiment)
+    val mySqlDynamic = buildQuerySentimentTextData(fromDate, toDate, userId, profileId, companyId, datasourceId, sentiment)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -92,9 +92,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getServiceTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getServiceTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int,
                            datasourceId: Option[Int], service: String): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryServiceTextData(fromDate, toDate, profileId, companyId, datasourceId, service)
+    val mySqlDynamic = buildQueryServiceTextData(fromDate, toDate, userId, profileId, companyId, datasourceId, service)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -105,9 +105,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getServiceBySentimentTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getServiceBySentimentTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int,
                            datasourceId: Option[Int], service: String, sentiment: String): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryServiceSentimentTextData(fromDate, toDate, profileId, companyId, datasourceId, service, sentiment)
+    val mySqlDynamic = buildQueryServiceSentimentTextData(fromDate, toDate, userId, profileId, companyId, datasourceId, service, sentiment)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -118,9 +118,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getStayTypeTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getStayTypeTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int,
                            datasourceId: Option[Int], stayType: String): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryStayTypeTextData(fromDate, toDate, profileId, companyId, datasourceId, stayType)
+    val mySqlDynamic = buildQueryStayTypeTextData(fromDate, toDate, userId, profileId, companyId, datasourceId, stayType)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -132,14 +132,14 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
 
-  def getPeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime,
-                      profileId: Int, companyId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
+  def getPeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime
+                      , userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int]): Future[Option[ApiData]] = {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val mySqlDynamic = grouBydate match {
-      case  "hour" => buildQueryPeakTextData(peakDate, profileId, companyId, datasourceId, "day") /// it is never by hour in review messages
-      case "day" | "week" | "month" | "year" => buildQueryPeakTextData(peakDate, profileId, companyId, datasourceId, grouBydate)
+      case  "hour" => buildQueryPeakTextData(peakDate, userId, profileId, companyId, datasourceId, "day") /// it is never by hour in review messages
+      case "day" | "week" | "month" | "year" => buildQueryPeakTextData(peakDate, userId, profileId, companyId, datasourceId, grouBydate)
     }
 
     //bring the actual data
@@ -151,14 +151,14 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getServicePeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime,
-                      profileId: Int, companyId: Int, datasourceId: Option[Int], service: String): Future[Option[ApiData]] = {
+  def getServicePeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime
+                      , userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int], service: String): Future[Option[ApiData]] = {
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val mySqlDynamic = grouBydate match {
-      case  "hour" => buildQueryServicePeakTextData(peakDate, profileId, companyId, datasourceId, "day", service) /// it is never by hour in review messages
-      case "day" | "week" | "month"  | "year" => buildQueryServicePeakTextData(peakDate, profileId, companyId, datasourceId, grouBydate, service)
+      case  "hour" => buildQueryServicePeakTextData(peakDate, userId, profileId, companyId, datasourceId, "day", service) /// it is never by hour in review messages
+      case "day" | "week" | "month"  | "year" => buildQueryServicePeakTextData(peakDate, userId, profileId, companyId, datasourceId, grouBydate, service)
     }
 
     //bring the actual data
@@ -171,9 +171,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int,
                            datasourceId: Option[Int]): Future[Option[List[ApiData]]] = {
-    val mySqlDynamic = buildQueryRatingStats(fromDate, toDate, profileId, companyId, datasourceId)
+    val mySqlDynamic = buildQueryRatingStats(fromDate, toDate, userId, profileId, companyId, datasourceId)
     //bring the actual data
     val prom = Promise[Option[List[ApiData]]]()
 
@@ -184,9 +184,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getDataCountsFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getDataCountsFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int,
                           dataType: String, datasourceId: Option[Int]): Future[Option[SocialData]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, datasourceId)
+    val mySqlDynamic = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, datasourceId)
     //bring the actual data
     val prom = Promise[Option[SocialData]]()
 
@@ -197,9 +197,9 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  def getTotalSumDataFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getTotalSumDataFuture(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int,
                             dataType: String, datasourceId: Option[Int]): Future[Option[SocialDataSum]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, datasourceId)
+    val mySqlDynamic = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, datasourceId)
     //bring the actual data
     val prom = Promise[Option[SocialDataSum]]()
 
@@ -513,7 +513,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
   }
 
-  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryStats(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -522,8 +522,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
 
@@ -548,15 +548,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryPeakTextData(peakDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], groupByDate: String): String = {
+  private def buildQueryPeakTextData(peakDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int], groupByDate: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val peakDateStr: String = fmt.print(peakDate)
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
 
@@ -582,15 +582,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryServicePeakTextData(peakDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], groupByDate: String, service: String): String = {
+  private def buildQueryServicePeakTextData(peakDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int], groupByDate: String, service: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val peakDateStr: String = fmt.print(peakDate)
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
 
@@ -620,7 +620,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
 
-  private def buildQueryTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryTextData(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -628,8 +628,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val toDateStr: String = fmt.print(toDate)
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
 
@@ -656,7 +656,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
 
-  private def buildQuerySentimentTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], sentiment: String): String = {
+  private def buildQuerySentimentTextData(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int], sentiment: String): String = {
 
     // here we are asking the review rating!
     val sentValue = sentiment match {
@@ -671,8 +671,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val toDateStr: String = fmt.print(toDate)
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
     val sql = s"""
@@ -698,7 +698,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryServiceSentimentTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], service: String , sentiment: String): String = {
+  private def buildQueryServiceSentimentTextData(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int], service: String , sentiment: String): String = {
 
     // this is diferrent frm the orevious one because we are asking here for service rating and not the review rating
     val sentValue = sentiment match {
@@ -715,8 +715,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
     val sql =         s"""
@@ -745,7 +745,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
 
-  private def buildQueryServiceTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], service: String ): String = {
+  private def buildQueryServiceTextData(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int], service: String ): String = {
 
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
@@ -756,8 +756,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
     val sql =         s"""
@@ -785,7 +785,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
 
-  private def buildQueryStayTypeTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], stayType: String): String = {
+  private def buildQueryStayTypeTextData(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int], stayType: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -793,8 +793,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val toDateStr: String = fmt.print(toDate)
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
 
@@ -822,7 +822,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
 
 
 
-  private def buildQueryServicesLineSentiment(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryServicesLineSentiment(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -833,8 +833,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val grouBydate = DateUtils.sqlGrouByDatePg(numDays)
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
 
@@ -856,7 +856,7 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryRatingStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int]): String = {
+  private def buildQueryRatingStats(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -864,8 +864,8 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
     val toDateStr: String = fmt.print(toDate)
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
 
@@ -892,15 +892,15 @@ object MySocialChannelHotelDao extends DatabaseAccessSupportPg {
    * @param datasourceId
    * @return a sql query combination of datasource id and credentials id if present on of those or both (pre profile id)
    */
-  private def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, datasourceId: Option[Int]): String = {
+  private def buildQuery(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  companyId: Int, dataType: String, datasourceId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelCredIdQuery(profileId, companyId, x)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelCredIdQuery(userId, profileId, companyId, x)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
 
     }
     logger.info("------------->" + sqlEngAccount + "-----------")

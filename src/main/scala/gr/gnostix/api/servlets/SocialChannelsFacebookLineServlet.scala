@@ -50,7 +50,7 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, companyId, params("dataType"), None)
+      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, user.userId, profileId, companyId, params("dataType"), None)
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -82,7 +82,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val engId = params("engId").toInt
 
-      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, profileId, companyId, params("dataType"), Some(engId))
+      val rawData = MySocialChannelDaoFB.getLineCounts(fromDate, toDate, user.userId, profileId, companyId, params("dataType"), Some(engId))
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -113,8 +113,8 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
 
-      val post = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, companyId, "post", None)
-      val comment = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, profileId, companyId, "comment", None)
+      val post = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, user.userId, profileId, companyId, "post", None)
+      val comment = MySocialChannelDaoFB.getLineAllData(executor, fromDate, toDate, user.userId, profileId, companyId, "comment", None)
 
       val theData =
         new AsyncResult() {
@@ -172,8 +172,8 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalpost", None)
-      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalcomment", None)
+      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalpost", None)
+      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalcomment", None)
 
       val theData =
         new AsyncResult() {
@@ -220,8 +220,8 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val engId = params("engId").toInt
 
-      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalpost", Some(engId))
-      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalcomment", Some(engId))
+      val post = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalpost", Some(engId))
+      val comment = MySocialChannelDaoFB.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalcomment", Some(engId))
 
       val theData =
         new AsyncResult() {

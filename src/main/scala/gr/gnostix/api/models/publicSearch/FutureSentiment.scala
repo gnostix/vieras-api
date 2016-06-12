@@ -17,7 +17,7 @@ object FutureSentimentDao extends DatabaseAccessSupportOra {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getDataDefault(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, datasource: String): Future[Option[SocialData]] = {
+  def getDataDefault(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  datasource: String): Future[Option[SocialData]] = {
     val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
     //bring the actual data
     val prom = Promise[Option[SocialData]]()
@@ -34,8 +34,8 @@ object FutureSentimentDao extends DatabaseAccessSupportOra {
   }
 
 
-  def getDataByKeywords(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int], datasource: String): Future[Option[SocialData]] = {
-    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
+  def getDataByKeywords(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  keywords: List[Int], datasource: String): Future[Option[SocialData]] = {
+    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(userId, profileId, keywords)
     //bring the actual data
     val prom = Promise[Option[SocialData]]()
 
@@ -46,8 +46,8 @@ object FutureSentimentDao extends DatabaseAccessSupportOra {
     prom.future
   }
 
-  def getDataByTopics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int], datasource: String): Future[Option[SocialData]] = {
-    val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)
+  def getDataByTopics(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  topics: List[Int], datasource: String): Future[Option[SocialData]] = {
+    val mySqlDynamic = SqlUtils.getDataByTopicsObj(userId, profileId, topics)
     //bring the actual data
     val prom = Promise[Option[SocialData]]()
 

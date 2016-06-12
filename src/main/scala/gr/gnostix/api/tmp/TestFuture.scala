@@ -70,15 +70,15 @@ with FutureSupport {
 
     val profileId = params("profileId").toInt
 
-    val dt1 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "twitter")
-    val dt2 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "facebook")
-    val dt3 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "youtube")
-    val dt4 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "gplus")
-    val dt5 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "web")
-    val dt6 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "linkedin")
-    val dt7 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "news")
-    val dt8 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "blog")
-    val dt9 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, profileId, "personal")
+    val dt1 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "twitter")
+    val dt2 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "facebook")
+    val dt3 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "youtube")
+    val dt4 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "gplus")
+    val dt5 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "web")
+    val dt6 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "linkedin")
+    val dt7 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "news")
+    val dt8 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "blog")
+    val dt9 = FutureSentimentDao.getDataDefault(executor, fromDate, toDate, user.userId, profileId, "personal")
     new AsyncResult {
       val is =
         for {

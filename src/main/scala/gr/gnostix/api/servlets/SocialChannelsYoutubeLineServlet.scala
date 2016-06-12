@@ -53,7 +53,7 @@ import scala.concurrent.ExecutionContext
         val profileId = params("profileId").toInt
         val companyId = params("companyId").toInt
 
-        val rawData = MySocialChannelDaoYt.getLineCounts(executor, fromDate, toDate, profileId, companyId,  None)
+        val rawData = MySocialChannelDaoYt.getLineCounts(executor, fromDate, toDate, user.userId, profileId, companyId,  None)
 
         new AsyncResult() {
           override val is =
@@ -88,7 +88,7 @@ import scala.concurrent.ExecutionContext
         val companyId = params("companyId").toInt
         val credId = params("credId").toInt
 
-        val rawData = MySocialChannelDaoYt.getLineCounts(executor, fromDate, toDate, profileId, companyId, Some(credId))
+        val rawData = MySocialChannelDaoYt.getLineCounts(executor, fromDate, toDate, user.userId, profileId, companyId, Some(credId))
 
         new AsyncResult() {
           override val is =

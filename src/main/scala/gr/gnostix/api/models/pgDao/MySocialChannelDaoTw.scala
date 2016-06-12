@@ -23,8 +23,8 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getLineCounts(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Option[Payload] = {
-    val sql = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
+  def getLineCounts(fromDate: DateTime, toDate: DateTime, userId: Int, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Option[Payload] = {
+    val sql = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, engId)
 
     //bring the actual data
     val data = dataType match {
@@ -39,8 +39,8 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
   }
 
 
-  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQueryStats(fromDate, toDate, profileId, companyId, engId)
+  def getStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId: Int, profileId: Int, companyId: Int, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQueryStats(fromDate, toDate, userId, profileId, companyId, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -51,8 +51,8 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
   }
 
 
-  def getLineAllData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialData]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
+  def getLineAllData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId: Int, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[SocialData]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, engId)
     //bring the actual data
     val prom = Promise[Option[SocialData]]()
 
@@ -62,8 +62,8 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
-    val mySqlDynamic = buildQuery(fromDate, toDate, profileId, companyId, dataType, engId)
+  def getTotalSumData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId: Int,  profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+    val mySqlDynamic = buildQuery(fromDate, toDate, userId, profileId, companyId, dataType, engId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -75,12 +75,12 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
 
 
   // get raw data
-  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+  def getTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId: Int,  profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
 
     val prom = Promise[Option[ApiData]]()
     val mySqlDynamic = dataType match {
-      case "mention" | "favorite" => buildQueryMentionsFavs(fromDate, toDate, profileId, companyId, engId, dataType)
-      case "retweet" => buildQueryRetweets(fromDate, toDate, profileId, companyId, engId)
+      case "mention" | "favorite" => buildQueryMentionsFavs(fromDate, toDate, userId, profileId, companyId, engId, dataType)
+      case "retweet" => buildQueryRetweets(fromDate, toDate, userId, profileId, companyId, engId)
     }
 
     Future {
@@ -95,7 +95,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
 
   // get raw data
   def getPeakTextData(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, peakDate: DateTime,
-                      profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
+                      userId: Int,  profileId: Int, companyId: Int, dataType: String, engId: Option[Int]): Future[Option[ApiData]] = {
 
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
@@ -103,8 +103,8 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
 
     val prom = Promise[Option[ApiData]]()
     val mySqlDynamic = dataType match {
-      case "mention" | "favorite" => buildQueryMentionsFavsPeak(peakDate, profileId, companyId, engId, dataType, grouBydate)
-      case "retweet" => buildQueryRetweetsPeak(peakDate, profileId, companyId, engId, dataType, grouBydate)
+      case "mention" | "favorite" => buildQueryMentionsFavsPeak(peakDate, userId, profileId, companyId, engId, dataType, grouBydate)
+      case "retweet" => buildQueryRetweetsPeak(peakDate, userId, profileId, companyId, engId, dataType, grouBydate)
     }
 
     Future {
@@ -227,13 +227,13 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, dataType: String, credId: Option[Int]): String = {
+  private def buildQuery(fromDate: DateTime, toDate: DateTime, userId: Int,  profileId: Int, companyId: Int, dataType: String, credId: Option[Int]): String = {
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
     logger.info("------------->" + numDays + "-----------")
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "twitter", credId)
 
     logger.info("------------->" + sqlEngAccount + "-----------")
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -321,7 +321,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
 
   }
 
-  private def buildQueryMentionsFavsPeak(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], dataType: String, groupByDate: String): String = {
+  private def buildQueryMentionsFavsPeak(peakDate: DateTime, userId: Int,  profileId: Int, companyId: Int, credId: Option[Int], dataType: String, groupByDate: String): String = {
 
     val twType = dataType match {
       case "mention" => "TW_MENTIONS"
@@ -333,7 +333,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val peakDateStr: String = fmt.print(peakDate)
 
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "twitter", credId)
 
     val sql = groupByDate match {
       case "hour" | "day" | "week" | "month" | "year" => {
@@ -352,7 +352,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryMentionsFavs(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], dataType: String): String = {
+  private def buildQueryMentionsFavs(fromDate: DateTime, toDate: DateTime, userId: Int,  profileId: Int, companyId: Int, credId: Option[Int], dataType: String): String = {
 
     val twType = dataType match {
       case "mention" => "TW_MENTIONS"
@@ -364,7 +364,7 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "twitter", credId)
 
     val sql =
       s"""
@@ -381,13 +381,13 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryRetweetsPeak(peakDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int], dataType: String, groupByDate: String): String = {
+  private def buildQueryRetweetsPeak(peakDate: DateTime, userId: Int,  profileId: Int, companyId: Int, credId: Option[Int], dataType: String, groupByDate: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val peakDateStr: String = fmt.print(peakDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "twitter", credId)
 
     val sql = groupByDate match {
       case "hour" | "day" | "week" | "month" | "year" => {
@@ -406,14 +406,14 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryRetweets(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  private def buildQueryRetweets(fromDate: DateTime, toDate: DateTime, userId: Int,  profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "twitter", credId)
 
     val sql =
       s"""
@@ -430,14 +430,14 @@ object MySocialChannelDaoTw extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, credId: Option[Int]): String = {
+  private def buildQueryStats(fromDate: DateTime, toDate: DateTime, userId: Int,  profileId: Int, companyId: Int, credId: Option[Int]): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
 
-    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", credId)
+    val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "twitter", credId)
 
     val sql =
       s"""

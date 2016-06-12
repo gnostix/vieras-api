@@ -56,10 +56,10 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
   implicit val getSocialAccountsTwitterResult = GetResult(r => SocialAccountsTwitter(r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<))
 
-  def findById(profileId: Int, companyId: Int, credId: Int) = {
+  def findById(userId :Int, profileId: Int, companyId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
-        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", Some(credId))
+        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "twitter", Some(credId))
 
         val sql =
           s"""
@@ -81,7 +81,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
     }
   }
 
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
+  def getAllAccounts(implicit ctx: ExecutionContext, userId :Int, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
     val prom = Promise[Option[SocialAccounts]]()
 
     Future {
@@ -89,7 +89,7 @@ object SocialAccountsTwitterDao extends DatabaseAccessSupportPg {
         getConnection withSession {
           implicit session =>
             try {
-              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "twitter", None)
+              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "twitter", None)
 
               val sql =
                 s"""
@@ -178,10 +178,10 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
   implicit val getSocialAccountsFacebookResult = GetResult(r => SocialAccountsFacebook(r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
-  def findById(profileId: Int, companyId: Int, credId: Int) = {
+  def findById(userId :Int, profileId: Int, companyId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
-        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", Some(credId))
+        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", Some(credId))
 
         val sql =
           s"""
@@ -204,7 +204,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
     }
   }
 
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
+  def getAllAccounts(implicit ctx: ExecutionContext, userId :Int, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
     val prom = Promise[Option[SocialAccounts]]()
 
     Future {
@@ -213,7 +213,7 @@ object SocialAccountsFacebookDao extends DatabaseAccessSupportPg {
 
           getConnection withSession {
             implicit session =>
-              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "facebook", None)
+              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "facebook", None)
 
               val sql =
                 s"""
@@ -316,10 +316,10 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
   implicit val getSocialAccountsYoutubeResult = GetResult(r => SocialAccountsYoutube(r.<<, r.<<,
     r.<<, r.<<, r.<<))
 
-  def findById(profileId: Int, companyId: Int, credId: Int) = {
+  def findById(userId :Int, profileId: Int, companyId: Int, credId: Int) = {
     getConnection withSession {
       implicit session =>
-        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "youtube", Some(credId))
+        val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "youtube", Some(credId))
 
         val sql =
           s"""
@@ -341,7 +341,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
     }
   }
 
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
+  def getAllAccounts(implicit ctx: ExecutionContext, userId :Int, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
     val prom = Promise[Option[SocialAccounts]]()
 
     Future {
@@ -349,7 +349,7 @@ object SocialAccountsYoutubeDao extends DatabaseAccessSupportPg {
         try {
           getConnection withSession {
             implicit session =>
-              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "youtube", None)
+              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "youtube", None)
 
               val sql =
                 s"""
@@ -441,12 +441,12 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
 
   // Here we should bring data by browser or Operating system as extra analysis data
 
-  def findById(profileId: Int, companyId: Int, credId: Int) = {
+  def findById(userId :Int, profileId: Int, companyId: Int, credId: Int) = {
 
     try {
       getConnection withSession {
         implicit session =>
-          val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "google_analytics", Some(credId))
+          val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "google_analytics", Some(credId))
 
           val sql =
             s"""
@@ -476,7 +476,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
   }
 
   // this needs refactor
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
+  def getAllAccounts(implicit ctx: ExecutionContext, userId :Int, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
     val prom = Promise[Option[SocialAccounts]]()
 
     Future {
@@ -484,7 +484,7 @@ object SocialAccountsGAnalyticsDao extends DatabaseAccessSupportPg {
         try {
           getConnection withSession {
             implicit session =>
-              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(profileId, companyId, "google_analytics", None)
+              val sqlEngAccount = SqlUtils.buildSocialCredentialsQuery(userId, profileId, companyId, "google_analytics", None)
 
               val sql =
                 s"""
@@ -572,11 +572,11 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
   implicit val getHospitalitylUrsResult = GetResult(r => SupportedHospitalitySites(r.<<, r.<<))
 
 
-  def findById(profileId: Int, companyId: Int, credId: Int) = {
+  def findById(userId :Int, profileId: Int, companyId: Int, credId: Int) = {
     try {
       getConnection withSession {
         implicit session =>
-          val sqlEngAccount = SqlUtils.buildHotelCredIdQuery(profileId, companyId, credId)
+          val sqlEngAccount = SqlUtils.buildHotelCredIdQuery(userId, profileId, companyId, credId)
 
           val records = Q.queryNA[SocialAccountsHotel](
             s"""
@@ -600,7 +600,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   }
 
-  def getAllAccounts(implicit ctx: ExecutionContext, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
+  def getAllAccounts(implicit ctx: ExecutionContext, userId :Int, profileId: Int, companyId: Int): Future[Option[SocialAccounts]] = {
     val prom = Promise[Option[SocialAccounts]]()
 
     Future {
@@ -608,7 +608,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
         try {
           getConnection withSession {
             implicit session =>
-              val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+              val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
 
               val records = Q.queryNA[SocialAccountsHotel](
                 s"""
@@ -874,11 +874,11 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   }
 
-  def getHotelUrls(profileId: Int, companyId: Int) = {
+  def getHotelUrls(userId :Int, profileId: Int, companyId: Int) = {
     try {
       getConnection withSession {
         implicit session =>
-          val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+          val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
 
           val urls = Q.queryNA[UserHotelUrls](
             s"""
@@ -899,7 +899,7 @@ object SocialAccountsHotelDao extends DatabaseAccessSupportPg {
 
   object SocialAccountsQueriesDao extends DatabaseAccessSupportPg {
 
-    def deleteSocialAccount(profileId: Int, companyId: Int, credId: Int, datasource: String) = Option[Int] {
+    def deleteSocialAccount( userId :Int, profileId: Int,  companyId: Int, credId: Int, datasource: String) = Option[Int] {
       try {
 
         val sql = datasource match {

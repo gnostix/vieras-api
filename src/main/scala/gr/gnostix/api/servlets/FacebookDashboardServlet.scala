@@ -51,7 +51,7 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, companyId, None)
+      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, user.userId, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -86,7 +86,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, companyId, Some(credId))
+      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, user.userId, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =
@@ -124,7 +124,7 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val rawData = MySocialChannelDaoFB.getDemographics(executor, fromDate, toDate, profileId, companyId, None)
+      val rawData = MySocialChannelDaoFB.getDemographics(executor, fromDate, toDate, user.userId, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -158,7 +158,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, profileId, companyId, Some(credId))
+      val rawData = MySocialChannelDaoFB.getStats(executor, fromDate, toDate, user.userId, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =
@@ -240,8 +240,8 @@ with FutureSupport {
       val dataType = params("dataType").toString
 
       val data = params("dataType") match {
-        case "comment" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, None)
-        case "post" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, None)
+        case "comment" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, dataType, None)
+        case "post" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, dataType, None)
       }
 
         new AsyncResult() {
@@ -281,8 +281,8 @@ with FutureSupport {
       val dataType = params("dataType").toString
 
       val data = params("dataType") match {
-        case "comment" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, Some(engId))
-        case "post" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, Some(engId))
+        case "comment" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, dataType, Some(engId))
+        case "post" => MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, dataType, Some(engId))
       }
 
       new AsyncResult() {
@@ -318,8 +318,8 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val post = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "post", None)
-      val comment = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "comment", None)
+      val post = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "post", None)
+      val comment = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "comment", None)
 
       val theData =
         new AsyncResult() {
@@ -357,8 +357,8 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val engId = params("credId").toInt
 
-      val post = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "post", Some(engId))
-      val comment = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, profileId, companyId, "comment", Some(engId))
+      val post = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "post", Some(engId))
+      val comment = MySocialChannelDaoFB.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "comment", Some(engId))
 
       val theData =
         new AsyncResult() {
@@ -403,7 +403,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, dataType, None)
+      val data = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, user.userId, profileId, companyId, dataType, None)
 
       new AsyncResult() {
         override val is =
@@ -446,7 +446,7 @@ with FutureSupport {
       val engId = params("engId").toInt
       val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, dataType, Some(engId))
+      val data = MySocialChannelDaoFB.getPeakTextData(executor, fromDate, toDate, peakDate, user.userId, profileId, companyId, dataType, Some(engId))
 
       new AsyncResult() {
         override val is =

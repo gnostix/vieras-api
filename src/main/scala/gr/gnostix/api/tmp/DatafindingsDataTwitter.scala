@@ -17,28 +17,28 @@ object DatafindingsDataTwitterDAO extends DatabaseAccessSupportOra {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getRowDataDefault(fromDate: DateTime, toDate: DateTime, profileId: Int): SocialData = {
+  def getRowDataDefault(fromDate: DateTime, toDate: DateTime, userId: Int, profileId: Int): SocialData = {
     val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
     //bring the actual data
-    getRawData(fromDate, toDate, profileId, mySqlDynamic)
+    getRawData(fromDate, toDate, userId, profileId, mySqlDynamic)
   }
 
-  def getRowDataByKeywords(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int]): SocialData = {
-    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
+  def getRowDataByKeywords(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  keywords: List[Int]): SocialData = {
+    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(userId, profileId, keywords)
     //bring the actual data
-    getRawData(fromDate, toDate, profileId, mySqlDynamic)
+    getRawData(fromDate, toDate, userId, profileId, mySqlDynamic)
   }
 
-  def getRowDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int]): SocialData = {
-    val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)
+  def getRowDataByTopics(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  topics: List[Int]): SocialData = {
+    val mySqlDynamic = SqlUtils.getDataByTopicsObj(userId, profileId, topics)
     //bring the actual data
-    getRawData(fromDate, toDate, profileId, mySqlDynamic)
+    getRawData(fromDate, toDate, userId, profileId, mySqlDynamic)
   }
 
 
-  def getRawData(fromDate: DateTime, toDate: DateTime, profileId: Int, sqlDynamicKeywordsTopics: String) = {
+  def getRawData(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  sqlDynamicKeywordsTopics: String) = {
 
-    val sqlQ = buildQuery(fromDate, toDate, profileId, sqlDynamicKeywordsTopics)
+    val sqlQ = buildQuery(fromDate, toDate, userId, profileId, sqlDynamicKeywordsTopics)
     var myData = List[DataTwitterGraph]()
 
     getConnection withSession {
@@ -52,7 +52,7 @@ object DatafindingsDataTwitterDAO extends DatabaseAccessSupportOra {
   }
 
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, sqlDynamicKeywordsTopics: String): String = {
+  def buildQuery(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  sqlDynamicKeywordsTopics: String): String = {
     logger.info("-------------> buildTwQuery -----------")
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)

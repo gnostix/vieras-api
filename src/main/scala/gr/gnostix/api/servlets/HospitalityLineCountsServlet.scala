@@ -51,7 +51,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
       // "line" for line data per day , week ect..
-      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, companyId, "line", None)
+      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, user.userId, profileId, companyId, "line", None)
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -84,7 +84,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
       // "total" for the total sum of messages for a period
-      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, companyId, "total", None)
+      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, user.userId, profileId, companyId, "total", None)
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", data)
         case None => ErrorDataResponse(404, "Error on data")
@@ -117,7 +117,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val datasourceId = params("datasourceId").toInt
 
-      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, companyId, "line", Some(datasourceId))
+      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, user.userId, profileId, companyId, "line", Some(datasourceId))
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -149,7 +149,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val datasourceId = params("datasourceId").toInt
 
-      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, profileId, companyId, "total", Some(datasourceId))
+      val rawData = MySocialChannelHotelDao.getDataCounts(fromDate, toDate, user.userId, profileId, companyId, "total", Some(datasourceId))
       rawData match {
         case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
         case None => ErrorDataResponse(404, "Error on data")
@@ -181,7 +181,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
       // "line" for line data per day , week ect..
-      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, profileId, companyId, None)
+      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, user.userId, profileId, companyId, None)
       new AsyncResult() {
         override val is =
           for {
@@ -216,7 +216,7 @@ with FutureSupport {
       val datasourceId = params("datasourceId").toInt
 
       // "line" for line data per day , week ect..
-      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, profileId, companyId, Some(datasourceId))
+      val rawData = MySocialChannelHotelDao.getServicesLineCountsAverageSentiment(executor, fromDate, toDate, user.userId, profileId, companyId, Some(datasourceId))
       new AsyncResult() {
         override val is =
           for {

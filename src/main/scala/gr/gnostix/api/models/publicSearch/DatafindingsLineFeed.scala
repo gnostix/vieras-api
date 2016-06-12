@@ -22,27 +22,27 @@ object DtFeedLineGraphDAO extends DatabaseAccessSupportOra {
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  def getLineDataDefault(fromDate: DateTime, toDate: DateTime, profileId: Int, feedType: Map[Int, String]): SocialData = {
+  def getLineDataDefault(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  feedType: Map[Int, String]): SocialData = {
     val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
     //bring the actual data
-    getLineData(fromDate, toDate, profileId, feedType, mySqlDynamic)
+    getLineData(fromDate, toDate, userId, profileId,feedType, mySqlDynamic)
   }
 
-  def getLineDataByKeywords(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int], feedType: Map[Int, String]): SocialData = {
-    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
+  def getLineDataByKeywords(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  keywords: List[Int], feedType: Map[Int, String]): SocialData = {
+    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(userId,profileId, keywords)
     //bring the actual data
-    getLineData(fromDate, toDate, profileId, feedType, mySqlDynamic)
+    getLineData(fromDate, toDate, userId, profileId,feedType, mySqlDynamic)
   }
 
-  def getLineDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int], feedType: Map[Int, String]): SocialData = {
-    val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)
+  def getLineDataByTopics(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  topics: List[Int], feedType: Map[Int, String]): SocialData = {
+    val mySqlDynamic = SqlUtils.getDataByTopicsObj(userId, profileId, topics)
     //bring the actual data
-    getLineData(fromDate, toDate, profileId, feedType, mySqlDynamic)
+    getLineData(fromDate, toDate, userId, profileId,feedType, mySqlDynamic)
   }
 
-  def getLineData(fromDate: DateTime, toDate: DateTime, profileId: Int, feedType: Map[Int, String], sqlDynamicKeywordsTopics: String): SocialData = {
+  def getLineData(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  feedType: Map[Int, String], sqlDynamicKeywordsTopics: String): SocialData = {
 
-    val sqlQ = buildQuery(fromDate, toDate, profileId, feedType.head._1, sqlDynamicKeywordsTopics)
+    val sqlQ = buildQuery(fromDate, toDate, userId, profileId,feedType.head._1, sqlDynamicKeywordsTopics)
     var myData = List[DataLineGraph]()
 
     getConnection withSession {
@@ -62,7 +62,7 @@ object DtFeedLineGraphDAO extends DatabaseAccessSupportOra {
   }
 
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, feedType: Int, sqlDynamicKeywordsTopics: String): String = {
+  def buildQuery(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  feedType: Int, sqlDynamicKeywordsTopics: String): String = {
     logger.info("-------------> buildQuery -----------")
 
     val numDays = DateUtils.findNumberOfDays(fromDate, toDate)
@@ -74,11 +74,11 @@ object DtFeedLineGraphDAO extends DatabaseAccessSupportOra {
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
     val fromDateStr: String = fmt.print(fromDate)
     val toDateStr: String = fmt.print(toDate)
-    getSql(numDays, fromDateStr, toDateStr, profileId, feedType, sqlDynamicKeywordsTopics)
+    getSql(numDays, fromDateStr, toDateStr, userId, profileId,feedType, sqlDynamicKeywordsTopics)
   }
 
 
-  def getSql(numDays: Int, fromDateStr: String, toDateStr: String, profileId: Int, feedType: Int, sqlGetProfileData: String) = {
+  def getSql(numDays: Int, fromDateStr: String, toDateStr: String,userId :Int, profileId: Int,  feedType: Int, sqlGetProfileData: String) = {
     if (numDays == 0) {
       val sql = s"""select count(*), trunc(RSS_DATE,'HH') from feed_results i
                            where RSS_DATE between TO_DATE('${fromDateStr}', 'DD-MM-YYYY HH24:MI:SS')

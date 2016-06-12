@@ -57,7 +57,7 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, companyId, None)
+      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, user.userId, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -92,7 +92,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val credId = params("credId").toInt
 
-      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, profileId, companyId, Some(credId))
+      val rawDataStats = MySocialChannelDaoYt.getStats(executor, fromDate, toDate, user.userId, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =
@@ -175,7 +175,7 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, companyId, None)
+      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -212,7 +212,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val engId = params("engId").toInt
 
-      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, profileId, companyId, Some(engId))
+      val data = MySocialChannelDaoYt.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, Some(engId))
 
 
       new AsyncResult() {

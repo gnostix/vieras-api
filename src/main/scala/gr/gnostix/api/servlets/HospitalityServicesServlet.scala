@@ -55,7 +55,7 @@ trait ServicesApiRoutes
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val rawData = HospitalityServicesDao.getDataServiceByName(executor, params("service"), profileId,
+      val rawData = HospitalityServicesDao.getDataServiceByName(executor, params("service"), user.userId, profileId,
         companyId, fromDate, toDate)
       new AsyncResult {
         val is =
@@ -91,7 +91,7 @@ trait ServicesApiRoutes
 
 
       // hotel services to get
-      val servicesStats = HospitalityServicesDao.getReviewRatingStats(executor, fromDate, toDate, profileId, companyId)
+      val servicesStats = HospitalityServicesDao.getReviewRatingStats(executor, fromDate, toDate, user.userId, profileId, companyId)
 
       new AsyncResult {
         val is =

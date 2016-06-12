@@ -17,28 +17,28 @@ object DatafindingsFirstLevelDataDAO extends DatabaseAccessSupportOra {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getFirstLevelDataDefault(fromDate: DateTime, toDate: DateTime, profileId: Int, datasource: String): SocialData = {
+  def getFirstLevelDataDefault(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  datasource: String): SocialData = {
     val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
     //bring the actual data
-    getFirstLevelData(fromDate, toDate, profileId, mySqlDynamic, datasource)
+    getFirstLevelData(fromDate, toDate, userId, profileId,mySqlDynamic, datasource)
   }
 
-  def getFirstLevelDataByKeywords(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int], datasource: String): SocialData = {
-    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
+  def getFirstLevelDataByKeywords(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  keywords: List[Int], datasource: String): SocialData = {
+    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(userId,profileId, keywords)
     //bring the actual data
-    getFirstLevelData(fromDate, toDate, profileId, mySqlDynamic, datasource)
+    getFirstLevelData(fromDate, toDate, userId, profileId,mySqlDynamic, datasource)
   }
 
-  def getFirstLevelDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int], datasource: String): SocialData = {
-    val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)
+  def getFirstLevelDataByTopics(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  topics: List[Int], datasource: String): SocialData = {
+    val mySqlDynamic = SqlUtils.getDataByTopicsObj(userId,profileId, topics)
     //bring the actual data
-    getFirstLevelData(fromDate, toDate, profileId, mySqlDynamic, datasource)
+    getFirstLevelData(fromDate, toDate, userId, profileId,mySqlDynamic, datasource)
   }
 
 
-  def getFirstLevelData(fromDate: DateTime, toDate: DateTime, profileId: Int, sqlDynamicKeywordsTopics: String, datasource: String) = {
+  def getFirstLevelData(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  sqlDynamicKeywordsTopics: String, datasource: String) = {
 
-    val sqlQ = buildQuery(fromDate, toDate, profileId, sqlDynamicKeywordsTopics, datasource)
+    val sqlQ = buildQuery(fromDate, toDate, userId, profileId,sqlDynamicKeywordsTopics, datasource)
     var myData = List[FirstLevelData]()
 
     getConnection withSession {
@@ -52,7 +52,7 @@ object DatafindingsFirstLevelDataDAO extends DatabaseAccessSupportOra {
   }
 
 
-  def buildQuery(fromDate: DateTime, toDate: DateTime, profileId: Int, sqlDynamicKeywordsTopics: String, datasource: String): String = {
+  def buildQuery(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  sqlDynamicKeywordsTopics: String, datasource: String): String = {
     logger.info("-------------> buildTwQuery -----------")
 
     /*    val numDays = DateUtils.findNumberOfDays(fromDate, toDate)

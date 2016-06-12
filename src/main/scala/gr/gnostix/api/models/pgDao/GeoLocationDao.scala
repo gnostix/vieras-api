@@ -21,8 +21,8 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getDataByProfileId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int): Future[Option[List[CountriesLine]]] = {
-    val sql = buildQueryByProfileId(profileId, companyId, fromDate, toDate)
+  def getDataByProfileId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int): Future[Option[List[CountriesLine]]] = {
+    val sql = buildQueryByProfileId(userId, profileId, companyId, fromDate, toDate)
     //bring the actual data
     val prom = Promise[Option[List[CountriesLine]]]()
 
@@ -34,8 +34,8 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getTextDataByProfileId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, countryId: String): Future[Option[ApiData]] = {
-    val sql = buildQueryTextData(fromDate, toDate, profileId, companyId, None, countryId)
+  def getTextDataByProfileId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, countryId: String): Future[Option[ApiData]] = {
+    val sql = buildQueryTextData(fromDate, toDate, userId, profileId, companyId, None, countryId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -47,9 +47,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getDataByDatasourceId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getDataByDatasourceId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int,
                             datasourceId: Int): Future[Option[List[CountriesLine]]] = {
-    val sql = buildQueryByDatasourceId(profileId, companyId, datasourceId, fromDate, toDate)
+    val sql = buildQueryByDatasourceId(userId, profileId, companyId, datasourceId, fromDate, toDate)
     //bring the actual data
     val prom = Promise[Option[List[CountriesLine]]]()
 
@@ -61,9 +61,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getTextDataByDatasourceId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getTextDataByDatasourceId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int,
                                 datasourceId: Int, countryId: String): Future[Option[ApiData]] = {
-    val sql = buildQueryTextData(fromDate, toDate, profileId, companyId, Some(datasourceId), countryId)
+    val sql = buildQueryTextData(fromDate, toDate, userId, profileId, companyId, Some(datasourceId), countryId)
     //bring the actual data
     val prom = Promise[Option[ApiData]]()
 
@@ -75,9 +75,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getDataByCredentialsId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int,
+  def getDataByCredentialsId(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int,
                              credId: Int): Future[Option[List[CountriesLine]]] = {
-    val sql = buildQueryByCredId(profileId, companyId, credId, fromDate, toDate)
+    val sql = buildQueryByCredId(userId, profileId, companyId, credId, fromDate, toDate)
     //bring the actual data
     val prom = Promise[Option[List[CountriesLine]]]()
 
@@ -90,9 +90,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryByProfileId(profileId: Int, companyId: Int, fromDate: DateTime, toDate: DateTime): String = {
+  private def buildQueryByProfileId(userId: Int, profileId: Int, companyId: Int, fromDate: DateTime, toDate: DateTime): String = {
 
-    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -114,9 +114,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     sql
   }
 
-  private def buildQueryByDatasourceId(profileId: Int, companyId: Int, datasourceId: Int, fromDate: DateTime, toDate: DateTime): String = {
+  private def buildQueryByDatasourceId(userId: Int, profileId: Int, companyId: Int, datasourceId: Int, fromDate: DateTime, toDate: DateTime): String = {
 
-    val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId)
+    val sqlEngAccount = SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -139,9 +139,9 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryByCredId(profileId: Int, companyId: Int, credId: Int, fromDate: DateTime, toDate: DateTime): String = {
+  private def buildQueryByCredId(userId: Int, profileId: Int, companyId: Int, credId: Int, fromDate: DateTime, toDate: DateTime): String = {
 
-    val sqlEngAccount = SqlUtils.buildHotelCredIdQuery(profileId, companyId, credId)
+    val sqlEngAccount = SqlUtils.buildHotelCredIdQuery(userId, profileId, companyId, credId)
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -216,7 +216,7 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
   }
 
 
-  private def buildQueryTextData(fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int, datasourceId: Option[Int], countryId: String): String = {
+  private def buildQueryTextData(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int, datasourceId: Option[Int], countryId: String): String = {
 
     val datePattern = "dd-MM-yyyy HH:mm:ss"
     val fmt: DateTimeFormatter = DateTimeFormat.forPattern(datePattern)
@@ -224,8 +224,8 @@ object GeoLocationDao extends DatabaseAccessSupportPg {
     val toDateStr: String = fmt.print(toDate)
 
     val sqlEngAccount = datasourceId match {
-      case Some(x) => SqlUtils.buildHotelDatasourceQuery(profileId, companyId, datasourceId.get)
-      case None => SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+      case Some(x) => SqlUtils.buildHotelDatasourceQuery(userId, profileId, companyId, datasourceId.get)
+      case None => SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
     }
 
 

@@ -54,7 +54,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
 
-      val rawDataStats = MySocialChannelHotelDao.getReviewStats(executor, fromDate, toDate, profileId, companyId, None)
+      val rawDataStats = MySocialChannelHotelDao.getReviewStats(executor, fromDate, toDate, user.userId, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -90,7 +90,7 @@ with FutureSupport {
 
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getReviewStats(executor, fromDate, toDate, profileId, companyId, Some(dsId))
+      val rawDataStats = MySocialChannelHotelDao.getReviewStats(executor, fromDate, toDate, user.userId, profileId, companyId, Some(dsId))
 
       new AsyncResult() {
         override val is =
@@ -125,7 +125,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
 
-      val rawDataStats = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, profileId, companyId, None)
+      val rawDataStats = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -160,7 +160,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, profileId, companyId, Some(dsId) )
+      val rawDataStats = MySocialChannelHotelDao.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, Some(dsId) )
 
       new AsyncResult() {
         override val is =
@@ -198,7 +198,7 @@ with FutureSupport {
       val sentiment = params("sentiment")
 
 
-      val rawDataStats = MySocialChannelHotelDao.getSentimentTextData(executor, fromDate, toDate, profileId, companyId, None, sentiment)
+      val rawDataStats = MySocialChannelHotelDao.getSentimentTextData(executor, fromDate, toDate, user.userId, profileId, companyId, None, sentiment)
 
       new AsyncResult() {
         override val is =
@@ -234,7 +234,7 @@ with FutureSupport {
       val sentiment = params("sentiment")
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getSentimentTextData(executor, fromDate, toDate, profileId, companyId, Some(dsId), sentiment)
+      val rawDataStats = MySocialChannelHotelDao.getSentimentTextData(executor, fromDate, toDate, user.userId, profileId, companyId, Some(dsId), sentiment)
 
       new AsyncResult() {
         override val is =
@@ -272,7 +272,7 @@ with FutureSupport {
       val staytype = params("staytype")
 
 
-      val rawDataStats = MySocialChannelHotelDao.getStayTypeTextData(executor, fromDate, toDate, profileId, companyId, None, staytype)
+      val rawDataStats = MySocialChannelHotelDao.getStayTypeTextData(executor, fromDate, toDate, user.userId, profileId, companyId, None, staytype)
 
       new AsyncResult() {
         override val is =
@@ -308,7 +308,7 @@ with FutureSupport {
       val staytype = params("staytype")
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getStayTypeTextData(executor, fromDate, toDate, profileId, companyId, Some(dsId), staytype)
+      val rawDataStats = MySocialChannelHotelDao.getStayTypeTextData(executor, fromDate, toDate, user.userId, profileId, companyId, Some(dsId), staytype)
 
       new AsyncResult() {
         override val is =
@@ -346,7 +346,7 @@ with FutureSupport {
       val sentiment = params("sentiment")
 
 
-      val rawDataStats = MySocialChannelHotelDao.getServiceBySentimentTextData(executor, fromDate, toDate, profileId, companyId, None, service, sentiment)
+      val rawDataStats = MySocialChannelHotelDao.getServiceBySentimentTextData(executor, fromDate, toDate, user.userId, profileId, companyId, None, service, sentiment)
 
       new AsyncResult() {
         override val is =
@@ -383,7 +383,7 @@ with FutureSupport {
       val sentiment = params("sentiment")
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getServiceBySentimentTextData(executor, fromDate, toDate, profileId, companyId, Some(dsId), service, sentiment)
+      val rawDataStats = MySocialChannelHotelDao.getServiceBySentimentTextData(executor, fromDate, toDate, user.userId, profileId, companyId, Some(dsId), service, sentiment)
 
       new AsyncResult() {
         override val is =
@@ -421,7 +421,7 @@ with FutureSupport {
       val service = params("service")
 
 
-      val rawDataStats = MySocialChannelHotelDao.getServiceTextData(executor, fromDate, toDate, profileId, companyId, None, service)
+      val rawDataStats = MySocialChannelHotelDao.getServiceTextData(executor, fromDate, toDate, user.userId, profileId, companyId, None, service)
 
       new AsyncResult() {
         override val is =
@@ -457,7 +457,7 @@ with FutureSupport {
       val service = params("service")
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getServiceTextData(executor, fromDate, toDate, profileId, companyId, Some(dsId), service)
+      val rawDataStats = MySocialChannelHotelDao.getServiceTextData(executor, fromDate, toDate, user.userId, profileId, companyId, Some(dsId), service)
 
       new AsyncResult() {
         override val is =
@@ -514,7 +514,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
 
 
-      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, profileId, companyId, None)
+      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, user.userId, profileId, companyId, None)
 
       new AsyncResult() {
         override val is =
@@ -550,7 +550,7 @@ with FutureSupport {
 
       val dsId = params("dsid").toInt
 
-      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, profileId, companyId, Some(dsId))
+      val rawDataStats = MySocialChannelHotelDao.getReviewRatingStats(executor, fromDate, toDate, user.userId, profileId, companyId, Some(dsId))
 
       new AsyncResult() {
         override val is =

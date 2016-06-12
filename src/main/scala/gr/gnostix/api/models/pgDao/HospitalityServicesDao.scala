@@ -23,8 +23,8 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
   implicit val getServicesStatsResult = GetResult(r => HotelRatingStats(r.<<, r.<<))
 
 
-  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, profileId: Int, companyId: Int): Future[Option[ApiData]] = {
-    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+  def getReviewRatingStats(implicit ctx: ExecutionContext, fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  companyId: Int): Future[Option[ApiData]] = {
+    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
 
     val mySqlDynamic = buildQueryRatingSentiment(fromDate, toDate, sqlEngAccount)
     //bring the actual data
@@ -36,11 +36,11 @@ object HospitalityServicesDao extends DatabaseAccessSupportPg {
     prom.future
   }
 
-  def getDataServiceByName(implicit ctx: ExecutionContext, serviceName: String, profileId: Int, companyId: Int,
+  def getDataServiceByName(implicit ctx: ExecutionContext, serviceName: String, userId :Int, profileId: Int,  companyId: Int,
                            fromDate: DateTime, toDate: DateTime): Future[Option[ApiData]] = {
     implicit val getHospitalitySentimentResult = GetResult(r => Sentiment(r.<<, r.<<, r.<<))
 
-    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(profileId, companyId)
+    val sqlEngAccount = SqlUtils.buildHotelCredentialsQuery(userId, profileId, companyId)
 
     val mySqlDynamic = buildQueryRatingSentimentByName(fromDate, toDate, serviceName: String, sqlEngAccount)
     //bring the actual data

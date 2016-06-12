@@ -16,7 +16,7 @@ object DatafindingsSentimentLineDao extends DatabaseAccessSupportOra {
   val logger = LoggerFactory.getLogger(getClass)
 
 
-  def getDataDefault(fromDate: DateTime, toDate: DateTime, profileId: Int, datasource: String): Option[SocialData] = {
+  def getDataDefault(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  datasource: String): Option[SocialData] = {
     val mySqlDynamic = SqlUtils.getDataDefaultObj(profileId)
     //bring the actual data
     val data = getData(fromDate, toDate, mySqlDynamic, datasource)
@@ -26,8 +26,8 @@ object DatafindingsSentimentLineDao extends DatabaseAccessSupportOra {
     }
   }
 
-  def getDataByKeywords(fromDate: DateTime, toDate: DateTime, profileId: Int, keywords: List[Int], datasource: String): Option[SocialData] = {
-    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(profileId, keywords)
+  def getDataByKeywords(fromDate: DateTime, toDate: DateTime,userId :Int, profileId: Int,  keywords: List[Int], datasource: String): Option[SocialData] = {
+    val mySqlDynamic = SqlUtils.getDataByKeywordsObj(userId, profileId, keywords)
     //bring the actual data
     val data = getData(fromDate, toDate, mySqlDynamic, datasource)
     data match {
@@ -36,8 +36,8 @@ object DatafindingsSentimentLineDao extends DatabaseAccessSupportOra {
     }
   }
 
-  def getDataByTopics(fromDate: DateTime, toDate: DateTime, profileId: Int, topics: List[Int], datasource: String): Option[SocialData] = {
-    val mySqlDynamic = SqlUtils.getDataByTopicsObj(profileId, topics)
+  def getDataByTopics(fromDate: DateTime, toDate: DateTime, userId :Int, profileId: Int,  topics: List[Int], datasource: String): Option[SocialData] = {
+    val mySqlDynamic = SqlUtils.getDataByTopicsObj(userId, profileId, topics)
     //bring the actual data
     val data = getData(fromDate, toDate, mySqlDynamic, datasource)
     data match {

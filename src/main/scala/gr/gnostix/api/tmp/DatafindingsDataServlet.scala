@@ -51,11 +51,11 @@ with CorsSupport {
         DtFacebookLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId),
         DtGoogleplusLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId),
         DtYoutubeLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId),
-        DtWebLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, WebDatasources.web),
-        DtWebLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, WebDatasources.linkedin),
-        DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, FeedDatasources.blogs),
-        DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, FeedDatasources.news),
-        DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, FeedDatasources.personal)
+        DtWebLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, WebDatasources.web),
+        DtWebLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, WebDatasources.linkedin),
+        DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, FeedDatasources.blogs),
+        DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, FeedDatasources.news),
+        DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, FeedDatasources.personal)
       )
       AllDataResponse(200, "Ola Pigan Kala!!!", myDataList)
 
@@ -82,7 +82,7 @@ with CorsSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
 
       val profileId = params("profileId").toInt
-      val lineData = DatafindingsDataTwitterDAO.getRowDataDefault(fromDate, toDate, profileId)
+      val lineData = DatafindingsDataTwitterDAO.getRowDataDefault(fromDate, toDate, user.userId, profileId)
         DataResponse(200, "Coulio Bro!!!", lineData)
     } catch {
       case e: NumberFormatException => "wrong profile number"
@@ -112,8 +112,8 @@ with CorsSupport {
       val profileId = params("profileId").toInt
 
       val lineData = params("keyortopic") match {
-        case "keywords" => DtTwitterLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList)
-        case "topics" => DtTwitterLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList)
+        case "keywords" => DtTwitterLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList)
+        case "topics" => DtTwitterLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList)
       }
 
       DataResponse(200, "Coulio Bro!!!", lineData)
@@ -141,7 +141,7 @@ with CorsSupport {
       val profileId = params("profileId").toInt
 
       logger.info(s"---->   parsed date ---> ${toDate}    ")
-      val lineData = DtFacebookLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId)
+      val lineData = DtFacebookLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId)
       DataResponse(200, "Coulio Bro!!!", lineData)
 
     } catch {
@@ -170,8 +170,8 @@ with CorsSupport {
 
       logger.info(s"---->   parsed date ---> ${toDate}    ")
       val lineData = params("keyortopic") match {
-        case "keywords" => DtFacebookLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList)
-        case "topics" => DtFacebookLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList)
+        case "keywords" => DtFacebookLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList)
+        case "topics" => DtFacebookLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList)
       }
       DataResponse(200, "Coulio Bro!!!", lineData)
 
@@ -197,7 +197,7 @@ with CorsSupport {
       val profileId = params("profileId").toInt
 
       logger.info(s"---->   parsed date ---> ${toDate}    ")
-      val lineData = DtGoogleplusLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId)
+      val lineData = DtGoogleplusLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId)
       DataResponse(200, "Coulio Bro!!!", lineData)
 
     } catch {
@@ -225,8 +225,8 @@ with CorsSupport {
 
       logger.info(s"---->   parsed date ---> ${toDate}    ")
       val lineData = params("keyortopic") match {
-        case "keywords" => DtGoogleplusLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList)
-        case "topics" => DtGoogleplusLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList)
+        case "keywords" => DtGoogleplusLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList)
+        case "topics" => DtGoogleplusLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList)
       }
       DataResponse(200, "Coulio Bro!!!", lineData)
 
@@ -254,9 +254,9 @@ with CorsSupport {
       logger.info(s"---->   parsed date ---> ${toDate}    ")
       val profileId = params("profileId").toInt
 
-      val lineData = DtYoutubeLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId)
+      val lineData = DtYoutubeLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId)
       DataResponse(200, "Coulio Bro!!!", lineData)
-      //user.userId
+      //user.user.userId
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
@@ -283,11 +283,11 @@ with CorsSupport {
       val profileId = params("profileId").toInt
 
       val lineData = params("keyortopic") match {
-        case "keywords" => DtYoutubeLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList)
-        case "topics" => DtYoutubeLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList)
+        case "keywords" => DtYoutubeLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList)
+        case "topics" => DtYoutubeLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList)
       }
       DataResponse(200, "Coulio Bro!!!", lineData)
-      //user.userId
+      //user.user.userId
     } catch {
       case e: NumberFormatException => "wrong profile number"
       case e: Exception => {
@@ -311,9 +311,9 @@ with CorsSupport {
       val profileId = params("profileId").toInt
 
       val lineData: SocialData = params("type") match {
-        case "blogs" => DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, FeedDatasources.blogs)
-        case "news" => DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, FeedDatasources.news)
-        case "personal" => DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, FeedDatasources.personal)
+        case "blogs" => DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, FeedDatasources.blogs)
+        case "news" => DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, FeedDatasources.news)
+        case "personal" => DtFeedLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, FeedDatasources.personal)
       }
       DataResponse(200, "Coulio Bro!!!", lineData)
 
@@ -343,16 +343,16 @@ with CorsSupport {
 
       val lineData: SocialData = params("type") match {
         case "blogs" => params("keyortopic") match {
-          case "keywords" => DtFeedLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList, FeedDatasources.blogs)
-          case "topics" => DtFeedLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList, FeedDatasources.blogs)
+          case "keywords" => DtFeedLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList, FeedDatasources.blogs)
+          case "topics" => DtFeedLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList, FeedDatasources.blogs)
         }
         case "news" => params("keyortopic") match {
-          case "keywords" => DtFeedLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList, FeedDatasources.news)
-          case "topics" => DtFeedLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList, FeedDatasources.news)
+          case "keywords" => DtFeedLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList, FeedDatasources.news)
+          case "topics" => DtFeedLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList, FeedDatasources.news)
         }
         case "personal" => params("keyortopic") match {
-          case "keywords" => DtFeedLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList, FeedDatasources.personal)
-          case "topics" => DtFeedLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList, FeedDatasources.personal)
+          case "keywords" => DtFeedLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList, FeedDatasources.personal)
+          case "topics" => DtFeedLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList, FeedDatasources.personal)
         }
       }
       DataResponse(200, "Coulio Bro!!!", lineData)
@@ -379,8 +379,8 @@ with CorsSupport {
       val profileId = params("profileId").toInt
 
       val lineData: SocialData = params("websource") match {
-        case "web" => DtWebLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, WebDatasources.web)
-        case "linkedin" => DtWebLineGraphDAO.getLineDataDefault(fromDate, toDate, profileId, WebDatasources.linkedin)
+        case "web" => DtWebLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, WebDatasources.web)
+        case "linkedin" => DtWebLineGraphDAO.getLineDataDefault(fromDate, toDate, user.userId, profileId, WebDatasources.linkedin)
       }
 
       DataResponse(200, "Coulio Bro!!!", lineData)
@@ -411,12 +411,12 @@ with CorsSupport {
 
       val lineData: SocialData = params("websource") match {
         case "web" => params("keyortopic") match {
-          case "keywords" => DtWebLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList, WebDatasources.web)
-          case "topics" => DtWebLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList, WebDatasources.linkedin)
+          case "keywords" => DtWebLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList, WebDatasources.web)
+          case "topics" => DtWebLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList, WebDatasources.linkedin)
         }
         case "linkedin" => params("keyortopic") match {
-          case "keywords" => DtWebLineGraphDAO.getLineDataByKeywords(fromDate, toDate, profileId, idsList, WebDatasources.web)
-          case "topics" => DtWebLineGraphDAO.getLineDataByTopics(fromDate, toDate, profileId, idsList, WebDatasources.linkedin)
+          case "keywords" => DtWebLineGraphDAO.getLineDataByKeywords(fromDate, toDate, user.userId, profileId, idsList, WebDatasources.web)
+          case "topics" => DtWebLineGraphDAO.getLineDataByTopics(fromDate, toDate, user.userId, profileId, idsList, WebDatasources.linkedin)
         }
       }
       DataResponse(200, "Coulio Bro!!!", lineData)

@@ -51,9 +51,9 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val rawDataStats = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, profileId, companyId, None)
-      val totalMentions = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalmention", None)
-      val totalRetweets = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalretweet", None)
+      val rawDataStats = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, user.userId, profileId, companyId, None)
+      val totalMentions = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalmention", None)
+      val totalRetweets = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalretweet", None)
       new AsyncResult() {
         override val is =
           for {
@@ -89,7 +89,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val credId = params("credId").toInt
 
-      val rawData = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, profileId, companyId, Some(credId))
+      val rawData = MySocialChannelDaoTw.getStats(executor, fromDate, toDate, user.userId, profileId, companyId, Some(credId))
 
       new AsyncResult() {
         override val is =
@@ -172,7 +172,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, None)
+      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, dataType, None)
 
 
       new AsyncResult() {
@@ -211,7 +211,7 @@ with FutureSupport {
       val engId = params("engId").toInt
       val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, dataType, Some(engId))
+      val data = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, dataType, Some(engId))
 
 
       new AsyncResult() {
@@ -247,9 +247,9 @@ with FutureSupport {
       val profileId = params("profileId").toInt
       val companyId = params("companyId").toInt
 
-      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "mention", None)
-      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "favorite", None)
-      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
+      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "mention", None)
+      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "favorite", None)
+      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "retweet", None)
 
       val theData =
         new AsyncResult() {
@@ -288,9 +288,9 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val engId = params("credId").toInt
 
-      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "mention", Some(engId))
-      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "favorite", Some(engId))
-      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, profileId, companyId, "retweet", Some(engId))
+      val mention = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "mention", Some(engId))
+      val favorite = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "favorite", Some(engId))
+      val retweet = MySocialChannelDaoTw.getTextData(executor, fromDate, toDate, user.userId, profileId, companyId, "retweet", Some(engId))
 
       val theData =
         new AsyncResult() {
@@ -335,7 +335,7 @@ with FutureSupport {
       val companyId = params("companyId").toInt
       val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, dataType, None)
+      val data = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, user.userId, profileId, companyId, dataType, None)
 
 
       new AsyncResult() {
@@ -379,7 +379,7 @@ with FutureSupport {
       val engId = params("engId").toInt
       val dataType = params("dataType").toString
 
-      val data = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, profileId, companyId, dataType, Some(engId))
+      val data = MySocialChannelDaoTw.getPeakTextData(executor, fromDate, toDate, peakDate, user.userId, profileId, companyId, dataType, Some(engId))
 
 
       new AsyncResult() {

@@ -48,7 +48,7 @@ import scala.concurrent.ExecutionContext
         val profileId = params("profileId").toInt
         val companyId = params("companyId").toInt
 
-        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, companyId, params("dataType"), None)
+        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, user.userId, profileId, companyId, params("dataType"), None)
         rawData match {
           case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
           case None => ErrorDataResponse(404, "Error on data")
@@ -80,7 +80,7 @@ import scala.concurrent.ExecutionContext
         val companyId = params("companyId").toInt
         val credId = params("credId").toInt
 
-        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, profileId, companyId, params("dataType"), Some(credId))
+        val rawData = MySocialChannelDaoTw.getLineCounts(fromDate, toDate, user.userId, profileId, companyId, params("dataType"), Some(credId))
         rawData match {
           case Some(data) => DataResponse(200, "Coulio Bro!!!", rawData.get)
           case None => ErrorDataResponse(404, "Error on data")
@@ -111,8 +111,8 @@ import scala.concurrent.ExecutionContext
         val companyId = params("companyId").toInt
 
 
-        val mention = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "mention", None)
-        val retweet = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, profileId, companyId, "retweet", None)
+        val mention = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, user.userId, profileId, companyId, "mention", None)
+        val retweet = MySocialChannelDaoTw.getLineAllData(executor, fromDate, toDate, user.userId, profileId, companyId, "retweet", None)
 
         val theData =
           new AsyncResult() {
@@ -170,8 +170,8 @@ import scala.concurrent.ExecutionContext
         val profileId = params("profileId").toInt
         val companyId = params("companyId").toInt
 
-        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalmention", None)
-        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalretweet", None)
+        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalmention", None)
+        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalretweet", None)
 
         val theData =
           new AsyncResult() {
@@ -218,8 +218,8 @@ import scala.concurrent.ExecutionContext
         val companyId = params("companyId").toInt
         val engId = params("engId").toInt
 
-        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalmention", Some(engId))
-        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, profileId, companyId, "totalretweet", Some(engId))
+        val mention = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalmention", Some(engId))
+        val retweet = MySocialChannelDaoTw.getTotalSumData(executor, fromDate, toDate, user.userId, profileId, companyId, "totalretweet", Some(engId))
 
         val theData =
           new AsyncResult() {
