@@ -12,10 +12,6 @@ object AppVersionDao extends DatabaseAccessSupportPg {
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  implicit val getUserResult = GetResult(r => User(r.<<, r.<<, r.<<, r.<<,
-    UserDetails(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<),
-    UserTotals(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<)))
-
   def getWebAppVersion: String = {
     try {
       getConnection withSession {
