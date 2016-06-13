@@ -13,8 +13,9 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
 case class User(userId: Int, username: String, var password: String,
                 userLevel: Int,
-                userDetails: UserDetails,
-                userTotals: UserTotals) extends Payload
+                userDetails: UserDetails
+//                userTotals: UserTotals
+               ) extends Payload
 
 case class UserDetails(firstName: String, lastName: String,
                        registrationDate: Timestamp, email: String, streetAddress: String,
@@ -23,10 +24,12 @@ case class UserDetails(firstName: String, lastName: String,
                        language: String,
                        expirationDate: Timestamp)
 
+/*
 case class UserTotals(totalCounts: Int, totalKeywords: Int,
                       enabled: Int, totalProfiles: Int,
                       totalTopicProfiles: Int, totalSocialAccounts: Int,
                       totalHotelAccounts: Int)
+*/
 
 case class UserRegistration(username: String, password: String, name: String, lastname: String, email: String, token: String)
 
@@ -35,17 +38,14 @@ object UserDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getUserResult = GetResult(r => User(r.<<, r.<<, r.<<, r.<<,
-    UserDetails(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<),
-    UserTotals(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<)))
+    UserDetails(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<)))
 
   def findById(userId: Int) = {
     getConnection withSession {
       implicit session =>
         val records = Q.queryNA[User]( s"""
           select id, username, password, userlevel, user_firstname, user_lastname, registration_date,
-            email, street_address, street_no, postal_code, city, company, language, expiration_date,
-            total_counts, total_keywords, enabled, total_profiles, total_topic_profiles,
-            total_social_account, total_hotels
+            email, street_address, street_no, postal_code, city, company, language, expiration_date
           from vieras.users where id =  $userId
           """)
         records.first
@@ -59,9 +59,7 @@ object UserDao extends DatabaseAccessSupportPg {
         try {
           val records = Q.queryNA[User]( s"""
         select id, username, password, userlevel, user_firstname, user_lastname, registration_date,
-            email, street_address, street_no, postal_code, city, company, language, expiration_date,
-            total_counts, total_keywords, enabled, total_profiles, total_topic_profiles,
-            total_social_account, total_hotels
+            email, street_address, street_no, postal_code, city, company, language, expiration_date
           from vieras.users where username = '$username'
           """)
           // and expiration_date >= now()::timestamp(0)
