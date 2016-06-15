@@ -45,6 +45,7 @@ with CorsSupport {
 
       logger.info("--------------> /login: request.getRemoteAddr : " + request.getRemoteAddr)
       logger.info("--------------> /login: request.getRemoteHost : " + request.getRemoteHost)
+      logger.info("--------------> /login: request.getHeaders : " + request.getHeaderNames.asScala.mkString(","))
       logger.info("--------------> /login: username : " + user.username)
       logger.info("--------------> /login: session.getid : " + session.getId)
 
