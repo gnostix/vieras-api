@@ -17,7 +17,8 @@ case class Profile(profileId: Int,
                    enabled: Int,
                    totalKeywords: Int,
                    language: String,
-                   var vierasTotalRating: Double)
+                   var vierasTotalRating: Double,
+                   var companies: List[CompanyGroup] = List())
 
 object ProfileDao extends DatabaseAccessSupportPg {
 

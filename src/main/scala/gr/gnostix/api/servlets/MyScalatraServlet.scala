@@ -44,6 +44,7 @@ with CorsSupport {
       logger.info("--------------> /login: successful Id: " + user.userId)
 
       logger.info("--------------> /login: request.getRemoteAddr : " + request.getRemoteAddr)
+      logger.info("--------------> /login: request.getRemoteHost : " + request.getRemoteHost)
       logger.info("--------------> /login: username : " + user.username)
       logger.info("--------------> /login: session.getid : " + session.getId)
 
