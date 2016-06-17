@@ -30,13 +30,6 @@ with CorsSupport {
     contentType = formats("json")
   }
 
-//  after(){
-//    response.addHeader(AppVersionDao.webVersionHeader, session.getOrElse("webversion","").toString)
-//  }
-
-  get("/testtheapi"){
-    "works"
-  }
 
   post("/login") {
     scentry.authenticate()
@@ -46,6 +39,8 @@ with CorsSupport {
       logger.info("--------------> /login: request.getRemoteAddr : " + request.getRemoteAddr)
       logger.info("--------------> /login: request.getRemoteHost : " + request.getRemoteHost)
       logger.info("--------------> /login: request.getHost : " + request.getHeader("Host"))
+      logger.info("--------------> /login: request.getX-Real-IP : " + request.getHeader("X-Real-IP"))
+      logger.info("--------------> /login: request.getX-Forwarded-For : " + request.getHeader("X-Forwarded-For"))
       logger.info("--------------> /login: request.getReferer : " + request.getHeader("Referer"))
       logger.info("--------------> /login: request.getReferer : " + request.getRemoteUser())
       logger.info("--------------> /login: request.getHeaders : " + request.getHeaderNames.asScala.mkString(","))
