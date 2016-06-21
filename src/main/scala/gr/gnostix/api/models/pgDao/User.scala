@@ -13,8 +13,9 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
 case class User(userId: Int, username: String, var password: String,
                 userLevel: Int,
-                userDetails: UserDetails
-//                userTotals: UserTotals
+                userDetails: UserDetails,
+                var profiles: List[Profile] = List()
+                //                userTotals: UserTotals
                ) extends Payload
 
 case class UserDetails(firstName: String, lastName: String,
@@ -63,7 +64,14 @@ object UserDao extends DatabaseAccessSupportPg {
           from vieras.users where username = '$username'
           """)
           // and expiration_date >= now()::timestamp(0)
-          if (records.list.size == 0) None else Some(records.first)
+          /*if (records.list.size == 0) None else {
+            records.foreach{
+              usr => usr.profiles = ProfileDao.getProfilesByUserId(usr.userId).getOrElse(List())
+            }
+            Some(records.first)
+          }
+          */
+          Some(records.first)
         } catch {
           case e: Exception => e.printStackTrace()
             None

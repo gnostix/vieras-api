@@ -60,6 +60,25 @@ with FutureSupport {
   }
 
 
+  get("/data"){
+    logger.info("---->   return all account data   ")
+    try {
+      val profiles: Option[List[Profile]] = ProfileDao.getProfilesByUserId(user.userId)
+      profiles match {
+        case Some(p) => p.foreach{pr =>
+          pr.companies = CompanyDao.getCompaniesByProfileUserId(user.userId, pr.profileId)
+        }
+        case None =>
+      }
+
+      ApiMessages.generalSuccess("account_data", profiles)
+    } catch {
+      case e: Exception => {
+        logger.info("----> Something went wrong" + e.printStackTrace())
+        ApiMessages.generalError
+      }
+    }
+  }
 
   get("/profile/:profileId") {
     logger.info(s"---->   return profile with id ${params("profileId")}     ")
@@ -73,7 +92,7 @@ with FutureSupport {
   get("/profiles/all") {
     logger.info("---->   return all profiles with id and name     " + user.userId)
     try {
-      val profiles = ProfileDao.getAllProfiles(user.userId)
+      val profiles = ProfileDao.getAllProfilesAndCompanies(user.userId)
 
       //val companies =  profiles.map{ x => CompanyDao.findAllCompanies(user.userId, x.data.asInstanceOf[Profile].profileId)}
 
@@ -173,10 +192,10 @@ with FutureSupport {
   }
 
   get("/profile/:profileId/company/all") {
-    logger.info("---->   return all profiles with id and name     " + user.userId)
+    logger.info("---->   return all companies with id and name     " + user.userId)
     try {
       val profileId = params("profileId").toInt
-      val company = CompanyDao.findAllCompanies(user.userId,profileId)
+      val company = CompanyDao.findAllCompaniesAsApiData(user.userId,profileId)
       ApiData.cleanDataResponse(company)
     } catch {
       case e: Exception => "Something went wrong" + e.printStackTrace()

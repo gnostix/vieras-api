@@ -13,9 +13,7 @@ case class Profile(profileId: Int,
                    creationDate: Timestamp,
                    email: String,
                    profileLevel: Int,
-                   totalCounts: Int,
                    enabled: Int,
-                   totalKeywords: Int,
                    language: String,
                    var vierasTotalRating: Double,
                    var companies: List[CompanyGroup] = List())
@@ -25,7 +23,7 @@ object ProfileDao extends DatabaseAccessSupportPg {
   val logger = LoggerFactory.getLogger(getClass)
 
   implicit val getProfileResult = GetResult(r => Profile(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<))
 
   def findById(userId: Int, profileId: Int): Option[ApiData] = {
     getConnection withSession {
@@ -33,8 +31,8 @@ object ProfileDao extends DatabaseAccessSupportPg {
 
         try {
           val records = Q.queryNA[Profile]( s"""
-                select c.id, c.profile_name,c.registration_date,c.email,c.userlevel,c.total_counts,c.enabled,
-                    c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
+                select c.id, c.profile_name,c.registration_date,c.email,c.userlevel,c.enabled,
+                    c.language,c.VIERAS_TOTAL_RATING
                    from vieras.profiles c  where c.id = $profileId
           """)
           //  and c.fk_user_id = $userId  -- I need to add this but first make corectly the auth with basic auth and api key. otherwise
@@ -76,15 +74,61 @@ object ProfileDao extends DatabaseAccessSupportPg {
     }
   }
 
-
-  def getAllProfiles(userId: Int): Option[List[ApiData]] = {
+  def getProfilesByUserId(userId: Int): Option[List[Profile]] = {
     getConnection withSession {
       implicit session =>
 
         try {
-          val records = Q.queryNA[Profile]( s"""
+          val records = Q.queryNA[Profile](
+            s"""
           select c.id, c.profile_name,  c.registration_date, c.email,c.userlevel,
-              c.total_counts,c.enabled,c.total_keywords,c.language,c.VIERAS_TOTAL_RATING
+              c.enabled,c.language,c.VIERAS_TOTAL_RATING
+            from vieras.profiles c  where  c.fk_user_id = $userId
+          """)
+          val profiles = records.list()
+
+          profiles.map {
+            x => {
+              x.vierasTotalRating = {
+                val rating = Q.queryNA[(Int, Double)](
+                  s"""
+                      select r.fk_hotel_id ,max(r.vieras_total_rating)
+                          from vieras.eng_hotel_stats r, vieras.ENG_PROFILE_HOTEL_CREDENTIALS f
+                          where r.fk_hotel_id = f.fk_hotel_id
+                                and f.FK_HOTEL_ID IN (
+                            SELECT FK_HOTEL_ID FROM vieras.ENG_PROFILE_HOTEL_CREDENTIALS cr, vieras.eng_company co
+                            WHERE cr.FK_company_ID = co.id and co.type = 'MYCOMPANY'
+                                  and co.fk_profile_id=${x.profileId}
+                          )
+                          and r.CREATED between now()::timestamp(0) - interval '30' day and now()::timestamp(0)
+                                and vieras_total_rating is not null
+                          group by r.fk_hotel_id ,r.vieras_total_rating
+           """).list()
+
+                if (rating.size > 0) {
+                  BigDecimal(rating.map(x => x._2).sum / rating.size).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+                } else 0
+              }
+
+              x.companies = CompanyDao.getCompaniesByProfileUserId(userId, x.profileId)
+            }
+          }
+          Some(profiles)
+        }
+    }
+
+  }
+
+
+  def getAllProfilesAndCompanies(userId: Int): Option[List[ApiData]] = {
+    getConnection withSession {
+      implicit session =>
+
+        try {
+          val records = Q.queryNA[Profile](
+            s"""
+          select c.id, c.profile_name,  c.registration_date, c.email,c.userlevel,
+              c.enabled,c.language,c.VIERAS_TOTAL_RATING
             from vieras.profiles c  where  c.fk_user_id = $userId
           """)
           val profiles = records.list()
@@ -114,7 +158,7 @@ object ProfileDao extends DatabaseAccessSupportPg {
             }
           }
           if (profiles.size > 0) {
-            val companies: List[ApiData] = profiles.map { x => CompanyDao.findAllCompanies(userId, x.profileId).get} //.groupBy(x => x.dataName).toList
+            val companies: List[ApiData] = profiles.map { x => CompanyDao.findAllCompaniesAsApiData(userId, x.profileId).get} //.groupBy(x => x.dataName).toList
 
             val cleanCompanies = companies.groupBy(x => x.dataName).map {
               case (x, y) => ApiData(x, y.map(z => z.data.asInstanceOf[List[CompanyGroup]]).flatMap(f => f.map(g => g)))
