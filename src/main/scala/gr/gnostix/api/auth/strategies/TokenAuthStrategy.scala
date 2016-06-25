@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import gr.gnostix.api.models.pgDao.{User, UserDao}
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.ScentryStrategy
+import org.slf4j.LoggerFactory
 
 /**
   * Created by rebel on 22/6/16.
@@ -13,6 +14,9 @@ class TokenAuthStrategy(protected val app: ScalatraBase)
                        (implicit request: HttpServletRequest, response: HttpServletResponse)
   extends ScentryStrategy[User] {
 
+  val logger = LoggerFactory.getLogger(getClass)
+
+  override def name: String = "TokenAuth"
 
   object HeaderTokenHelper {
 
@@ -28,6 +32,7 @@ class TokenAuthStrategy(protected val app: ScalatraBase)
   /* check if the request is valid for token authentication */
   override def isValid(implicit request: HttpServletRequest) = {
     import HeaderTokenHelper._
+    logger.info("---------->  TokenStrategy: determining isValid: " + (header != None) )
     header != None // && application != None
   }
 
@@ -42,7 +47,6 @@ class TokenAuthStrategy(protected val app: ScalatraBase)
       case _ => None
     }
 
-    None
   }
 
   /**
