@@ -1,7 +1,7 @@
 package gr.gnostix.api.auth
 
 
-import gr.gnostix.api.auth.strategies.{TheBasicAuthStrategy, UserPasswordStrategy}
+import gr.gnostix.api.auth.strategies.{TokenAuthStrategy, TheBasicAuthStrategy, UserPasswordStrategy}
 import gr.gnostix.api.models.pgDao.{User, UserDao}
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.{ScentryConfig, ScentrySupport}
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User] {
   self: ScalatraBase =>
 
-  val realm = "Gnostix Basic Auth"
+  val realm = "Vieras Basic Auth"
   val logger = LoggerFactory.getLogger(getClass)
 
 
@@ -56,6 +56,7 @@ trait AuthenticationSupport extends ScalatraBase with ScentrySupport[User] {
 
   override protected def registerAuthStrategies = {
     scentry.register("TheBasicAuth", app => new TheBasicAuthStrategy(app, realm))
+    scentry.register("TokenAuth", app => new TokenAuthStrategy(app))
     scentry.register("UserPassword", app => new UserPasswordStrategy(app))
     //scentry.register("RememberMe", app => new RememberMeStrategy(app))
   }

@@ -13,8 +13,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 
 case class User(userId: Int, username: String, var password: String,
                 userLevel: Int,
-                userDetails: UserDetails,
-                var profiles: List[Profile] = List()
+                userDetails: UserDetails
                 //                userTotals: UserTotals
                ) extends Payload
 
@@ -64,14 +63,8 @@ object UserDao extends DatabaseAccessSupportPg {
           from vieras.users where username = '$username'
           """)
           // and expiration_date >= now()::timestamp(0)
-          /*if (records.list.size == 0) None else {
-            records.foreach{
-              usr => usr.profiles = ProfileDao.getProfilesByUserId(usr.userId).getOrElse(List())
-            }
-            Some(records.first)
-          }
-          */
-          Some(records.first)
+
+          records.firstOption()
         } catch {
           case e: Exception => e.printStackTrace()
             None
@@ -79,6 +72,31 @@ object UserDao extends DatabaseAccessSupportPg {
 
     }
   }
+
+  def findByTokenKey(hostname: String, token: String): Option[User] = {
+    getConnection withSession {
+      implicit session =>
+
+        try {
+          val records = Q.queryNA[User]( s"""
+        select u.id, u.username, u.password, u.userlevel, u.user_firstname, u.user_lastname, u.registration_date,
+             u.email, u.street_address, u.street_no, u.postal_code, u.city, u.company, u.language, u.expiration_date
+          from vieras.users u, vieras.api_allowed_hosts a
+           where u.token = '$token'
+           and u.id = a.fk_user_id
+           and a.host = '$hostname'
+          """)
+          // and expiration_date >= now()::timestamp(0)
+
+          records.firstOption()
+        } catch {
+          case e: Exception => e.printStackTrace()
+            None
+        }
+
+    }
+  }
+
 
   def getUsers = {
     getConnection withSession {
