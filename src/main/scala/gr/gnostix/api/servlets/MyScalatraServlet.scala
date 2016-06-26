@@ -39,6 +39,7 @@ with CorsSupport {
       logger.info("--------------> /login: request.getRemoteAddr : " + request.getRemoteAddr)
       logger.info("--------------> /login: request.getRemoteHost : " + request.getRemoteHost)
       logger.info("--------------> /login: request.getHost : " + request.getHeader("Host"))
+      logger.info("--------------> /login: request.getServerName: " + request.getServerName)
       logger.info("--------------> /login: request.getX-Real-IP : " + request.getHeader("X-Real-IP"))
       logger.info("--------------> /login: request.getX-Forwarded-For : " + request.getHeader("X-Forwarded-For"))
       logger.info("--------------> /login: request.getReferer : " + request.getHeader("Referer"))
