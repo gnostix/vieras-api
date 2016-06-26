@@ -3,6 +3,7 @@ package gr.gnostix.api.models.pgDao
 
 import java.sql.{CallableStatement, Timestamp}
 
+import gr.gnostix.api.auth.security.BearerTokenGenerator
 import gr.gnostix.api.db.plainsql.{DatabaseAccessSupportPg}
 import gr.gnostix.api.models.plainModels.{UserAccount, ApiMessages, Payload}
 import gr.gnostix.api.utilities.{EmailUtils, HelperFunctions}
@@ -141,7 +142,9 @@ object UserDao extends DatabaseAccessSupportPg {
   def createUser(userReg: UserRegistration): Option[Int] = {
     try {
 
-      val sql = "{call vieras.create_user(?, ?, ?, ?, ?, ?, ?)}"
+      val tokenGenerator = new BearerTokenGenerator()
+
+      val sql = "{call vieras.create_user(?, ?, ?, ?, ?, ?, ?, ?)}"
 
       val connection = getConnection.createConnection()
       val callableStatement: CallableStatement = connection.prepareCall(sql)
@@ -152,6 +155,7 @@ object UserDao extends DatabaseAccessSupportPg {
       callableStatement.setString(5, userReg.password);
       callableStatement.setInt(6, 2);
       callableStatement.setString(7, userReg.username);
+      callableStatement.setString(8, tokenGenerator.generateSHAToken(userReg.username));
 
       callableStatement.executeUpdate()
 
