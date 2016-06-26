@@ -6,6 +6,7 @@ import gr.gnostix.api.models.pgDao.{User, UserDao}
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.ScentryStrategy
 import org.slf4j.LoggerFactory
+import scala.collection.JavaConverters._
 
 /**
   * Created by rebel on 22/6/16.
@@ -25,7 +26,12 @@ class TokenAuthStrategy(protected val app: ScalatraBase)
 
     lazy val header = Option(request.getHeader(ApiHeader));
     //    lazy val application = Option(request.getHeader(AppHeader));
-    lazy val servername = request.getServerName();
+    // we pass to our proxy nginx the real ip of the user who consumes our API
+    // if we work locally we don't have the X-Real-IP header so fo rtesting we get the servername
+    val servername = request.getHeaderNames.asScala.contains("X-Real-IP") match {
+      case true => request.getHeader("X-Real-IP")
+      case false => request.getServerName()
+    }
 
   }
 
